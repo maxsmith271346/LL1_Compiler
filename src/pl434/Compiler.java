@@ -7,7 +7,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import ast.AST;
-import ast.Computation;
+import pl434.Token.Kind;
 
 public class Compiler {
 
@@ -100,12 +100,10 @@ public class Compiler {
 
     private Symbol tryResolveVariable (Token ident) {
         //TODO: Try resolving variable, handle SymbolNotFoundError
-        return null; 
     }
 
     private Symbol tryDeclareVariable (Token ident) {
         //TODO: Try declaring variable, handle RedeclarationError
-        return null;
     }
 
     private String reportResolveSymbolError (String name, int lineNum, int charPos) {
@@ -190,196 +188,282 @@ public class Compiler {
 
 
 // Grammar Rules ==============================================================
-
     // function for matching rule that only expects nonterminal's FIRST set
     private Token matchNonTerminal (NonTerminal nt) {
         return expectRetrieve(nt);
     }
 
-    // TODO: copy operators and type grammar rules from Compiler
+    // powOp = "^"
+    private Token powOp () {
+        return matchNonTerminal(NonTerminal.POW_OP);
+    }
+
+    private Token multOp () {
+        return matchNonTerminal(NonTerminal.MULT_OP);
+    }
+
+    private Token addOp () {
+        return matchNonTerminal(NonTerminal.ADD_OP);
+    }
+
+    private Token relOp () {
+        return matchNonTerminal(NonTerminal.REL_OP);
+    }
+
+    private Token assignOp() {
+        return matchNonTerminal(NonTerminal.ASSIGN_OP);
+    }
+
+    private Token unaryOp () {
+        return matchNonTerminal(NonTerminal.UNARY_OP);
+    }
+
+    // type = "bool" | "int" | "float"
+    private Token type () {
+        return matchNonTerminal(NonTerminal.TYPE_DECL);
+    }
+
+    // boolLit = "true" | "false"
+    private Token boolLit () {
+        return matchNonTerminal(NonTerminal.BOOL_LIT);
+    }
 
     // literal = integerLit | floatLit
     private Token literal () {
         return matchNonTerminal(NonTerminal.LITERAL);
     }
 
-    // TODO: copy remaining grammar rules from Compiler and make edits to build ast
-
-    private void varDecl(){
-        // typeDecl ident {"," ident} ";"
-        expect(NonTerminal.VAR_DECL);
-        expect(Token.Kind.IDENT);
-
-        while (accept(Token.Kind.COMMA)){
-            expect(Token.Kind.IDENT);
-        }
-        
-        expect(Token.Kind.SEMICOLON);
-
-    }
-
-    private void statSeq(){
-        statement();       
-        expect(Token.Kind.SEMICOLON);
-        
-        while(have(NonTerminal.STATEMENT)){
-            statement();
-            expect(Token.Kind.SEMICOLON);
-        }
-    }
-
-    private void statement(){
-        // statement = assign | funcCall | ifStat | whileStat | repeatStat | returnStat . 
-        if(have(NonTerminal.ASSIGN)){
-            expect(NonTerminal.STATEMENT);
-            assign();
-        }
-        else if(have(NonTerminal.FUNC_CALL)){
-            expect(NonTerminal.STATEMENT);
-            funcCall();
-        }
-        else if(have(NonTerminal.IF_STAT)){
-            expect(NonTerminal.STATEMENT);
-            ifStat();
-        }
-        // TODO: add whileStat here
-        // TODO: add repeatStat here
-        else if(have(NonTerminal.RETURN_STAT)){
-            expect(NonTerminal.STATEMENT);
-        }
-        else{ // If none of these, then return an error message saying that we expected a STATEMENT
-            expect(NonTerminal.STATEMENT);
-        }
-    }
-
-
-    private void assign(){
-        // assign = "let" designator ((assignOP relExpr) | unaryOp)
-        // "let" should have already been consumed in statement()
-        designator();
-
-        // assignOP relEXpr
-        if(accept(NonTerminal.ASSIGN_OP)){
-            relExpr();
-        }
-        // unaryOp
-        else if(accept(NonTerminal.UNARY_OP)){
-        }
-        else{ 
-            expect(NonTerminal.ASSIGN_OP);
-        }
-    }
-
+    // designator = ident { "[" relExpr "]" }
     private void designator () {
-        // designator = ident { "[" relExpr "]" }
-        expect(Token.Kind.IDENT);
-        
-        // TODO: add arrays here
-    }
+        int lineNum = lineNumber();
+        int charPos = charPosition();
+        Token ident = expectRetrieve(Kind.IDENT);
 
-    private void relExpr(){
-        // relExpr = addExpr {relOp addExpr}
-        addExpr(); 
-
-        while(accept(NonTerminal.REL_OP)){
-            addExpr();
+        if (accept(Kind.OPEN_BRACKET)) {
+            relExpr();
+            expect(Kind.CLOSE_BRACKET);
         }
     }
 
-    private void addExpr(){
-        // addExpr = multExpr {addOp multExpr}
-        multExpr(); 
-
-        while(accept(Token.Kind.ADD) || accept(Token.Kind.SUB) || accept(Token.Kind.SUB)){
-            multExpr();
+    // groupExpr = literal | designator | "not" relExpr | "(" relExpr ")"
+    // | funcCall
+    private void groupExpr() {
+        if (have(NonTerminal.LITERAL)) { literal(); }
+        else if (have(NonTerminal.BOOL_LIT)) { boolLit(); }
+        else if (have(NonTerminal.DESIGNATOR)) { designator(); }
+        else if (accept(Kind.NOT)) {relExpr(); }
+        else if (accept(Kind.OPEN_PAREN)) {
+            relExpr();
+            expect(Kind.CLOSE_PAREN);
         }
+        else { funcCall(); }
     }
 
-    private void multExpr(){
-        // multExpr = powExpr {multOp powExpr}
+    // powExpr = groupExpr {powOp groupExpr}
+    private void powExpr() {
+        groupExpr();
+        while (have(NonTerminal.POW_OP)) {
+            powOp();
+            groupExpr();
+        }
+    }
+    
+    // multExpr = powExpr {relOp powExpr}
+    private void multExpr() {
         powExpr();
-
-        while(accept(Token.Kind.MUL) || accept(Token.Kind.DIV) || accept(Token.Kind.MOD) || accept(Token.Kind.AND)){
+        while (have(NonTerminal.MULT_OP)) {
+            multOp();
             powExpr();
         }
     }
 
-    private void powExpr(){
-        // powExpr = groupExpr {powOP groupExpr}
-        groupExpr();
-
-        while(accept(Token.Kind.POW)){
-            groupExpr();
+    // addExpr = multExpr {addOp multExpr}
+    private void addExpr() {
+        multExpr();
+        while (have(NonTerminal.ADD_OP)) {
+            addOp();
+            multExpr();
         }
     }
 
-    private void groupExpr(){
-        // groupExpr = literal | designator | "not" relExpr | "(" relExpr ")" | funcCall
-        if(have(NonTerminal.LITERAL)){
-            literal(); // gets the literal
+    // relExpr = addExpr {relOp addExpr}
+    private void relExpr() {
+        addExpr();
+        while (have(NonTerminal.REL_OP)) {
+            relOp();
+            addExpr();
         }
-        else if(have(NonTerminal.DESIGNATOR)){
-            designator();
-        }
-        else if(accept(Token.Kind.NOT)){
+    }
+
+    // assign = "let" designator ((assignOp relExpr) | unaryOp)
+    private void assign () {
+        expect(NonTerminal.ASSIGN);
+        designator();
+        
+        if (accept(NonTerminal.ASSIGN_OP)) {
             relExpr();
         }
-        else if(accept(Token.Kind.OPEN_PAREN)){
-            relExpr();
-            expect(Token.Kind.CLOSE_PAREN);
-        }
-        else if(accept(NonTerminal.FUNC_CALL)){
-            funcCall();
-        }
-        else{ 
-            expect(NonTerminal.DESIGNATOR);
-        }
+        else { unaryOp(); }
     }
 
-    private void funcCall(){
-        // funcCall = "call" ident "(" [ relExpr { ", relExpr"} ] ")".
-        accept(Token.Kind.IDENT);
-        expect(Token.Kind.OPEN_PAREN);
-        // TODO: add arrays here
-        expect(Token.Kind.CLOSE_PAREN);
-    }
-
-    private void ifStat(){
-        // ifStat = "if" relation "then" statSeq ["else" statSeq] "fi"
+    // relation = "(" relExpr ")"
+    private void relation () {
         expect(NonTerminal.RELATION);
-        expect(Token.Kind.CLOSE_PAREN);
-        expect(Token.Kind.THEN);
-
-        statSeq();
-
-        if (accept(Token.Kind.ELSE)){
-            statSeq();
-        }
-
-        expect(Token.Kind.FI);
+        relExpr();
+        expect(Kind.CLOSE_PAREN);
     }
-    // computation	= "main" {varDecl} {funcDecl} "{" statSeq "}" "."
-    private Computation computation () {
-        expect(Token.Kind.MAIN);
 
-        while(have(NonTerminal.VAR_DECL)){
-            varDecl();
+    // funcCall = "call" ident "(" [relExpr {"," relExpr}] ")"
+    private void funcCall () {
+        expect(NonTerminal.FUNC_CALL);
+        expect(Kind.OPEN_PAREN);
+
+        if (have(NonTerminal.EXPRESSION)) {
+            do {
+                relExpr();
+            } while (accept(Kind.COMMA));
         }
 
-        // TODO: add funcDecl
+        expect(Kind.CLOSE_PAREN);
+    }
 
-        expect(Token.Kind.OPEN_BRACE);
-
+    // ifStat = "if" relation "then" statSeq ["else" statSeq] "fi"
+    private void ifStat () {
+        expect(NonTerminal.IF_STAT);
+        relation();
+        expect(Kind.THEN);
         statSeq();
 
-        while(have(NonTerminal.STAT_SEQ)){
+        if (accept(Kind.ELSE)) {
             statSeq();
         }
 
-        expect(Token.Kind.CLOSE_BRACE);
-        expect(Token.Kind.PERIOD);
+        expect(Kind.FI);
+    }
 
-        // TODO: change this return
-        return null;
+    // whileStat = "while" relation "do" statSeq "od"
+    private void whileStat () {
+        expect(NonTerminal.WHILE_STAT);
+        relation();
+        expect(Kind.DO);
+        statSeq();
+        expect(Kind.OD);
+    }
+
+    // repeatStat = "repeat" statSeq "until" relation
+    private void repeatStat () {
+        expect(NonTerminal.REPEAT_STAT);
+        statSeq();
+        expect(Kind.UNTIL);
+        relation();
+    }
+
+    // returnStat = "return" [relExpr]
+    private void returnStat () {
+        expect(NonTerminal.RETURN_STAT);
+        if (have(NonTerminal.EXPRESSION)) {
+            relExpr();
+        }
+    }
+
+    // statement = assign | funcCall | ifStat | whileStat |
+    // repeatStat | returnStat
+    private void statement () {
+        if (have(NonTerminal.ASSIGN)) { assign(); }
+        else if (have(NonTerminal.FUNC_CALL)) { funcCall(); }
+        else if (have(NonTerminal.IF_STAT)) { ifStat(); }
+        else if (have(NonTerminal.WHILE_STAT)) { whileStat(); }
+        else if (have(NonTerminal.REPEAT_STAT)) { repeatStat(); }
+        else { returnStat(); }
+    }
+
+    // statSeq = statement ";" {statement ";"}
+    private void statSeq () {
+        do {
+            statement();
+            expect(Kind.SEMICOLON);
+        } while (have(NonTerminal.STATEMENT)); 
+    }
+
+    // typeDecl = type { "[" integerLit "]" }
+    private void typeDecl () {
+        type();
+        if (accept(Kind.OPEN_BRACKET)) {
+            expect(Kind.INT_VAL);
+            expect(Kind.CLOSE_BRACKET);
+        }
+    }
+
+    // varDecl = typeDecl ident {"," ident} ";"
+    private void varDecl () {
+        typeDecl();
+        do {
+            expectRetrieve(Kind.IDENT);
+        } while (accept(Kind.COMMA));
+        expect(Kind.SEMICOLON);
+    }
+
+    // paramType = type { "[" "]" }
+    private void paramType () {
+        type();
+        if (accept(Kind.OPEN_BRACKET)) {
+            expect(Kind.CLOSE_BRACKET);
+        }
+    }
+ 
+    // paramDecl = paramType ident
+    private void paramDecl () {
+        paramType();
+        expectRetrieve(Kind.IDENT);
+    }
+
+    // formalParam = "(" [ paramDecl { "," paramDecl } ] ")"
+    private void formalParam () {
+        expect(Kind.OPEN_PAREN);
+        if (have(NonTerminal.PARAM_DECL)) {
+            do {
+                paramDecl();
+            } while (accept(Kind.COMMA));
+        }
+        expect(Kind.CLOSE_PAREN);
+    }
+
+    // funcBody = "{" { varDecl } statSeq "}" ";"
+    private void funcBody () {
+        expect(Kind.OPEN_BRACE);
+
+        while (have(NonTerminal.VAR_DECL)) { varDecl(); }
+
+        statSeq();
+        expect(Kind.CLOSE_BRACE);
+        expect(Kind.SEMICOLON);
+    }
+
+    // funcDecl = "function" ident formalParam ":" ( "void" | type ) funcBody
+    private void funcDecl () {
+        expect(NonTerminal.FUNC_DECL);
+        expectRetrieve(Kind.IDENT);
+        formalParam();
+
+        expect(Kind.COLON);
+        
+        if (!accept(Kind.VOID)) { type(); }
+
+        funcBody();
+    }
+
+    // computation	= "main" {varDecl} {funcDecl} "{" statSeq "}" "."
+    private void computation () {
+        
+        expect(Kind.MAIN);
+
+        while (have(NonTerminal.TYPE_DECL)) { varDecl(); }
+        while (have(NonTerminal.FUNC_DECL)) { funcDecl(); }
+
+        expect(Kind.OPEN_BRACE);
+        statSeq();
+        expect(Kind.CLOSE_BRACE);
+        expect(Kind.PERIOD);
+        
     }
 }
