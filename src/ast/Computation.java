@@ -1,5 +1,7 @@
 package ast;
 
+import java.util.List;
+
 import pl434.Symbol;
 
 public class Computation extends Node {
@@ -8,6 +10,7 @@ public class Computation extends Node {
     private DeclarationList vars; // TODO: make DeclarationList a class that extends Node?
     private DeclarationList funcs;
     private StatementSequence mainSeq; // TODO: make StatementSequence a class that extends Node? 
+
 
     public Computation(int lineNum, int charPos, Symbol main, DeclarationList vars, DeclarationList funcs,
             StatementSequence mainSeq) {

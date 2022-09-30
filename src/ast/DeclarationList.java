@@ -1,20 +1,20 @@
 package ast;
 
-import pl434.Symbol;
+import java.util.List;
 
+
+// make Declaration List iterable 
 public class DeclarationList extends Node {
+    public List<Node> decList; 
 
-    // TODO: add elements here
-    private int lineNum;
-    private int charPos;
-
-    protected DeclarationList (int lineNum, int charPos) {
+    protected DeclarationList(int lineNum, int charPos, String ident) {
         super(lineNum, charPos);
+        decList = new List<Node>(); // TODO
     }
-	
+
     @Override
-	public void accept(NodeVisitor visitor) {
-		// TODO Auto-generated method stub
-		
-	}
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+    }
+    
 }

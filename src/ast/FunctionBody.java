@@ -1,12 +1,11 @@
 package ast;
 
-import java.util.List;
+public class FunctionBody extends Node {
 
-public class StatementSequence extends Node {
+    DeclarationList varDecl; 
+    StatementSequence statSeq;
 
-    public List<Statement> statSeq; 
-
-    protected StatementSequence(int lineNum, int charPos) {
+    protected FunctionBody(int lineNum, int charPos) {
         super(lineNum, charPos);
         //TODO Auto-generated constructor stub
     }
