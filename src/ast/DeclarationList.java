@@ -1,20 +1,30 @@
 package ast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 
-// make Declaration List iterable 
+// TODO: make Declaration List iterable 
 public class DeclarationList extends Node {
-    public List<Node> decList; 
+    public List<Declaration> decList; 
 
-    protected DeclarationList(int lineNum, int charPos, String ident) {
+    public DeclarationList(int lineNum, int charPos) {
         super(lineNum, charPos);
-        decList = new List<Node>(); // TODO
+        decList = new ArrayList<Declaration>(); 
     }
 
     @Override
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);
     }
+
+    public boolean empty(){
+        if (decList.size() == 0){
+            return true; 
+        }
+        return false;
+    }
+
+    
     
 }

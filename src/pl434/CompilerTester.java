@@ -77,6 +77,7 @@ public class CompilerTester {
             String astFile = sourceFile.substring(0, sourceFile.lastIndexOf('.')) + "_ast.txt";
             try (PrintStream out = new PrintStream(astFile)) {
                 out.println(ast.printPreOrder());
+                System.out.println(ast.printPreOrder());
             } catch (IOException e) {
                 System.err.println("Error accessing the ast file: \"" + astFile + "\"");
                 System.exit(-7);

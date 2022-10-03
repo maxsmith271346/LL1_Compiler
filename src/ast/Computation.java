@@ -1,15 +1,13 @@
 package ast;
 
-import java.util.List;
-
 import pl434.Symbol;
 
 public class Computation extends Node {
 
     private Symbol main;
-    private DeclarationList vars; // TODO: make DeclarationList a class that extends Node?
+    private DeclarationList vars; // make DeclarationList a class that extends Node?
     private DeclarationList funcs;
-    private StatementSequence mainSeq; // TODO: make StatementSequence a class that extends Node? 
+    private StatementSequence mainSeq; // make StatementSequence a class that extends Node? 
 
 
     public Computation(int lineNum, int charPos, Symbol main, DeclarationList vars, DeclarationList funcs,
@@ -21,8 +19,12 @@ public class Computation extends Node {
         this.mainSeq = mainSeq;
     }
 
-    public Symbol main() {
+    /*public Symbol main() { //TODO
         return main;
+    }*/
+
+    public String main(){
+        return main.name();
     }
 
     public DeclarationList variables() {

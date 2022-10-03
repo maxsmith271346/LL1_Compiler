@@ -7,6 +7,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import ast.AST;
+import ast.*;
 import pl434.Token.Kind;
 
 public class Compiler {
@@ -66,8 +67,11 @@ public class Compiler {
     }
 
     //TODO
-    public ast.AST genAST() {
-        return new AST();
+    public AST genAST() {
+        AST retAST = new AST();
+        retAST.computation = computation();
+
+        return retAST;
     }
     
     public int[] compile () {
@@ -99,10 +103,12 @@ public class Compiler {
     }
 
     private Symbol tryResolveVariable (Token ident) {
+        return null;
         //TODO: Try resolving variable, handle SymbolNotFoundError
     }
 
     private Symbol tryDeclareVariable (Token ident) {
+        return null; 
         //TODO: Try declaring variable, handle RedeclarationError
     }
 
@@ -234,7 +240,7 @@ public class Compiler {
     }
 
     // designator = ident { "[" relExpr "]" }
-    private void designator () {
+    private Symbol designator () {
         int lineNum = lineNumber();
         int charPos = charPosition();
         Token ident = expectRetrieve(Kind.IDENT);
@@ -243,6 +249,8 @@ public class Compiler {
             relExpr();
             expect(Kind.CLOSE_BRACKET);
         }
+
+        return new Symbol(ident.lexeme());
     }
 
     // groupExpr = literal | designator | "not" relExpr | "(" relExpr ")"
@@ -296,14 +304,18 @@ public class Compiler {
     }
 
     // assign = "let" designator ((assignOp relExpr) | unaryOp)
-    private void assign () {
+    private Assignment assign () {
+        Expression rhs = null; 
         expect(NonTerminal.ASSIGN);
-        designator();
+        Symbol desginator = designator();
         
         if (accept(NonTerminal.ASSIGN_OP)) {
             relExpr();
         }
         else { unaryOp(); }
+
+        Assignment assign = new Assignment(lineNumber(), charPosition());
+        return assign;
     }
 
     // relation = "(" relExpr ")"
@@ -314,8 +326,10 @@ public class Compiler {
     }
 
     // funcCall = "call" ident "(" [relExpr {"," relExpr}] ")"
-    private void funcCall () {
+    private FunctionCall funcCall () {
+        FunctionCall funcCall = new FunctionCall(lineNumber(), charPosition());
         expect(NonTerminal.FUNC_CALL);
+        expect(Kind.IDENT); // I added this - Emory
         expect(Kind.OPEN_PAREN);
 
         if (have(NonTerminal.EXPRESSION)) {
@@ -325,6 +339,8 @@ public class Compiler {
         }
 
         expect(Kind.CLOSE_PAREN);
+
+        return funcCall;
     }
 
     // ifStat = "if" relation "then" statSeq ["else" statSeq] "fi"
@@ -368,39 +384,56 @@ public class Compiler {
 
     // statement = assign | funcCall | ifStat | whileStat |
     // repeatStat | returnStat
-    private void statement () {
-        if (have(NonTerminal.ASSIGN)) { assign(); }
-        else if (have(NonTerminal.FUNC_CALL)) { funcCall(); }
+    private Statement statement () {
+        Statement statement = null;
+        if (have(NonTerminal.ASSIGN)) { statement = assign(); }
+        else if (have(NonTerminal.FUNC_CALL)) { statement = funcCall(); }
         else if (have(NonTerminal.IF_STAT)) { ifStat(); }
         else if (have(NonTerminal.WHILE_STAT)) { whileStat(); }
         else if (have(NonTerminal.REPEAT_STAT)) { repeatStat(); }
         else { returnStat(); }
+
+        return statement;
     }
 
     // statSeq = statement ";" {statement ";"}
-    private void statSeq () {
+    private StatementSequence statSeq () {
+        StatementSequence statSeq = new StatementSequence(lineNumber(), charPosition());
+        Statement statement;
         do {
-            statement();
+            statement = statement();
+            statSeq.statSeq.add(statement);
             expect(Kind.SEMICOLON);
         } while (have(NonTerminal.STATEMENT)); 
+
+        return statSeq;
     }
 
     // typeDecl = type { "[" integerLit "]" }
-    private void typeDecl () {
-        type();
+    private Token typeDecl () {
+        Token tok = type();
         if (accept(Kind.OPEN_BRACKET)) {
             expect(Kind.INT_VAL);
             expect(Kind.CLOSE_BRACKET);
         }
+        return tok;
     }
 
     // varDecl = typeDecl ident {"," ident} ";"
-    private void varDecl () {
-        typeDecl();
+    private DeclarationList varDecl () {
+        // create a new Declaration List node and fill it with Variable Declarations
+        DeclarationList vars = new DeclarationList(lineNumber(), charPosition());
+        VariableDeclaration varDec;
+
+        Token typeTok = typeDecl();
         do {
-            expectRetrieve(Kind.IDENT);
+            Token identTok = expectRetrieve(Kind.IDENT);
+            varDec = new VariableDeclaration(lineNumber(), charPosition(), typeTok.lexeme(), identTok.lexeme());
+            vars.decList.add(varDec);
         } while (accept(Kind.COMMA));
         expect(Kind.SEMICOLON);
+
+        return vars;
     }
 
     // paramType = type { "[" "]" }
@@ -429,41 +462,69 @@ public class Compiler {
     }
 
     // funcBody = "{" { varDecl } statSeq "}" ";"
-    private void funcBody () {
+    private FunctionBody funcBody () {
+        FunctionBody funcBody; 
+        DeclarationList varDecl = new DeclarationList(0, 0);
+        StatementSequence statSeq;
+
         expect(Kind.OPEN_BRACE);
 
-        while (have(NonTerminal.VAR_DECL)) { varDecl(); }
+        while (have(NonTerminal.VAR_DECL)) { varDecl = varDecl(); } //TODO: do this like in main? 
 
-        statSeq();
+        statSeq = statSeq();
         expect(Kind.CLOSE_BRACE);
         expect(Kind.SEMICOLON);
+
+        funcBody = new FunctionBody(lineNumber(), charPosition(), varDecl, statSeq); 
+        return funcBody;
     }
 
     // funcDecl = "function" ident formalParam ":" ( "void" | type ) funcBody
-    private void funcDecl () {
+    private DeclarationList funcDecl () {
+        DeclarationList funcs = new DeclarationList(lineNumber(), charPosition());
+        FunctionDeclaration funcDec; 
+        FunctionBody funcBody;
+
         expect(NonTerminal.FUNC_DECL);
-        expectRetrieve(Kind.IDENT);
+        Token identTok = expectRetrieve(Kind.IDENT);
+        
         formalParam();
 
         expect(Kind.COLON);
         
         if (!accept(Kind.VOID)) { type(); }
 
-        funcBody();
+        funcBody = funcBody();
+
+        funcDec = new FunctionDeclaration(lineNumber(), charPosition(), "type", identTok.lexeme(), funcBody);
+        funcs.decList.add(funcDec);
+        return funcs;
     }
 
     // computation	= "main" {varDecl} {funcDecl} "{" statSeq "}" "."
-    private void computation () {
+    private Computation computation () {
         
         expect(Kind.MAIN);
 
-        while (have(NonTerminal.TYPE_DECL)) { varDecl(); }
-        while (have(NonTerminal.FUNC_DECL)) { funcDecl(); }
+        DeclarationList vars = new DeclarationList(lineNumber(), charPosition());
+        DeclarationList funcs = new DeclarationList(lineNumber(), charPosition());
+        StatementSequence mainSeq = new StatementSequence(lineNumber(), charPosition());
+        
+        // Make the vars list for the first "set"/"line" of variable declarations 
+        if (have(NonTerminal.TYPE_DECL)){vars = varDecl();}
+
+        // Then add to it for subsequent "sets"/"lines" of variable declarations
+        while (have(NonTerminal.TYPE_DECL)) { vars.decList.addAll(varDecl().decList); }
+        while (have(NonTerminal.FUNC_DECL)) { funcs = funcDecl(); }
 
         expect(Kind.OPEN_BRACE);
-        statSeq();
+        mainSeq = statSeq();
         expect(Kind.CLOSE_BRACE);
         expect(Kind.PERIOD);
+
+
+        Symbol compSymbol = new Symbol("main");
+        return new Computation(0, 0, compSymbol, vars, funcs, mainSeq); 
         
     }
 }

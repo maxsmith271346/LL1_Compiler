@@ -4,7 +4,7 @@ package ast;
 public interface NodeVisitor {
 
     // literal
-    public void visit (BoolLiteral node);
+    /*public void visit (BoolLiteral node);
     public void visit (IntegerLiteral node);
     public void visit (FloatLiteral node);
 
@@ -28,20 +28,21 @@ public interface NodeVisitor {
     public void visit (LogicalOr node);
     // relExpr
     public void visit (Relation node);
-
+    */
     // assign
     public void visit (Assignment node);
+    
     // funcCall
-    public void visit (ArgumentList node);
+    //public void visit (ArgumentList node);
     public void visit (FunctionCall node);
     // ifStat
-    public void visit (IfStatement node);
+    /*public void visit (IfStatement node);
     // whileStat
     public void visit (WhileStatement node);
     // repeatStat
     public void visit (RepeatStatement node);
     // returnStat
-    public void visit (ReturnStatement node);
+    public void visit (ReturnStatement node); */
     // statSeq
     public void visit (StatementSequence node);
 

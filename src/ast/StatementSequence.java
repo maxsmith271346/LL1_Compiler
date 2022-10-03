@@ -1,14 +1,16 @@
 package ast;
 
+import java.util.ArrayList;
 import java.util.List;
 
 public class StatementSequence extends Node {
 
     public List<Statement> statSeq; 
 
-    protected StatementSequence(int lineNum, int charPos) {
+    //should this be protected?
+    public StatementSequence(int lineNum, int charPos) {
         super(lineNum, charPos);
-        //TODO Auto-generated constructor stub
+        statSeq = new ArrayList<Statement>();
     }
 
     @Override

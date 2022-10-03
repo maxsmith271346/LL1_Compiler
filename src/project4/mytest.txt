@@ -1,0 +1,14 @@
+main
+
+int input, myvar;
+
+function tailSumIter (int n) : int
+{
+    int x, y;
+    let x = 0;
+};
+
+{
+    let input = 3;
+    call printInt();
+}.

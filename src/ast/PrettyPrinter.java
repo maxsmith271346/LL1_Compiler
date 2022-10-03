@@ -22,7 +22,7 @@ public class PrettyPrinter implements NodeVisitor {
     public void visit (StatementSequence node) {
         println(node, "");
         depth++;
-        for (Statement s : node) { // TODO: does StatementSequence need to extend Statement??
+        for (Statement s : node.statSeq) { // TODO: make statement sequence iterable
             s.accept(this);
         }
         depth--;
@@ -46,7 +46,7 @@ public class PrettyPrinter implements NodeVisitor {
         if (node.empty()) return;
         println(node, "");
         depth++;
-        for (Declaration d : node) {
+        for (Declaration d : node.decList) { // TODO: make statement sequence iterable
             d.accept(this);
         }
         depth--;
@@ -60,5 +60,27 @@ public class PrettyPrinter implements NodeVisitor {
         node.functions().accept(this);
         node.mainStatementSequence().accept(this);
         depth--;
+    }
+
+    @Override
+    public void visit(FunctionBody node) {
+        // TODO implement this - I tried to just mimic the computation one
+        println(node, "");
+        depth++;
+        node.variables().accept(this);
+        node.statements().accept(this);
+        depth--;
+        
+    }
+
+    @Override
+    public void visit(Assignment node){
+        //TODO implement this - I added this method
+        println(node, "");
+    }
+
+    public void visit(FunctionCall node){
+        //TODO implement this - I added this method
+        println(node, "");
     }
 }

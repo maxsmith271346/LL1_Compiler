@@ -1,0 +1,18 @@
+ast.Computation(0,0)[main]
+  ast.DeclarationList(3,3)
+    ast.VariableDeclaration(3,9)[input:int]
+    ast.VariableDeclaration(3,15)[myvar:int]
+  ast.DeclarationList(5,8)
+    ast.FunctionDeclaration(11,1)[tailSumIter]
+      ast.FunctionBody(11,1)
+        ast.DeclarationList(7,3)
+          ast.VariableDeclaration(7,5)[x:int]
+          ast.VariableDeclaration(7,7)[y:int]
+        ast.StatementSequence(8,3)
+          ast.Assignment(8,7)
+ x
+  ast.StatementSequence(12,3)
+    ast.Assignment(12,11)
+ input
+    ast.FunctionCall(13,4)
+

@@ -1,8 +1,3 @@
-Computation[main:()->void]
-  StatementSequence
-    FunctionCall[printInt:(int)->void]
-      ArgumentList
-        IntegerLiteral[1]
-    FunctionCall[printInt:(int)->void]
-      ArgumentList
-        IntegerLiteral[2]
+ast.Computation(0,0)[main]
+  ast.StatementSequence(5,2)
+

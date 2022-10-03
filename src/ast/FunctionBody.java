@@ -5,14 +5,23 @@ public class FunctionBody extends Node {
     DeclarationList varDecl; 
     StatementSequence statSeq;
 
-    protected FunctionBody(int lineNum, int charPos) {
+    public FunctionBody(int lineNum, int charPos, DeclarationList varDecl, StatementSequence statSeq) {
         super(lineNum, charPos);
-        //TODO Auto-generated constructor stub
+        this.varDecl = varDecl;
+        this.statSeq = statSeq;
     }
 
     @Override
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);
+    }
+
+    public DeclarationList variables(){
+        return varDecl;
+    }
+
+    public StatementSequence statements(){
+        return statSeq;
     }
     
 }
