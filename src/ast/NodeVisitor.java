@@ -5,9 +5,9 @@ import pl434.Symbol;
 public interface NodeVisitor {
 
     // literal
-    //public void visit (BoolLiteral node);
+    public void visit (BoolLiteral node);
     public void visit (IntegerLiteral node);
-    //public void visit (FloatLiteral node);
+    public void visit (FloatLiteral node);
 
     // designator
     /*public void visit (AddressOf node);
@@ -34,7 +34,7 @@ public interface NodeVisitor {
     public void visit (Assignment node);
     
     // funcCall
-    //public void visit (ArgumentList node);
+    public void visit (ArgumentList node);
     public void visit (FunctionCall node);
     // ifStat
     public void visit (IfStatement node);
@@ -43,7 +43,7 @@ public interface NodeVisitor {
     // repeatStat
     public void visit (RepeatStatement node);
     // returnStat
-    //public void visit (ReturnStatement node); 
+    public void visit (ReturnStatement node); 
     // statSeq
     public void visit (StatementSequence node);
     // varDecl
