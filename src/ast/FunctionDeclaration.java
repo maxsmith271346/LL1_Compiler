@@ -16,16 +16,25 @@ public class FunctionDeclaration extends Node implements Declaration {
         this.funcBody = funcBody;
         formalParam = new ArrayList<String>();
     }
+    
     @Override
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);
     }
+
+    public String returnType() {
+        return type;
+    }
     
-    public FunctionBody body(){
+    public FunctionBody body() {
         return funcBody; 
     }
 
-    public String function(){
+    public String function() {
         return ident;
+    }
+
+    public List<String> formalParameters() {
+        return formalParam;
     }
 }

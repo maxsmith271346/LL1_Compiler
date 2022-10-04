@@ -171,8 +171,8 @@ public enum NonTerminal {
             addAll(ASSIGN.firstSet);
             addAll(FUNC_CALL.firstSet);
             addAll(IF_STAT.firstSet);
-            // addAll(WHILE_STAT.firstSet);
-            // addAll(REPEAT_STAT.firstSet);
+            addAll(WHILE_STAT.firstSet);
+            addAll(REPEAT_STAT.firstSet);
             addAll(RETURN_STAT.firstSet);
         }
     }),
