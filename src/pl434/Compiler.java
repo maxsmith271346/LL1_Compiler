@@ -243,6 +243,7 @@ public class Compiler {
             relExpr();
             expect(Kind.CLOSE_BRACKET);
         }
+        return new Symbol(ident.lexeme(), "type here", "variable");
     }
 
     // groupExpr = literal | designator | "not" relExpr | "(" relExpr ")"
@@ -440,16 +441,33 @@ public class Compiler {
     }
 
     // funcDecl = "function" ident formalParam ":" ( "void" | type ) funcBody
+<<<<<<< HEAD
     private void funcDecl () {
+=======
+    private DeclarationList funcDecl () {
+        DeclarationList funcs = new DeclarationList(lineNumber(), charPosition());
+        FunctionDeclaration funcDec; 
+        FunctionBody funcBody;
+        Token typeTok = new Token("void", 0, 0); 
+
+>>>>>>> 39d9071e170bd527ed2ce30b2820c6de64031bff
         expect(NonTerminal.FUNC_DECL);
         expectRetrieve(Kind.IDENT);
         formalParam();
 
         expect(Kind.COLON);
         
-        if (!accept(Kind.VOID)) { type(); }
+        if (!accept(Kind.VOID)) { typeTok = type(); }
 
+<<<<<<< HEAD
         funcBody();
+=======
+        funcBody = funcBody();
+
+        funcDec = new FunctionDeclaration(lineNumber(), charPosition(), typeTok.lexeme(), identTok.lexeme(), funcBody);
+        funcs.decList.add(funcDec);
+        return funcs;
+>>>>>>> 39d9071e170bd527ed2ce30b2820c6de64031bff
     }
 
     // computation	= "main" {varDecl} {funcDecl} "{" statSeq "}" "."
@@ -464,6 +482,13 @@ public class Compiler {
         statSeq();
         expect(Kind.CLOSE_BRACE);
         expect(Kind.PERIOD);
+<<<<<<< HEAD
+=======
+
+
+        Symbol compSymbol = new Symbol("main", "void", "function");
+        return new Computation(0, 0, compSymbol, vars, funcs, mainSeq); 
+>>>>>>> 39d9071e170bd527ed2ce30b2820c6de64031bff
         
     }
 }

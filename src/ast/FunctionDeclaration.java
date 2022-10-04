@@ -3,6 +3,8 @@ package ast;
 import java.util.ArrayList;
 import java.util.List;
 
+import pl434.Symbol;
+
 public class FunctionDeclaration extends Node implements Declaration {
     private String type; // TODO: enum type 
     private String ident; 
@@ -30,8 +32,10 @@ public class FunctionDeclaration extends Node implements Declaration {
         return funcBody; 
     }
 
-    public String function() {
-        return ident;
+    public Symbol function(){
+        Symbol function = new Symbol(ident, type, "function");
+        function.paramTypes.addAll(formalParam);
+        return function;
     }
 
     public List<String> formalParameters() {
