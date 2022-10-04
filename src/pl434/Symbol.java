@@ -1,9 +1,12 @@
 package pl434;
 
+import ast.Expression;
+import ast.NodeVisitor;
+
 import java.util.ArrayList;
 import java.util.List;
 
-public class Symbol {
+public class Symbol implements Expression {
 
     public enum Type{ 
         VOID("void"),
@@ -51,6 +54,9 @@ public class Symbol {
     public String name () {
         return name;
     }
+    public String type (){
+        return type.getDefaultTypeStr();
+    }
 
     @Override
     public String toString(){
@@ -64,6 +70,11 @@ public class Symbol {
         else{ 
             return "";
         }
+    }
+    @Override
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
+        
     }
 
 

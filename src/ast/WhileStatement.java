@@ -18,7 +18,7 @@ public class WhileStatement extends Node implements Statement {
     public Relation condition() {
         return relation;
     }
-    
+
     public StatementSequence statementSeq() {
         return statSeq; 
     }

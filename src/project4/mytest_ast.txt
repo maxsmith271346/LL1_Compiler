@@ -10,7 +10,15 @@ ast.Computation(0,0)[main:()->void]
           ast.VariableDeclaration(7,7)[y:int]
         ast.StatementSequence(8,3)
           ast.Assignment(8,7)
+            x:int
+            ast.IntegerLiteral(8,7)[0]
   ast.StatementSequence(12,3)
-    ast.Assignment(12,11)
+    ast.Assignment(12,15)
+      input:int
+      ast.Relation(12,15)[>]
+        ast.Relation(12,13)[<]
+          y:int
+          ast.IntegerLiteral(12,13)[3]
+        ast.IntegerLiteral(12,15)[4]
     ast.FunctionCall(13,4)
 
