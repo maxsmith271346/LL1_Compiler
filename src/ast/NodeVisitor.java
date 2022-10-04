@@ -11,7 +11,7 @@ public interface NodeVisitor {
     // designator
     public void visit (AddressOf node);
     public void visit (ArrayIndex node);
-    public void visit (Dereference node);
+    public void visit (Dereference node); // useful for the DLX code & going into the right hand side and loading in the register
 
     // groupExpr
     public void visit (LogicalNot node);

@@ -10,9 +10,7 @@ ast.Computation(0,0)[main]
           ast.VariableDeclaration(7,7)[y:int]
         ast.StatementSequence(8,3)
           ast.Assignment(8,7)
- x
   ast.StatementSequence(12,3)
     ast.Assignment(12,11)
- input
     ast.FunctionCall(13,4)
 
