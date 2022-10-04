@@ -10,7 +10,11 @@ ast.Computation(0,0)[main:()->void]
           ast.VariableDeclaration(7,7)[y:int]
         ast.StatementSequence(8,3)
           ast.Assignment(8,7)
+            x:int
+            ast.IntegerLiteral(8,7)[0]
   ast.StatementSequence(12,3)
     ast.Assignment(12,11)
+      input:int
+      y:int
     ast.FunctionCall(13,4)
 
