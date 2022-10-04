@@ -131,4 +131,70 @@ public class PrettyPrinter implements NodeVisitor {
     public void visit(Symbol node){
         println(node);
     }
+
+    public void visit(Addition node){
+        println(node, "");
+        depth++; 
+        node.leftExpression().accept(this);
+        node.rightExpression().accept(this);
+        depth--;
+    }
+
+    public void visit(Subtraction node){
+        println(node, "");
+        depth++; 
+        node.leftExpression().accept(this);
+        node.rightExpression().accept(this);
+        depth--;
+    }
+
+    public void visit(LogicalOr node){
+        println(node, "");
+        depth++; 
+        node.leftExpression().accept(this);
+        node.rightExpression().accept(this);
+        depth--;
+    }
+
+    public void visit(Multiplication node){
+        println(node, "");
+        depth++; 
+        node.leftExpression().accept(this);
+        node.rightExpression().accept(this);
+        depth--;
+    }
+    public void visit(Division node){
+        println(node, "");
+        depth++; 
+        node.leftExpression().accept(this);
+        node.rightExpression().accept(this);
+        depth--;
+    }
+    public void visit(Modulo node){
+        println(node, "");
+        depth++; 
+        node.leftExpression().accept(this);
+        node.rightExpression().accept(this);
+        depth--;
+    }
+    public void visit(LogicalAnd node){
+        println(node, "");
+        depth++; 
+        node.leftExpression().accept(this);
+        node.rightExpression().accept(this);
+        depth--;
+    }
+    public void visit(Power node){
+        println(node, "");
+        depth++; 
+        node.leftExpression().accept(this);
+        node.rightExpression().accept(this);
+        depth--;
+    }
+    public void visit(LogicalNot node){
+        println(node, "");
+        depth++; 
+        node.expr().accept(this);
+        depth--;
+    }
 }
