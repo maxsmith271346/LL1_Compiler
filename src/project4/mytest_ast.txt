@@ -1,9 +1,9 @@
-ast.Computation(0,0)[main]
+ast.Computation(0,0)[main:()->void]
   ast.DeclarationList(3,3)
     ast.VariableDeclaration(3,9)[input:int]
     ast.VariableDeclaration(3,15)[myvar:int]
   ast.DeclarationList(5,8)
-    ast.FunctionDeclaration(11,1)[tailSumIter]
+    ast.FunctionDeclaration(11,1)[tailSumIter:()->int]
       ast.FunctionBody(11,1)
         ast.DeclarationList(7,3)
           ast.VariableDeclaration(7,5)[x:int]

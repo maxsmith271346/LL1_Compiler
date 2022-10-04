@@ -19,12 +19,8 @@ public class Computation extends Node {
         this.mainSeq = mainSeq;
     }
 
-    /*public Symbol main() { //TODO
+    public Symbol main() { 
         return main;
-    }*/
-
-    public String main(){
-        return main.name();
     }
 
     public DeclarationList variables() {

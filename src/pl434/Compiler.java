@@ -250,7 +250,7 @@ public class Compiler {
             expect(Kind.CLOSE_BRACKET);
         }
 
-        return new Symbol(ident.lexeme());
+        return new Symbol(ident.lexeme(), "type here", "variable");
     }
 
     // groupExpr = literal | designator | "not" relExpr | "(" relExpr ")"
@@ -484,6 +484,7 @@ public class Compiler {
         DeclarationList funcs = new DeclarationList(lineNumber(), charPosition());
         FunctionDeclaration funcDec; 
         FunctionBody funcBody;
+        Token typeTok = new Token("void", 0, 0); 
 
         expect(NonTerminal.FUNC_DECL);
         Token identTok = expectRetrieve(Kind.IDENT);
@@ -492,11 +493,11 @@ public class Compiler {
 
         expect(Kind.COLON);
         
-        if (!accept(Kind.VOID)) { type(); }
+        if (!accept(Kind.VOID)) { typeTok = type(); }
 
         funcBody = funcBody();
 
-        funcDec = new FunctionDeclaration(lineNumber(), charPosition(), "type", identTok.lexeme(), funcBody);
+        funcDec = new FunctionDeclaration(lineNumber(), charPosition(), typeTok.lexeme(), identTok.lexeme(), funcBody);
         funcs.decList.add(funcDec);
         return funcs;
     }
@@ -523,7 +524,7 @@ public class Compiler {
         expect(Kind.PERIOD);
 
 
-        Symbol compSymbol = new Symbol("main");
+        Symbol compSymbol = new Symbol("main", "void", "function");
         return new Computation(0, 0, compSymbol, vars, funcs, mainSeq); 
         
     }

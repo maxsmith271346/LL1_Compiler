@@ -1,3 +1,5 @@
-ast.Computation(0,0)[main]
-  ast.StatementSequence(5,2)
+ast.Computation(0,0)[main:()->VOID]
+  ast.StatementSequence(3,4)
+    ast.FunctionCall(3,4)
+    ast.FunctionCall(4,4)
 
