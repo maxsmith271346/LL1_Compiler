@@ -43,7 +43,7 @@ public interface NodeVisitor {
     // repeatStat
     public void visit (RepeatStatement node);
     // returnStat
-    //public void visit (ReturnStatement node); 
+    public void visit (ReturnStatement node); 
     // statSeq
     public void visit (StatementSequence node);
     // varDecl
