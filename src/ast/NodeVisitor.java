@@ -1,15 +1,16 @@
 package ast;
 
+import pl434.Symbol;
 
 public interface NodeVisitor {
 
     // literal
-    public void visit (BoolLiteral node);
+    //public void visit (BoolLiteral node);
     public void visit (IntegerLiteral node);
-    public void visit (FloatLiteral node);
+    //public void visit (FloatLiteral node);
 
     // designator
-    public void visit (AddressOf node);
+    /*public void visit (AddressOf node);
     public void visit (ArrayIndex node);
     public void visit (Dereference node); // useful for the DLX code & going into the right hand side and loading in the register
 
@@ -21,11 +22,11 @@ public interface NodeVisitor {
     public void visit (Multiplication node);
     public void visit (Division node);
     public void visit (Modulo node);
-    public void visit (LogicalAnd node);
+    public void visit (LogicalAnd node);*/
     // addExpr
     public void visit (Addition node);
-    public void visit (Subtraction node);
-    public void visit (LogicalOr node);
+    /*public void visit (Subtraction node);
+    public void visit (LogicalOr node);*/
     // relExpr
     public void visit (Relation node);
     
@@ -42,10 +43,9 @@ public interface NodeVisitor {
     // repeatStat
     public void visit (RepeatStatement node);
     // returnStat
-    public void visit (ReturnStatement node); 
+    //public void visit (ReturnStatement node); 
     // statSeq
     public void visit (StatementSequence node);
-
     // varDecl
     public void visit (VariableDeclaration node);
     // funcBody
@@ -56,4 +56,7 @@ public interface NodeVisitor {
     // computation
     public void visit (DeclarationList node);
     public void visit (Computation node);
+
+    public void visit (Symbol node); //added this
 }
+
