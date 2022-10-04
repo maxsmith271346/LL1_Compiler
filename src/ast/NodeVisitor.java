@@ -13,7 +13,7 @@ public interface NodeVisitor {
     /*public void visit (AddressOf node);
     public void visit (ArrayIndex node);
     public void visit (Dereference node); // useful for the DLX code & going into the right hand side and loading in the register
-
+    */
     // groupExpr
     public void visit (LogicalNot node);
     // powExpr
@@ -22,11 +22,11 @@ public interface NodeVisitor {
     public void visit (Multiplication node);
     public void visit (Division node);
     public void visit (Modulo node);
-    public void visit (LogicalAnd node);*/
+    public void visit (LogicalAnd node);
     // addExpr
     public void visit (Addition node);
-    /*public void visit (Subtraction node);
-    public void visit (LogicalOr node);*/
+    public void visit (Subtraction node);
+    public void visit (LogicalOr node);
     // relExpr
     public void visit (Relation node);
     

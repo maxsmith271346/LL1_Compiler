@@ -5,7 +5,6 @@ import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 
-import ast.AST;
 import ast.*;
 import pl434.Token.Kind;
 
@@ -269,8 +268,9 @@ public class Compiler {
         } else if (have(NonTerminal.DESIGNATOR)) {
             groupExpr = designator(); // In this case, the expression node will have an expression and a null
             return groupExpr;
-        } else if (accept(Kind.NOT)) { //TODO: something with the NOT?
-            return relExpr();
+        } else if (accept(Kind.NOT)) {
+            Expression relExpr = relExpr();
+            return new LogicalNot(lineNumber(), charPosition(), relExpr);
         } else if (accept(Kind.OPEN_PAREN)) {
             groupExpr =  relExpr();
             expect(Kind.CLOSE_PAREN);
@@ -284,22 +284,42 @@ public class Compiler {
 
     // powExpr = groupExpr {powOp groupExpr}
     private Expression powExpr() {
-        Expression groupExpr = groupExpr();
+        Expression lhsExpr = groupExpr();
+        Expression rhsExpr = null; 
+
         while (have(NonTerminal.POW_OP)) {
             powOp();
-            groupExpr();
+            rhsExpr = groupExpr();
+            lhsExpr = new Power(lineNumber(), charPosition(), lhsExpr, rhsExpr);
         }
-        return groupExpr;
+        return lhsExpr;
     }
 
     // multExpr = powExpr {relOp powExpr}
     private Expression multExpr() {
-        Expression powExpr = powExpr();
+        Expression lhsExpr = powExpr();
+        Expression rhsExpr = null;
+
         while (have(NonTerminal.MULT_OP)) {
-            multOp();
-            powExpr();
+            //multOp();
+            if (accept(Token.Kind.MUL)){
+                rhsExpr = powExpr();
+                lhsExpr = new Multiplication(lineNumber(), charPosition(), lhsExpr, rhsExpr);
+            }
+            else if(accept(Token.Kind.DIV)){
+                rhsExpr = powExpr();
+                lhsExpr = new Division(lineNumber(), charPosition(), lhsExpr, rhsExpr);
+            }
+            else if(accept(Token.Kind.MOD)){
+                rhsExpr = powExpr();
+                lhsExpr = new Modulo(lineNumber(), charPosition(), lhsExpr, rhsExpr);
+            }
+            else if(accept(Token.Kind.AND)){
+                rhsExpr = powExpr();
+                lhsExpr = new LogicalAnd(lineNumber(), charPosition(), lhsExpr, rhsExpr);   
+            }
         }
-        return powExpr;
+        return lhsExpr;
     }
 
     // addExpr = multExpr {addOp multExpr}
@@ -309,12 +329,19 @@ public class Compiler {
         Token opTok = null;
 
         while (have(NonTerminal.ADD_OP)) {
+            //opTok = addOp();
             if (accept(Token.Kind.ADD)){
-                opTok = addOp();
                 rhsExpr = multExpr();
-                lhsExpr = new Relation(lineNumber(), charPosition(), opTok.lexeme(), lhsExpr, rhsExpr);
+                lhsExpr = new Addition(lineNumber(), charPosition(), lhsExpr, rhsExpr);
             }
-            //else if(accept())
+            else if(accept(Token.Kind.SUB)){
+                rhsExpr = multExpr();
+                lhsExpr = new Subtraction(lineNumber(), charPosition(), lhsExpr, rhsExpr);
+            }
+            else if(accept(Token.Kind.OR)){
+                rhsExpr = multExpr();
+                lhsExpr = new LogicalOr(lineNumber(), charPosition(), lhsExpr, rhsExpr);
+            }
         }
         return lhsExpr;
     }
