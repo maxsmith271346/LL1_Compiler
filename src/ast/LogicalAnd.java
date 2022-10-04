@@ -1,10 +1,10 @@
 package ast;
 
-public class Addition extends Node implements Expression {
+public class LogicalAnd extends Node implements Expression {
     private Expression leftRelExpr;
     private Expression rightRelExpr;
 
-    public Addition(int lineNum, int charPos, Expression leftRelExpr, Expression rightRelExpr) {
+    public LogicalAnd (int lineNum, int charPos, Expression leftRelExpr, Expression rightRelExpr) {
         super(lineNum, charPos);
         this.leftRelExpr = leftRelExpr;
         this.rightRelExpr = rightRelExpr;

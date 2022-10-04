@@ -9,6 +9,6 @@ function tailSumIter (int n) : int
 };
 
 {
-    let input = y < 3 > 4;
+    let input = y;
     call printInt();
 }.
