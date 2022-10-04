@@ -1,5 +1,7 @@
 package ast;
 
+import pl434.Symbol;
+
 public class PrettyPrinter implements NodeVisitor {
 
     private int depth = 0;
@@ -11,6 +13,14 @@ public class PrettyPrinter implements NodeVisitor {
             indent += "  ";
         }
         sb.append(indent + n.getClassInfo() + message + "\n");
+    }
+
+    private void println(Symbol symbol){
+        String indent = "";
+        for (int i = 0; i < depth; i++) {
+            indent += "  ";
+        }
+        sb.append(indent + symbol + "\n");
     }
 
     @Override
@@ -76,11 +86,49 @@ public class PrettyPrinter implements NodeVisitor {
     @Override
     public void visit(Assignment node){
         //TODO implement this - I added this method
-        println(node, "");
+        println(node, ""); 
+        depth++;
+        node.lhsDesignator().accept(this);
+        node.rhsExpr().accept(this); // TODO: This assumes that the rhs is an expression 
+        depth--;
     }
 
     public void visit(FunctionCall node){
         //TODO implement this - I added this method
         println(node, "");
+    }
+
+    public void visit(IfStatement node){
+        //TODO implement this - I added this method
+        println(node, "");
+    }
+
+    public void visit(Relation node){
+        //TODO implement this - I added this method
+        println(node, "[" + node.operator() + "]");
+        depth++; 
+        node.leftExpression().accept(this);
+        node.rightExpression().accept(this);
+        depth--;
+    }
+
+    public void visit(RepeatStatement node){
+        //TODO implement this - I added this method
+        println(node, "");
+    }
+
+    public void visit(WhileStatement node){
+        //TODO implement this - I added this method
+        println(node, "");
+    }
+
+    @Override
+    public void visit(IntegerLiteral node) {
+        println(node, "[" + node.value() + "]");
+        
+    }
+
+    public void visit(Symbol node){
+        println(node);
     }
 }

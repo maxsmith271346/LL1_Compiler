@@ -1,6 +1,6 @@
 package ast;
 
-public class FunctionCall extends Node implements Statement, Expression {
+public class FunctionCall extends Node implements Statement, Expression{
 
     public FunctionCall(int lineNum, int charPos) {
         super(lineNum, charPos);

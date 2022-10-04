@@ -20,7 +20,7 @@ public class IfStatement extends Node implements Statement {
     public Relation condition() {
         return relation;
     }
-    
+
     public StatementSequence thenStatementSeq() {
         return thenStatSeq; 
     }
