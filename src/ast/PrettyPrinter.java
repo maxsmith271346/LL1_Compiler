@@ -21,6 +21,9 @@ public class PrettyPrinter implements NodeVisitor {
             indent += "  ";
         }
         sb.append(indent + symbol + "\n");
+        if (symbol.arrayIndex != null){
+            symbol.arrayIndex.accept(this);
+        }
     }
 
     @Override
@@ -92,7 +95,7 @@ public class PrettyPrinter implements NodeVisitor {
         node.rhsExpr().accept(this); // TODO: This assumes that the rhs is an expression 
         depth--;
     }
-
+    @Override
     public void visit(FunctionCall node){
         //TODO implement this - I added this method
         println(node, "[" + node.function() + "]");
@@ -100,7 +103,7 @@ public class PrettyPrinter implements NodeVisitor {
         node.argList.accept(this);
         depth--;
     }
-
+    @Override
     public void visit(ArgumentList node){
         //TODO implement this - I added this method
         println(node, "");
@@ -112,7 +115,7 @@ public class PrettyPrinter implements NodeVisitor {
         }
         depth--;
     }
-
+    @Override
     public void visit(IfStatement node){
         //TODO implement this - I added this method
         println(node, "");
@@ -125,6 +128,7 @@ public class PrettyPrinter implements NodeVisitor {
         depth--;
     }
 
+    @Override
     public void visit(Relation node){
         //TODO implement this - I added this method
         println(node, "[" + node.operator() + "]");
@@ -134,6 +138,7 @@ public class PrettyPrinter implements NodeVisitor {
         depth--;
     }
 
+    @Override
     public void visit(RepeatStatement node){
         //TODO implement this - I added this method
         println(node, "");
@@ -142,7 +147,7 @@ public class PrettyPrinter implements NodeVisitor {
         node.condition().accept(this);
         depth--;
     }
-
+    @Override
     public void visit(WhileStatement node){
         //TODO implement this - I added this method
         println(node, "");
@@ -168,10 +173,12 @@ public class PrettyPrinter implements NodeVisitor {
         
     }
 
+    @Override
     public void visit(Symbol node){
         println(node);
     }
 
+    @Override
     public void visit(Addition node){
         println(node, "");
         depth++; 
@@ -180,6 +187,7 @@ public class PrettyPrinter implements NodeVisitor {
         depth--;
     }
 
+    @Override
     public void visit(Subtraction node){
         println(node, "");
         depth++; 
@@ -188,6 +196,7 @@ public class PrettyPrinter implements NodeVisitor {
         depth--;
     }
 
+    @Override
     public void visit(LogicalOr node){
         println(node, "");
         depth++; 
@@ -196,6 +205,7 @@ public class PrettyPrinter implements NodeVisitor {
         depth--;
     }
 
+    @Override
     public void visit(Multiplication node){
         println(node, "");
         depth++; 
@@ -203,6 +213,7 @@ public class PrettyPrinter implements NodeVisitor {
         node.rightExpression().accept(this);
         depth--;
     }
+    @Override
     public void visit(Division node){
         println(node, "");
         depth++; 
@@ -210,6 +221,7 @@ public class PrettyPrinter implements NodeVisitor {
         node.rightExpression().accept(this);
         depth--;
     }
+    @Override
     public void visit(Modulo node){
         println(node, "");
         depth++; 
@@ -217,6 +229,7 @@ public class PrettyPrinter implements NodeVisitor {
         node.rightExpression().accept(this);
         depth--;
     }
+    @Override
     public void visit(LogicalAnd node){
         println(node, "");
         depth++; 
@@ -224,6 +237,7 @@ public class PrettyPrinter implements NodeVisitor {
         node.rightExpression().accept(this);
         depth--;
     }
+    @Override
     public void visit(Power node){
         println(node, "");
         depth++; 
@@ -231,6 +245,7 @@ public class PrettyPrinter implements NodeVisitor {
         node.rightExpression().accept(this);
         depth--;
     }
+    @Override
     public void visit(LogicalNot node){
         println(node, "");
         depth++; 
@@ -247,4 +262,14 @@ public class PrettyPrinter implements NodeVisitor {
         }
         depth--;
     }
+
+	@Override
+	public void visit(ArrayIndex node) {
+		println(node, "");
+        depth++; 
+        node.rightExpr().accept(this);
+        node.leftExpr().accept(this);
+        depth--;
+		
+	}
 }

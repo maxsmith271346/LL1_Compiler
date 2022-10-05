@@ -3,7 +3,7 @@ main
 bool[2][3] b1, b2;
 
 {
-    let b1[0][0] = true;
+    let b1[0][0] = false;
     let b1[0][1] = false;
     let b1[0][2] = not b1[0][1];
     let b1[1][0] = b1[0][0] and b1[0][2];

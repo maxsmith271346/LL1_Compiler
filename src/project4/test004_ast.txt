@@ -1,0 +1,175 @@
+Computation[main:()->void]
+  DeclarationList
+    VariableDeclaration[b1:bool]
+    VariableDeclaration[b2:bool]
+  StatementSequence
+    Assignment
+      ArrayIndex
+        ArrayIndex
+          b1:int
+          IntegerLiteral[0]
+        IntegerLiteral[0]
+      BoolLiteral[false]
+    Assignment
+      ArrayIndex
+        ArrayIndex
+          b1:int
+          IntegerLiteral[0]
+        IntegerLiteral[1]
+      BoolLiteral[false]
+    Assignment
+      ArrayIndex
+        ArrayIndex
+          b1:int
+          IntegerLiteral[0]
+        IntegerLiteral[2]
+      LogicalNot
+        ArrayIndex
+          ArrayIndex
+            b1:int
+            IntegerLiteral[0]
+          IntegerLiteral[1]
+    Assignment
+      ArrayIndex
+        ArrayIndex
+          b1:int
+          IntegerLiteral[1]
+        IntegerLiteral[0]
+      LogicalAnd
+        ArrayIndex
+          ArrayIndex
+            b1:int
+            IntegerLiteral[0]
+          IntegerLiteral[0]
+        ArrayIndex
+          ArrayIndex
+            b1:int
+            IntegerLiteral[0]
+          IntegerLiteral[2]
+    Assignment
+      ArrayIndex
+        ArrayIndex
+          b1:int
+          IntegerLiteral[1]
+        IntegerLiteral[1]
+      LogicalAnd
+        ArrayIndex
+          ArrayIndex
+            b1:int
+            IntegerLiteral[0]
+          IntegerLiteral[1]
+        ArrayIndex
+          ArrayIndex
+            b1:int
+            IntegerLiteral[1]
+          IntegerLiteral[0]
+    Assignment
+      ArrayIndex
+        ArrayIndex
+          b1:int
+          IntegerLiteral[1]
+        IntegerLiteral[2]
+      LogicalNot
+        LogicalOr
+          ArrayIndex
+            ArrayIndex
+              b1:int
+              IntegerLiteral[0]
+            IntegerLiteral[1]
+          ArrayIndex
+            ArrayIndex
+              b1:int
+              IntegerLiteral[1]
+            IntegerLiteral[1]
+    FunctionCall[TEMP FUNC:()->int]
+      ArgumentList
+        ArrayIndex
+          ArrayIndex
+            b1:int
+            IntegerLiteral[0]
+          IntegerLiteral[0]
+    FunctionCall[TEMP FUNC:()->int]
+      ArgumentList
+        ArrayIndex
+          ArrayIndex
+            b1:int
+            IntegerLiteral[0]
+          IntegerLiteral[1]
+    FunctionCall[TEMP FUNC:()->int]
+      ArgumentList
+        ArrayIndex
+          ArrayIndex
+            b1:int
+            IntegerLiteral[0]
+          IntegerLiteral[2]
+    FunctionCall[TEMP FUNC:()->int]
+      ArgumentList
+        ArrayIndex
+          ArrayIndex
+            b1:int
+            IntegerLiteral[1]
+          IntegerLiteral[0]
+    FunctionCall[TEMP FUNC:()->int]
+      ArgumentList
+        ArrayIndex
+          ArrayIndex
+            b1:int
+            IntegerLiteral[1]
+          IntegerLiteral[1]
+    FunctionCall[TEMP FUNC:()->int]
+      ArgumentList
+        ArrayIndex
+          ArrayIndex
+            b1:int
+            IntegerLiteral[1]
+          IntegerLiteral[2]
+    FunctionCall[TEMP FUNC:()->int]
+      ArgumentList
+    Assignment
+      b2:int
+      b1:int
+    FunctionCall[TEMP FUNC:()->int]
+      ArgumentList
+        ArrayIndex
+          ArrayIndex
+            b2:int
+            IntegerLiteral[0]
+          IntegerLiteral[0]
+    FunctionCall[TEMP FUNC:()->int]
+      ArgumentList
+        ArrayIndex
+          ArrayIndex
+            b2:int
+            IntegerLiteral[0]
+          IntegerLiteral[1]
+    FunctionCall[TEMP FUNC:()->int]
+      ArgumentList
+        ArrayIndex
+          ArrayIndex
+            b2:int
+            IntegerLiteral[0]
+          IntegerLiteral[2]
+    FunctionCall[TEMP FUNC:()->int]
+      ArgumentList
+        ArrayIndex
+          ArrayIndex
+            b2:int
+            IntegerLiteral[1]
+          IntegerLiteral[0]
+    FunctionCall[TEMP FUNC:()->int]
+      ArgumentList
+        ArrayIndex
+          ArrayIndex
+            b2:int
+            IntegerLiteral[1]
+          IntegerLiteral[1]
+    FunctionCall[TEMP FUNC:()->int]
+      ArgumentList
+        ArrayIndex
+          ArrayIndex
+            b2:int
+            IntegerLiteral[1]
+          IntegerLiteral[2]
+    FunctionCall[TEMP FUNC:()->int]
+      ArgumentList
+

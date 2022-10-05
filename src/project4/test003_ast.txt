@@ -1,59 +1,59 @@
-ast.Computation(0,0)[main:()->void]
-  ast.DeclarationList(3,3)
-    ast.VariableDeclaration(3,9)[input:int]
-    ast.VariableDeclaration(3,15)[myvar:int]
-  ast.DeclarationList(3,3)
-    ast.FunctionDeclaration(22,1)[maxFromInput:()->int]
-      ast.FunctionBody(22,1)
-        ast.DeclarationList(7,3)
-          ast.VariableDeclaration(7,7)[max:int]
-          ast.VariableDeclaration(7,9)[i:int]
-          ast.VariableDeclaration(7,14)[curr:int]
-        ast.StatementSequence(9,3)
-          ast.Assignment(9,9)
+Computation[main:()->void]
+  DeclarationList
+    VariableDeclaration[input:int]
+    VariableDeclaration[myvar:int]
+  DeclarationList
+    FunctionDeclaration[maxFromInput:()->int]
+      FunctionBody
+        DeclarationList
+          VariableDeclaration[max:int]
+          VariableDeclaration[i:int]
+          VariableDeclaration[curr:int]
+        StatementSequence
+          Assignment
             max:int
-            ast.IntegerLiteral(9,9)[0]
-          ast.Assignment(10,7)
+            IntegerLiteral[0]
+          Assignment
             i:int
-            ast.IntegerLiteral(10,7)[0]
-          ast.WhileStatement(18,3)
-            ast.Relation(12,10)[<]
+            IntegerLiteral[0]
+          WhileStatement
+            Relation[<]
               i:int
               n:int
-            ast.StatementSequence(13,3)
-              ast.Assignment(13,22)
+            StatementSequence
+              Assignment
                 curr:int
-                ast.FunctionCall(13,22)[TEMP FUNC:()->int]
-                  ast.ArgumentList(13,12)
-              ast.IfStatement(16,3)
-                ast.Relation(14,12)[>]
+                FunctionCall[TEMP FUNC:()->int]
+                  ArgumentList
+              IfStatement
+                Relation[>]
                   curr:int
                   max:int
-                ast.StatementSequence(15,3)
-                  ast.Assignment(15,12)
+                StatementSequence
+                  Assignment
                     max:int
                     curr:int
-                ast.StatementSequence(16,2)
-              ast.Assignment(17,7)
+                StatementSequence
+              Assignment
                 i:int
-                ast.Addition(17,7)
+                Addition
                   i:int
-                  ast.IntegerLiteral(17,7)[1]
-            ast.ReturnStatement(19,10)
+                  IntegerLiteral[1]
+            ReturnStatement
               max:int
-    ast.StatementSequence(23,3)
-      ast.Assignment(23,23)
+    StatementSequence
+      Assignment
         input:int
-        ast.FunctionCall(23,23)[TEMP FUNC:()->int]
-          ast.ArgumentList(23,13)
-      ast.Assignment(24,33)
+        FunctionCall[TEMP FUNC:()->int]
+          ArgumentList
+      Assignment
         myvar:int
-        ast.FunctionCall(24,33)[TEMP FUNC:()->int]
-          ast.ArgumentList(24,13)
+        FunctionCall[TEMP FUNC:()->int]
+          ArgumentList
             input:int
-      ast.FunctionCall(26,20)[TEMP FUNC:()->int]
-        ast.ArgumentList(26,4)
+      FunctionCall[TEMP FUNC:()->int]
+        ArgumentList
           myvar:int
-      ast.FunctionCall(27,14)[TEMP FUNC:()->int]
-        ast.ArgumentList(27,4)
+      FunctionCall[TEMP FUNC:()->int]
+        ArgumentList
 

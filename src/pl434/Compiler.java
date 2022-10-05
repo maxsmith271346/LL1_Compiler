@@ -247,19 +247,34 @@ public class Compiler {
     }
 
     // designator = ident { "[" relExpr "]" }
-    private Symbol designator() {
+    private Expression designator() {
         int lineNum = lineNumber();
         int charPos = charPosition();
 
         Token ident = expectRetrieve(Kind.IDENT);
 
-        while (accept(Kind.OPEN_BRACKET)) {
-            relExpr();
+        Expression designator = new Symbol(ident.lexeme(), "int", "variable");
+        ArrayIndex arrayIndex = null;
+        Expression expr;
+
+        // while
+        if (accept(Kind.OPEN_BRACKET)){
+            expr = relExpr();
+            arrayIndex = new ArrayIndex(lineNumber(), charPosition(), expr, designator);
             expect(Kind.CLOSE_BRACKET);
         }
 
+        while (accept(Kind.OPEN_BRACKET)){
+            expr = relExpr();
+            arrayIndex = new ArrayIndex(lineNumber(), charPosition(), expr, arrayIndex);
+            expect(Kind.CLOSE_BRACKET);
+        }
+
+        if (arrayIndex != null){
+            return arrayIndex;
+        }
         // TODO: get the actual type from the Symbol table?
-        return new Symbol(ident.lexeme(), "int", "variable");
+        return designator;
     }
 
     // groupExpr = literal | designator | "not" relExpr | "(" relExpr ")"
@@ -270,7 +285,8 @@ public class Compiler {
             groupExpr = literal();
             return groupExpr;
         } else if (have(NonTerminal.BOOL_LIT)) {
-            boolLit();
+            Token tok = boolLit();
+            return new BoolLiteral(lineNumber(), charPosition(), tok.lexeme());
         } else if (have(NonTerminal.DESIGNATOR)) {
             groupExpr = designator(); // In this case, the expression node will have an expression and a null
             return groupExpr;
@@ -284,8 +300,6 @@ public class Compiler {
         } else {
             return funcCall();
         }
-
-        return null;
     }
 
     // powExpr = groupExpr {powOp groupExpr}
@@ -371,7 +385,7 @@ public class Compiler {
     private Assignment assign() {
         Expression rhs = null;
         expect(NonTerminal.ASSIGN);
-        Symbol designator = designator();
+        Expression designator = designator();
         Token op;
 
         if (have(NonTerminal.ASSIGN_OP)) {

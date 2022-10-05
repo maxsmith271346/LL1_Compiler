@@ -1,5 +1,6 @@
 package pl434;
 
+import ast.ArrayIndex;
 import ast.Expression;
 import ast.NodeVisitor;
 
@@ -38,6 +39,7 @@ public class Symbol implements Expression {
     private Type type; 
     private String symbolType; // function, variable, etc TODO enum here - maybe we want to make classes that extend symbol for the different kinds? 
     public List<String> paramTypes;
+    public ArrayIndex arrayIndex;
 
     public Symbol (String name, String type, String symbolType) {
         this.name = name;
@@ -58,6 +60,9 @@ public class Symbol implements Expression {
         return type.getDefaultTypeStr();
     }
 
+    public void setSymbolType(String symbolType){
+        this.symbolType = symbolType; 
+    }
     @Override
     public String toString(){
         if (symbolType.equals("function")){
