@@ -95,12 +95,34 @@ public class PrettyPrinter implements NodeVisitor {
 
     public void visit(FunctionCall node){
         //TODO implement this - I added this method
+        println(node, "[" + node.function() + "]");
+        depth++; 
+        node.argList.accept(this);
+        depth--;
+    }
+
+    public void visit(ArgumentList node){
+        //TODO implement this - I added this method
         println(node, "");
+        depth++; 
+        if (!node.empty()){
+            for (Expression e : node.argList) { // TODO: make statement sequence iterable
+                e.accept(this);
+            }
+        }
+        depth--;
     }
 
     public void visit(IfStatement node){
         //TODO implement this - I added this method
         println(node, "");
+        depth++; 
+        node.condition().accept(this);
+        node.thenStatementSeq().accept(this);
+        if (node.elseStatementSeq() != null){
+            node.elseStatementSeq().accept(this);
+        }
+        depth--;
     }
 
     public void visit(Relation node){
@@ -124,6 +146,16 @@ public class PrettyPrinter implements NodeVisitor {
 
     @Override
     public void visit(IntegerLiteral node) {
+        println(node, "[" + node.value() + "]");
+        
+    }
+    @Override
+    public void visit(FloatLiteral node) {
+        println(node, "[" + node.value() + "]");
+        
+    }
+    @Override
+    public void visit(BoolLiteral node) {
         println(node, "[" + node.value() + "]");
         
     }
@@ -195,6 +227,16 @@ public class PrettyPrinter implements NodeVisitor {
         println(node, "");
         depth++; 
         node.expr().accept(this);
+        depth--;
+    }
+
+    @Override
+    public void visit(ReturnStatement node) {
+        println(node, "");
+        depth++; 
+        if (node.returnValue() != null){
+            node.returnValue().accept(this);
+        }
         depth--;
     }
 }

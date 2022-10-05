@@ -237,6 +237,12 @@ public class Compiler {
         if (tok.kind() == Token.Kind.INT_VAL) {
             return new IntegerLiteral(lineNumber(), charPosition(), tok.lexeme());
         }
+        else if (tok.kind() == Token.Kind.TRUE || tok.kind() == Token.Kind.FALSE) {
+            return new BoolLiteral(lineNumber(), charPosition(), tok.lexeme());
+        }
+        else if (tok.kind() == Token.Kind.FLOAT_VAL) {
+            return new FloatLiteral(lineNumber(), charPosition(), tok.lexeme());
+        }
         return null;
     }
 
@@ -276,7 +282,7 @@ public class Compiler {
             expect(Kind.CLOSE_PAREN);
             return groupExpr;
         } else {
-            funcCall();
+            return funcCall();
         }
 
         return null;
@@ -366,11 +372,33 @@ public class Compiler {
         Expression rhs = null;
         expect(NonTerminal.ASSIGN);
         Symbol designator = designator();
+        Token op;
 
-        if (accept(NonTerminal.ASSIGN_OP)) {
+        if (have(NonTerminal.ASSIGN_OP)) {
+            op = assignOp();
             rhs = relExpr();
+            switch (op.kind()) {
+                case ADD_ASSIGN:
+                    rhs = new Addition(lineNumber(), charPosition(), designator, rhs);
+                case SUB_ASSIGN:
+                    rhs = new Subtraction(lineNumber(), charPosition(), designator, rhs);
+                case MUL_ASSIGN:
+                    rhs = new Multiplication(lineNumber(), charPosition(), designator, rhs);
+                case DIV_ASSIGN:
+                    rhs = new Division(lineNumber(), charPosition(), designator, rhs);
+                case MOD_ASSIGN:
+                    rhs = new Modulo(lineNumber(), charPosition(), designator, rhs);
+                case POW_ASSIGN:
+                    rhs = new Power(lineNumber(), charPosition(), designator, rhs);
+            }
         } else {
-            unaryOp();
+            op = unaryOp();
+            if (op.kind() == Kind.UNI_INC) {
+                rhs = new Addition(lineNumber(), charPosition(), rhs, new IntegerLiteral(lineNumber(), charPosition(), "1"));
+            }
+            else {
+                rhs = new Subtraction(lineNumber(), charPosition(), rhs, new IntegerLiteral(lineNumber(), charPosition(), "1"));
+            }
         }
 
         Assignment assign = new Assignment(lineNumber(), charPosition(), designator, rhs);
@@ -378,67 +406,81 @@ public class Compiler {
     }
 
     // relation = "(" relExpr ")"
-    private void relation() {
+    private Expression relation() {
+        Expression expr; 
         expect(NonTerminal.RELATION);
-        relExpr();
+        expr = relExpr();
         expect(Kind.CLOSE_PAREN);
+        
+        return expr; 
     }
 
     // funcCall = "call" ident "(" [relExpr {"," relExpr}] ")"
     private FunctionCall funcCall() {
-        FunctionCall funcCall = new FunctionCall(lineNumber(), charPosition());
+        Symbol symbol = new Symbol("TEMP FUNC", "int", "function");
+        ArgumentList arguments = new ArgumentList(lineNumber(), charPosition());
         expect(NonTerminal.FUNC_CALL);
         expect(Kind.IDENT); // I added this - Emory
         expect(Kind.OPEN_PAREN);
 
         if (have(NonTerminal.EXPRESSION)) {
             do {
-                relExpr();
+                arguments.argList.add(relExpr());
             } while (accept(Kind.COMMA));
         }
 
         expect(Kind.CLOSE_PAREN);
 
+        FunctionCall funcCall = new FunctionCall(lineNumber(), charPosition(), symbol, arguments);
         return funcCall;
     }
 
     // ifStat = "if" relation "then" statSeq ["else" statSeq] "fi"
-    private void ifStat() {
+    private IfStatement ifStat() {
         expect(NonTerminal.IF_STAT);
-        relation();
+        Expression rel = relation();
         expect(Kind.THEN);
-        statSeq();
+        StatementSequence thenStatSeq = statSeq();
+        StatementSequence elseStatSeq = null;
 
         if (accept(Kind.ELSE)) {
-            statSeq();
+            elseStatSeq = statSeq();
         }
 
         expect(Kind.FI);
+
+        return new IfStatement(lineNumber(), charPosition(), rel, thenStatSeq, elseStatSeq);
     }
 
     // whileStat = "while" relation "do" statSeq "od"
-    private void whileStat() {
+    private WhileStatement whileStat() {
         expect(NonTerminal.WHILE_STAT);
-        relation();
+        Expression exp = relation();
         expect(Kind.DO);
-        statSeq();
+        StatementSequence statSeq = statSeq();
         expect(Kind.OD);
+
+        return new WhileStatement(lineNumber(), charPosition(), exp, statSeq);
     }
 
     // repeatStat = "repeat" statSeq "until" relation
-    private void repeatStat() {
+    private RepeatStatement repeatStat() {
         expect(NonTerminal.REPEAT_STAT);
-        statSeq();
+        StatementSequence statSeq = statSeq();
         expect(Kind.UNTIL);
-        relation();
+        Expression exp = relation();
+
+        return new RepeatStatement(lineNumber(), charPosition(), exp, statSeq);
     }
 
     // returnStat = "return" [relExpr]
-    private void returnStat() {
+    private ReturnStatement returnStat() {
+        Expression returnVal = null;
         expect(NonTerminal.RETURN_STAT);
         if (have(NonTerminal.EXPRESSION)) {
-            relExpr();
+            returnVal = relExpr();
         }
+        return new ReturnStatement(lineNumber(), charPosition(), returnVal);
     }
 
     // statement = assign | funcCall | ifStat | whileStat |
@@ -450,13 +492,13 @@ public class Compiler {
         } else if (have(NonTerminal.FUNC_CALL)) {
             statement = funcCall();
         } else if (have(NonTerminal.IF_STAT)) {
-            ifStat();
+           statement = ifStat();
         } else if (have(NonTerminal.WHILE_STAT)) {
-            whileStat();
+            statement = whileStat();
         } else if (have(NonTerminal.REPEAT_STAT)) {
-            repeatStat();
+            statement = repeatStat();
         } else {
-            returnStat();
+            statement = returnStat();
         }
 
         return statement;

@@ -13,9 +13,9 @@ public class FunctionDeclaration extends Node implements Declaration {
     public FunctionDeclaration(int lineNum, int charPos, String type, String ident, FunctionBody funcBody){
         super(lineNum, charPos);
         func = new Symbol(ident, type, "function");
-        func.paramTypes.addAll(formalParam);
         this.funcBody = funcBody;
         formalParam = new ArrayList<String>();
+        func.paramTypes.addAll(formalParam);
     }
     @Override
     public void accept(NodeVisitor visitor) {

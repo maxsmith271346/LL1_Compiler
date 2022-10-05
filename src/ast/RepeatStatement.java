@@ -1,10 +1,10 @@
 package ast;
 
 public class RepeatStatement extends Node implements Statement {
-    private Relation relation;
+    private Expression relation;
     private StatementSequence statSeq;
 
-    public RepeatStatement(int lineNum, int charPos, Relation relation, StatementSequence statSeq) {
+    public RepeatStatement(int lineNum, int charPos, Expression relation, StatementSequence statSeq) {
         super(lineNum, charPos);
         this.relation = relation;
         this.statSeq = statSeq;
@@ -15,7 +15,7 @@ public class RepeatStatement extends Node implements Statement {
         visitor.visit(this);
     }
 
-    public Relation condition() {
+    public Expression condition() {
         return relation;
     }
 

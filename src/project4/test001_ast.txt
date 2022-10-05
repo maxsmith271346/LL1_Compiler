@@ -1,7 +1,34 @@
-ast.Computation(0,0)[main]
+ast.Computation(0,0)[main:()->void]
   ast.DeclarationList(4,3)
     ast.VariableDeclaration(4,5)[x:int]
     ast.VariableDeclaration(5,8)[fX:float]
     ast.VariableDeclaration(6,7)[bX:bool]
-  ast.StatementSequence(4,3)
+  ast.StatementSequence(9,3)
+    ast.Assignment(9,19)
+      x:int
+      ast.FunctionCall(9,19)[TEMP FUNC:()->int]
+        ast.ArgumentList(9,9)
+    ast.FunctionCall(11,16)[TEMP FUNC:()->int]
+      ast.ArgumentList(11,4)
+        x:int
+    ast.FunctionCall(12,14)[TEMP FUNC:()->int]
+      ast.ArgumentList(12,4)
+    ast.Assignment(14,22)
+      fX:int
+      ast.FunctionCall(14,22)[TEMP FUNC:()->int]
+        ast.ArgumentList(14,10)
+    ast.FunctionCall(16,19)[TEMP FUNC:()->int]
+      ast.ArgumentList(16,4)
+        fX:int
+    ast.FunctionCall(17,14)[TEMP FUNC:()->int]
+      ast.ArgumentList(17,4)
+    ast.Assignment(19,21)
+      bX:int
+      ast.FunctionCall(19,21)[TEMP FUNC:()->int]
+        ast.ArgumentList(19,10)
+    ast.FunctionCall(21,18)[TEMP FUNC:()->int]
+      ast.ArgumentList(21,4)
+        bX:int
+    ast.FunctionCall(22,14)[TEMP FUNC:()->int]
+      ast.ArgumentList(22,4)
 

@@ -1,11 +1,11 @@
 package ast;
 
 public class IfStatement extends Node implements Statement {
-    private Relation relation;
+    private Expression relation;
     private StatementSequence thenStatSeq;
     private StatementSequence elseStatSeq;
 
-    public IfStatement(int lineNum, int charPos, Relation relation, StatementSequence thenStatSeq, StatementSequence elseStatSeq) {
+    public IfStatement(int lineNum, int charPos, Expression relation, StatementSequence thenStatSeq, StatementSequence elseStatSeq) {
         super(lineNum, charPos);
         this.relation = relation;
         this.thenStatSeq = thenStatSeq;
@@ -17,7 +17,7 @@ public class IfStatement extends Node implements Statement {
         visitor.visit(this);
     }
 
-    public Relation condition() {
+    public Expression condition() {
         return relation;
     }
 

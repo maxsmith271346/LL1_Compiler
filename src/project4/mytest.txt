@@ -4,11 +4,16 @@ int input, myvar;
 
 function tailSumIter (int n) : int
 {
-    int x, y;
-    let x = 0;
+    int sum;
+
+    let sum = 0;
+    //repeat
+    //    let sum += n;
+    //    let n--;
+    //until (n <= 0);
+    //return sum;
 };
 
 {
-    let input = y;
-    call printInt();
+    return;
 }.

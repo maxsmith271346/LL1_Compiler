@@ -14,4 +14,8 @@ public class VariableDeclaration extends Node implements Declaration {
     public void accept(NodeVisitor visitor) {
         visitor.visit(this);
     }
+
+    public Symbol symbol(){
+        return var;
+    }
 }

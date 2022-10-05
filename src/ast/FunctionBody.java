@@ -2,8 +2,8 @@ package ast;
 
 public class FunctionBody extends Node {
 
-    DeclarationList varDecl; 
-    StatementSequence statSeq;
+    private DeclarationList varDecl; 
+    private StatementSequence statSeq;
 
     public FunctionBody(int lineNum, int charPos, DeclarationList varDecl, StatementSequence statSeq) {
         super(lineNum, charPos);

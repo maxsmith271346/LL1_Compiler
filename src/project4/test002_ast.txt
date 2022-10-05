@@ -1,76 +1,51 @@
-Computation[main:()->void]
-  DeclarationList
-    VariableDeclaration[input:int]
-    VariableDeclaration[myvar:int]
-  DeclarationList
-    FunctionDeclaration[tailSumIter:(int)->int]
-      FunctionBody
-        DeclarationList
-          VariableDeclaration[sum:int]
-        StatementSequence
-          Assignment
-            sum:int
-            IntegerLiteral[0]
-          RepeatStatement
-            StatementSequence
-              Assignment
+ast.Computation(0,0)[main:()->void]
+  ast.DeclarationList(3,3)
+    ast.VariableDeclaration(3,9)[input:int]
+    ast.VariableDeclaration(3,15)[myvar:int]
+  ast.DeclarationList(17,8)
+    ast.FunctionDeclaration(25,1)[tailSumRecur:()->int]
+      ast.FunctionBody(25,1)
+        ast.StatementSequence(19,2)
+          ast.IfStatement(21,3)
+            ast.Relation(19,8)[==]
+              n:int
+              ast.IntegerLiteral(19,8)[0]
+            ast.StatementSequence(20,6)
+              ast.ReturnStatement(20,10)
                 sum:int
-                Addition
+          ast.ReturnStatement(22,34)
+            ast.FunctionCall(22,34)[TEMP FUNC:()->int]
+              ast.ArgumentList(22,10)
+                ast.Subtraction(22,27)
+                  n:int
+                  ast.IntegerLiteral(22,27)[1]
+                ast.Addition(22,33)
                   sum:int
                   n:int
-              Assignment
-                n:int
-                Subtraction
-                  n:int
-                  IntegerLiteral[1]
-            Relation[<=]
-              n:int
-              IntegerLiteral[0]
-          ReturnStatement
-            sum:int
-    FunctionDeclaration[tailSumRecur:(int, int)->int]
-      FunctionBody
-        StatementSequence
-          IfStatement
-            Relation[==]
-              n:int
-              IntegerLiteral[0]
-            StatementSequence
-              ReturnStatement
-                sum:int
-            StatementSequence
-          ReturnStatement
-            FunctionCall[tailSumRecur:(int, int)->int]
-              ArgumentList
-                Subtraction
-                  n:int
-                  IntegerLiteral[1]
-                Addition
-                  sum:int
-                  n:int
-  StatementSequence
-    Assignment
+  ast.StatementSequence(26,3)
+    ast.Assignment(26,23)
       input:int
-      FunctionCall[readInt:()->int]
-        ArgumentList
-    Assignment
+      ast.FunctionCall(26,23)[TEMP FUNC:()->int]
+        ast.ArgumentList(26,13)
+    ast.Assignment(27,32)
       myvar:int
-      FunctionCall[tailSumIter:(int)->int]
-        ArgumentList
+      ast.FunctionCall(27,32)[TEMP FUNC:()->int]
+        ast.ArgumentList(27,13)
           input:int
-    FunctionCall[printInt:(int)->void]
-      ArgumentList
+    ast.FunctionCall(29,20)[TEMP FUNC:()->int]
+      ast.ArgumentList(29,4)
         myvar:int
-    FunctionCall[println:()->void]
-      ArgumentList
-    Assignment
+    ast.FunctionCall(30,14)[TEMP FUNC:()->int]
+      ast.ArgumentList(30,4)
+    ast.Assignment(32,35)
       myvar:int
-      FunctionCall[tailSumRecur:(int, int)->int]
-        ArgumentList
+      ast.FunctionCall(32,35)[TEMP FUNC:()->int]
+        ast.ArgumentList(32,13)
           input:int
-          IntegerLiteral[0]
-    FunctionCall[printInt:(int)->void]
-      ArgumentList
+          ast.IntegerLiteral(32,34)[0]
+    ast.FunctionCall(34,20)[TEMP FUNC:()->int]
+      ast.ArgumentList(34,4)
         myvar:int
-    FunctionCall[println:()->void]
-      ArgumentList
+    ast.FunctionCall(35,14)[TEMP FUNC:()->int]
+      ast.ArgumentList(35,4)
+

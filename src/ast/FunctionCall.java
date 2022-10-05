@@ -7,9 +7,9 @@ public class FunctionCall extends Node implements Statement, Expression{
     public ArgumentList argList;
 
 
-    public FunctionCall(int lineNum, int charPos, Symbol func) {
+    public FunctionCall(int lineNum, int charPos, Symbol func, ArgumentList argList) {
         super(lineNum, charPos);
-        argList = new ArgumentList(lineNum, charPos);
+        this.argList = argList;
         this.func = func;
     }
 
