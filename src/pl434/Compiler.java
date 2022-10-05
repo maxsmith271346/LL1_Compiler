@@ -253,7 +253,7 @@ public class Compiler {
 
         Token ident = expectRetrieve(Kind.IDENT);
 
-        if (accept(Kind.OPEN_BRACKET)) {
+        while (accept(Kind.OPEN_BRACKET)) {
             relExpr();
             expect(Kind.CLOSE_BRACKET);
         }
@@ -380,24 +380,30 @@ public class Compiler {
             switch (op.kind()) {
                 case ADD_ASSIGN:
                     rhs = new Addition(lineNumber(), charPosition(), designator, rhs);
+                    break; 
                 case SUB_ASSIGN:
                     rhs = new Subtraction(lineNumber(), charPosition(), designator, rhs);
+                    break; 
                 case MUL_ASSIGN:
                     rhs = new Multiplication(lineNumber(), charPosition(), designator, rhs);
+                    break; 
                 case DIV_ASSIGN:
                     rhs = new Division(lineNumber(), charPosition(), designator, rhs);
+                    break; 
                 case MOD_ASSIGN:
                     rhs = new Modulo(lineNumber(), charPosition(), designator, rhs);
+                    break; 
                 case POW_ASSIGN:
                     rhs = new Power(lineNumber(), charPosition(), designator, rhs);
+                    break;
             }
         } else {
             op = unaryOp();
             if (op.kind() == Kind.UNI_INC) {
-                rhs = new Addition(lineNumber(), charPosition(), rhs, new IntegerLiteral(lineNumber(), charPosition(), "1"));
+                rhs = new Addition(lineNumber(), charPosition(), designator, new IntegerLiteral(lineNumber(), charPosition(), "1"));
             }
             else {
-                rhs = new Subtraction(lineNumber(), charPosition(), rhs, new IntegerLiteral(lineNumber(), charPosition(), "1"));
+                rhs = new Subtraction(lineNumber(), charPosition(), designator, new IntegerLiteral(lineNumber(), charPosition(), "1"));
             }
         }
 
@@ -441,7 +447,7 @@ public class Compiler {
         Expression rel = relation();
         expect(Kind.THEN);
         StatementSequence thenStatSeq = statSeq();
-        StatementSequence elseStatSeq = null;
+        StatementSequence elseStatSeq = new StatementSequence(lineNumber(), charPosition());
 
         if (accept(Kind.ELSE)) {
             elseStatSeq = statSeq();
@@ -520,7 +526,7 @@ public class Compiler {
     // typeDecl = type { "[" integerLit "]" }
     private Token typeDecl() {
         Token tok = type();
-        if (accept(Kind.OPEN_BRACKET)) {
+        while (accept(Kind.OPEN_BRACKET)) {
             expect(Kind.INT_VAL);
             expect(Kind.CLOSE_BRACKET);
         }
@@ -632,8 +638,13 @@ public class Compiler {
         while (have(NonTerminal.TYPE_DECL)) {
             vars.decList.addAll(varDecl().decList);
         }
-        while (have(NonTerminal.FUNC_DECL)) {
+
+        if (have(NonTerminal.TYPE_DECL)) {
             funcs = funcDecl();
+        }
+
+        while (have(NonTerminal.FUNC_DECL)) {
+            funcs.decList.addAll(funcDecl().decList);
         }
 
         expect(Kind.OPEN_BRACE);

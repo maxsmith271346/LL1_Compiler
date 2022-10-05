@@ -1,19 +1,13 @@
 main
-
-int input, myvar;
-
-function tailSumIter (int n) : int
 {
-    int sum;
+    let input = call readInt();
+    let myvar = call tailSumIter(input);
 
-    let sum = 0;
-    //repeat
-    //    let sum += n;
-    //    let n--;
-    //until (n <= 0);
-    //return sum;
-};
+    call printInt(myvar);
+    call println();
 
-{
-    return;
+    let myvar = call tailSumRecur(input, 0);
+
+    call printInt(myvar);
+    call println();
 }.

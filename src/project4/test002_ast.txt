@@ -2,7 +2,32 @@ ast.Computation(0,0)[main:()->void]
   ast.DeclarationList(3,3)
     ast.VariableDeclaration(3,9)[input:int]
     ast.VariableDeclaration(3,15)[myvar:int]
-  ast.DeclarationList(17,8)
+  ast.DeclarationList(3,3)
+    ast.FunctionDeclaration(17,8)[tailSumIter:()->int]
+      ast.FunctionBody(17,8)
+        ast.DeclarationList(7,3)
+          ast.VariableDeclaration(7,7)[sum:int]
+        ast.StatementSequence(9,3)
+          ast.Assignment(9,9)
+            sum:int
+            ast.IntegerLiteral(9,9)[0]
+          ast.RepeatStatement(13,12)
+            ast.StatementSequence(11,3)
+              ast.Assignment(11,10)
+                sum:int
+                ast.Addition(11,10)
+                  sum:int
+                  n:int
+              ast.Assignment(12,7)
+                n:int
+                ast.Subtraction(12,7)
+                  n:int
+                  ast.IntegerLiteral(12,7)[1]
+            ast.Relation(13,11)[<=]
+              n:int
+              ast.IntegerLiteral(13,11)[0]
+          ast.ReturnStatement(14,10)
+            sum:int
     ast.FunctionDeclaration(25,1)[tailSumRecur:()->int]
       ast.FunctionBody(25,1)
         ast.StatementSequence(19,2)

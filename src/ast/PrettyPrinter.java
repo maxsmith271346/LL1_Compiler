@@ -137,11 +137,19 @@ public class PrettyPrinter implements NodeVisitor {
     public void visit(RepeatStatement node){
         //TODO implement this - I added this method
         println(node, "");
+        depth++;
+        node.statementSeq().accept(this);
+        node.condition().accept(this);
+        depth--;
     }
 
     public void visit(WhileStatement node){
         //TODO implement this - I added this method
         println(node, "");
+        depth++; 
+        node.condition().accept(this);
+        node.statementSeq().accept(this);
+
     }
 
     @Override

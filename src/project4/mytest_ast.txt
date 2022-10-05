@@ -1,16 +1,28 @@
 ast.Computation(0,0)[main:()->void]
-  ast.DeclarationList(3,3)
-    ast.VariableDeclaration(3,9)[input:int]
-    ast.VariableDeclaration(3,15)[myvar:int]
-  ast.DeclarationList(5,8)
-    ast.FunctionDeclaration(17,1)[tailSumIter:()->int]
-      ast.FunctionBody(17,1)
-        ast.DeclarationList(7,3)
-          ast.VariableDeclaration(7,7)[sum:int]
-        ast.StatementSequence(9,3)
-          ast.Assignment(9,9)
-            sum:int
-            ast.IntegerLiteral(9,9)[0]
-  ast.StatementSequence(18,6)
-    ast.ReturnStatement(18,7)
+  ast.StatementSequence(3,3)
+    ast.Assignment(3,23)
+      input:int
+      ast.FunctionCall(3,23)[TEMP FUNC:()->int]
+        ast.ArgumentList(3,13)
+    ast.Assignment(4,32)
+      myvar:int
+      ast.FunctionCall(4,32)[TEMP FUNC:()->int]
+        ast.ArgumentList(4,13)
+          input:int
+    ast.FunctionCall(6,20)[TEMP FUNC:()->int]
+      ast.ArgumentList(6,4)
+        myvar:int
+    ast.FunctionCall(7,14)[TEMP FUNC:()->int]
+      ast.ArgumentList(7,4)
+    ast.Assignment(9,35)
+      myvar:int
+      ast.FunctionCall(9,35)[TEMP FUNC:()->int]
+        ast.ArgumentList(9,13)
+          input:int
+          ast.IntegerLiteral(9,34)[0]
+    ast.FunctionCall(11,20)[TEMP FUNC:()->int]
+      ast.ArgumentList(11,4)
+        myvar:int
+    ast.FunctionCall(12,14)[TEMP FUNC:()->int]
+      ast.ArgumentList(12,4)
 
