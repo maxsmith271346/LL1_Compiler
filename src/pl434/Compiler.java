@@ -461,7 +461,7 @@ public class Compiler {
         Expression rel = relation();
         expect(Kind.THEN);
         StatementSequence thenStatSeq = statSeq();
-        StatementSequence elseStatSeq = new StatementSequence(lineNumber(), charPosition());
+        StatementSequence elseStatSeq = null; //CHECK 
 
         if (accept(Kind.ELSE)) {
             elseStatSeq = statSeq();
