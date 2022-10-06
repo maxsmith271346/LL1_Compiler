@@ -20,7 +20,9 @@ public class AST {
         // Use the enum ASTNonTerminal provided for naming convention.
         PrettyPrinter p = new PrettyPrinter();
         p.visit(computation);
-        return p.toString().substring(0, p.toString().length() - 1);
+        // to resolve extra newline: 
+        //return p.toString().substring(0, p.toString().length() - 1);
+        return p.toString();
         //throw new RuntimeException("implement printPreOrder function");
     }
 }
