@@ -1,0 +1,45 @@
+Computation[main:()->void]
+  DeclarationList
+    VariableDeclaration[goal:int]
+  DeclarationList
+    FunctionDeclaration[getRandomNumber:()->int]
+      FunctionBody
+        StatementSequence
+          ReturnStatement
+            IntegerLiteral[38]
+    FunctionDeclaration[getGuess:()->int]
+      FunctionBody
+        StatementSequence
+          ReturnStatement
+            FunctionCall[TEMP FUNC:()->int]
+              ArgumentList
+    FunctionDeclaration[isCorrect:()->bool]
+      FunctionBody
+        StatementSequence
+          FunctionCall[TEMP FUNC:()->int]
+            ArgumentList
+              Relation[<]
+                guess:int
+                goal:int
+          ReturnStatement
+            Relation[==]
+              guess:int
+              goal:int
+  StatementSequence
+    Assignment
+      goal:int
+      FunctionCall[TEMP FUNC:()->int]
+        ArgumentList
+    RepeatStatement
+      StatementSequence
+        IfStatement
+          BoolLiteral[false]
+          StatementSequence
+            FunctionCall[TEMP FUNC:()->int]
+              ArgumentList
+                IntegerLiteral[-1]
+      FunctionCall[TEMP FUNC:()->int]
+        ArgumentList
+          FunctionCall[TEMP FUNC:()->int]
+            ArgumentList
+

@@ -1,0 +1,19 @@
+// Nathan Purwosumarto
+// Nested repeat inside while test
+
+main
+
+int a,b;
+
+{
+    let a = 0;
+    while (a != 5) do
+        let a++;
+        let b = a;
+        repeat
+            call printInt(b);
+            let b--;
+        until (b==0);
+    od;
+
+}.

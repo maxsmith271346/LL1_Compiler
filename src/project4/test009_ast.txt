@@ -1,0 +1,79 @@
+Computation[main:()->void]
+  DeclarationList
+    VariableDeclaration[a:int]
+    VariableDeclaration[b:int]
+    VariableDeclaration[c:int]
+    VariableDeclaration[d:int]
+    VariableDeclaration[e:int]
+    VariableDeclaration[f:int]
+    VariableDeclaration[x:float]
+    VariableDeclaration[y:float]
+    VariableDeclaration[z:float]
+  StatementSequence
+    Assignment
+      a:int
+      FunctionCall[TEMP FUNC:()->int]
+        ArgumentList
+    Assignment
+      b:int
+      FunctionCall[TEMP FUNC:()->int]
+        ArgumentList
+    Assignment
+      c:int
+      FunctionCall[TEMP FUNC:()->int]
+        ArgumentList
+    Assignment
+      d:int
+      FunctionCall[TEMP FUNC:()->int]
+        ArgumentList
+    Assignment
+      e:int
+      FunctionCall[TEMP FUNC:()->int]
+        ArgumentList
+    Assignment
+      x:int
+      FunctionCall[TEMP FUNC:()->int]
+        ArgumentList
+    Assignment
+      y:int
+      FunctionCall[TEMP FUNC:()->int]
+        ArgumentList
+    Assignment
+      z:int
+      FunctionCall[TEMP FUNC:()->int]
+        ArgumentList
+    FunctionCall[TEMP FUNC:()->int]
+      ArgumentList
+        Addition
+          Subtraction
+            Division
+              Multiplication
+                a:int
+                Power
+                  b:int
+                  c:int
+              d:int
+            Multiplication
+              Modulo
+                Multiplication
+                  Multiplication
+                    e:int
+                    a:int
+                  b:int
+                e:int
+              IntegerLiteral[2]
+          IntegerLiteral[3]
+    FunctionCall[TEMP FUNC:()->int]
+      ArgumentList
+        Addition
+          Subtraction
+            Addition
+              Division
+                x:int
+                y:int
+              Multiplication
+                z:int
+                x:int
+            y:int
+          FloatLiteral[5.61]
+

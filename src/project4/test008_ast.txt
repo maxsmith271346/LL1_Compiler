@@ -1,0 +1,35 @@
+Computation[main:()->void]
+  DeclarationList
+    VariableDeclaration[a:int]
+    VariableDeclaration[b:int]
+  StatementSequence
+    Assignment
+      a:int
+      IntegerLiteral[0]
+    WhileStatement
+      Relation[!=]
+        a:int
+        IntegerLiteral[5]
+      StatementSequence
+        Assignment
+          a:int
+          Addition
+            a:int
+            IntegerLiteral[1]
+        Assignment
+          b:int
+          a:int
+        RepeatStatement
+          StatementSequence
+            FunctionCall[TEMP FUNC:()->int]
+              ArgumentList
+                b:int
+            Assignment
+              b:int
+              Subtraction
+                b:int
+                IntegerLiteral[1]
+          Relation[==]
+            b:int
+            IntegerLiteral[0]
+
