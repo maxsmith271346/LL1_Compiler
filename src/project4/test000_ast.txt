@@ -1,9 +1,9 @@
-ast.Computation(0,0)[main:()->void]
-  ast.StatementSequence(3,4)
-    ast.FunctionCall(3,16)[TEMP FUNC:()->int]
-      ast.ArgumentList(3,4)
-        ast.IntegerLiteral(3,15)[1]
-    ast.FunctionCall(4,16)[TEMP FUNC:()->int]
-      ast.ArgumentList(4,4)
-        ast.IntegerLiteral(4,15)[2]
+Computation[main:()->void]
+  StatementSequence
+    FunctionCall[printInt:(int)->void]
+      ArgumentList
+        IntegerLiteral[1]
+    FunctionCall[printInt:(int)->void]
+      ArgumentList
+        IntegerLiteral[2]
 

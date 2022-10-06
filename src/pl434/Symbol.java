@@ -33,44 +33,96 @@ public class Symbol implements Expression {
                 return false; 
             }
         }
+
+        @Override
+        public String toString() {
+            return this.defaultTypeStr;
+        }
     }
 
     private String name;
-    private Type type; 
+    private Type returnType; 
     private String symbolType; // function, variable, etc TODO enum here - maybe we want to make classes that extend symbol for the different kinds? 
-    public List<String> paramTypes;
+    // ^ var, func, param, arr?
+    private List<Type> paramTypes;
     public ArrayIndex arrayIndex;
 
-    public Symbol (String name, String type, String symbolType) {
+    // TODO: Will need to assign addresses for symbols
+    // private int address;
+
+    public Symbol (String name, String returnType, String symbolType) {
         this.name = name;
         this.symbolType = symbolType; 
-        paramTypes = new ArrayList<String>();
+        this.paramTypes = new ArrayList<Type>();
 
         for (Type t: Type.values()){
-            if(type.equals(t.getDefaultTypeStr())){
-                this.type = t; 
+            if(returnType.equals(t.getDefaultTypeStr())){
+                this.returnType = t; 
                 break;
             }
         }
     }
+
+    public Symbol (String name, String returnType, String symbolType, List<String> paramTypes) {
+        this.name = name;
+        this.symbolType = symbolType; 
+
+        for (Type t : Type.values()){
+            if(returnType.equals(t.getDefaultTypeStr())) {
+                this.returnType = t; 
+                break;
+            }
+        }
+
+        this.paramTypes = new ArrayList<Type>();
+
+        for (String pt : paramTypes) {
+            for (Type t : Type.values()) {
+                if(pt.equals(t.getDefaultTypeStr())) {
+                    this.paramTypes.add(t); 
+                    break;
+                }
+            }
+        }
+    }
+    
     public String name () {
         return name;
     }
     public String type (){
-        return type.getDefaultTypeStr();
+        return returnType.getDefaultTypeStr();
     }
 
-    public void setSymbolType(String symbolType){
-        this.symbolType = symbolType; 
+    public void setReturnType(String type) {
+        for (Type t : Type.values()){
+            if(type.equals(t.getDefaultTypeStr())) {
+                this.returnType = t; 
+                break;
+            }
+        }
     }
+
+    public void addParams (List<String> paramTypes) {
+        this.paramTypes = new ArrayList<Type>();
+
+        for (String pt : paramTypes) {
+            for (Type t : Type.values()) {
+                if(pt.equals(t.getDefaultTypeStr())) {
+                    this.paramTypes.add(t); 
+                    break;
+                }
+            }
+        }
+    }
+
     @Override
     public String toString(){
-        if (symbolType.equals("function")){
+        if (symbolType.equals("func")){
             String paramTypesStr = paramTypes.toString();
-            return name + ":(" + paramTypesStr.replace("[", "").replace("]", "") + ")->" + type.getDefaultTypeStr();
+            return name + ":(" + paramTypesStr.replace("[", "").replace("]", "") + ")->" + returnType.getDefaultTypeStr();
         } 
-        else if (symbolType.equals("variable")){ 
-            return name + ":" + type.getDefaultTypeStr();
+        else if (symbolType.equals("var") || symbolType.equals("param")){ 
+            return name + ":" + returnType.getDefaultTypeStr();
         }  
         else{ 
             return "";
@@ -81,6 +133,5 @@ public class Symbol implements Expression {
         visitor.visit(this);
         
     }
-
 
 }

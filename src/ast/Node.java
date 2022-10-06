@@ -2,14 +2,18 @@ package ast;
 
 import pl434.Token;
 
+
+
 public abstract class Node implements Visitable {
 
     private int lineNum;
     private int charPos;
+    public static boolean displayLocation;
 
     protected Node (int lineNum, int charPos) {
         this.lineNum = lineNum;
         this.charPos = charPos;
+        this.displayLocation = false;
     }
 
     public int lineNumber () {
@@ -21,24 +25,38 @@ public abstract class Node implements Visitable {
     }
 
     public String getClassInfo () {
-        return this.getClass().getSimpleName();
+        String loc = "";
+        if (displayLocation) {
+            loc = "(" + lineNumber() + "," + charPosition() + ")";
+        }
+        
+        return this.getClass().getSimpleName() + loc;
     }
 
     @Override
     public String toString () {
-        return this.getClass().getSimpleName();
+        String loc = "";
+        if (displayLocation) {
+            loc = "(" + lineNumber() + "," + charPosition() + ")";
+        }
+        
+        return this.getClass().getSimpleName() + loc;
     }
 
     // Some factory method
     public static Statement newAssignment (int lineNum, int charPos, Expression dest, Token assignOp, Expression src) {
+        // TODO: implement this
         return null;
+
     }
 
     public static Expression newExpression (Expression leftSide, Token op, Expression rightSide) {
+        // TODO: implement this
         return null; 
     }
 
     public static Expression newLiteral (Token tok) {
-        return null; 
+        //TODO: implement this
+        return null;
     }
 }

@@ -6,29 +6,29 @@ Computation[main:()->void]
   StatementSequence
     Assignment
       x:int
-      FunctionCall[TEMP FUNC:()->int]
+      FunctionCall[readInt:()->int]
         ArgumentList
-    FunctionCall[TEMP FUNC:()->int]
+    FunctionCall[printInt:(int)->void]
       ArgumentList
         x:int
-    FunctionCall[TEMP FUNC:()->int]
+    FunctionCall[println:()->void]
       ArgumentList
     Assignment
-      fX:int
-      FunctionCall[TEMP FUNC:()->int]
+      fX:float
+      FunctionCall[readInt:()->float]
         ArgumentList
-    FunctionCall[TEMP FUNC:()->int]
+    FunctionCall[printFloat:(float)->void]
       ArgumentList
-        fX:int
-    FunctionCall[TEMP FUNC:()->int]
+        fX:float
+    FunctionCall[println:()->void]
       ArgumentList
     Assignment
-      bX:int
-      FunctionCall[TEMP FUNC:()->int]
+      bX:bool
+      FunctionCall[readInt:()->bool]
         ArgumentList
-    FunctionCall[TEMP FUNC:()->int]
+    FunctionCall[printBool:(bool)->void]
       ArgumentList
-        bX:int
-    FunctionCall[TEMP FUNC:()->int]
+        bX:bool
+    FunctionCall[println:()->void]
       ArgumentList
 

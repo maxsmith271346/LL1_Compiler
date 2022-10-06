@@ -7,7 +7,7 @@ public class VariableDeclaration extends Node implements Declaration {
 
     public VariableDeclaration(int lineNum, int charPos, String type, String ident){
         super(lineNum, charPos);
-        var = new Symbol(ident, type, "variable");
+        var = new Symbol(ident, type, "var");
 
     }
     @Override

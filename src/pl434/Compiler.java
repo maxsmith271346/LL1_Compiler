@@ -1,11 +1,13 @@
 package pl434;
 
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.Collections;
 import java.util.List;
 import java.util.NoSuchElementException;
 
 import ast.*;
+import pl434.Symbol.Type;
 import pl434.Token.Kind;
 
 public class Compiler {
@@ -57,6 +59,10 @@ public class Compiler {
 
     private int numDataRegisters; // available registers are [1..numDataRegisters]
     private List<Integer> instructions;
+    
+    private SymbolTable rootScope = new SymbolTable("_root");
+    private SymbolTable currScope = rootScope;
+
 
     // Need to map from IDENT to memory offset
 
@@ -65,6 +71,19 @@ public class Compiler {
         currentToken = this.scanner.next();
         numDataRegisters = numRegs;
         instructions = new ArrayList<>();
+
+        
+        // Initialization of root scope
+
+        // TODO: At some point, should likely change Symbol constructor to take in
+        // list of types
+        rootScope.insert("readInt", new Symbol("readInt", "int", "func"));
+        rootScope.insert("readFloat", new Symbol("readInt", "float", "func"));
+        rootScope.insert("readBool", new Symbol("readInt", "bool", "func"));
+        rootScope.insert("printInt", new Symbol("printInt", "void", "func", new ArrayList<String>(Arrays.asList("int"))));
+        rootScope.insert("printFloat", new Symbol("printFloat", "void", "func", new ArrayList<String>(Arrays.asList("float"))));
+        rootScope.insert("printBool", new Symbol("printBool", "void", "func", new ArrayList<String>(Arrays.asList("bool"))));
+        rootScope.insert("println", new Symbol("println", "void", "func"));
     }
 
     // TODO
@@ -91,25 +110,31 @@ public class Compiler {
     private SymbolTable symbolTable;
 
     private void initSymbolTable() {
-        throw new RuntimeException("implement initSymbolTable");
     }
 
-    private void enterScope() {
-        throw new RuntimeException("implement enterScope");
+    private void enterScope(String scopeName) {
+        currScope = new SymbolTable(scopeName, currScope);
     }
 
     private void exitScope() {
-        throw new RuntimeException("implement exitScope");
+        currScope = currScope.getParentTable();
     }
 
     private Symbol tryResolveVariable(Token ident) {
-        return null;
-        // TODO: Try resolving variable, handle SymbolNotFoundError
+        try {
+            return currScope.lookup(ident.lexeme());
+        } catch (SymbolNotFoundError e) {
+            reportResolveSymbolError(ident.lexeme(), lineNumber(), charPosition());
+        }
+        return new Symbol("", "", "");
     }
 
-    private Symbol tryDeclareVariable(Token ident) {
-        return null;
-        // TODO: Try declaring variable, handle RedeclarationError
+    private void tryDeclareVariable(Token ident, Symbol symbol) {
+        try {
+            currScope.insert(ident.lexeme(), symbol);
+        } catch (RedeclarationError e) {
+            reportDeclareSymbolError(ident.lexeme(), lineNumber(), charPosition());
+        }
     }
 
     private String reportResolveSymbolError(String name, int lineNum, int charPos) {
@@ -253,7 +278,7 @@ public class Compiler {
 
         Token ident = expectRetrieve(Kind.IDENT);
 
-        Expression designator = new Symbol(ident.lexeme(), "int", "variable");
+        Expression designator = tryResolveVariable(ident); 
         ArrayIndex arrayIndex = null;
         Expression expr;
 
@@ -437,10 +462,12 @@ public class Compiler {
 
     // funcCall = "call" ident "(" [relExpr {"," relExpr}] ")"
     private FunctionCall funcCall() {
-        Symbol symbol = new Symbol("TEMP FUNC", "int", "function");
+        //Symbol symbol = new Symbol("TEMP FUNC", "int", "func");
         ArgumentList arguments = new ArgumentList(lineNumber(), charPosition());
         expect(NonTerminal.FUNC_CALL);
-        expect(Kind.IDENT); // I added this - Emory
+
+        Token identTok = expectRetrieve(Kind.IDENT); 
+        Symbol symbol = tryResolveVariable(identTok); 
         expect(Kind.OPEN_PAREN);
 
         if (have(NonTerminal.EXPRESSION)) {
@@ -557,6 +584,9 @@ public class Compiler {
         do {
             Token identTok = expectRetrieve(Kind.IDENT);
             varDec = new VariableDeclaration(lineNumber(), charPosition(), typeTok.lexeme(), identTok.lexeme());
+
+            tryDeclareVariable(identTok, varDec.symbol());
+
             vars.decList.add(varDec);
         } while (accept(Kind.COMMA));
         expect(Kind.SEMICOLON);
@@ -565,28 +595,44 @@ public class Compiler {
     }
 
     // paramType = type { "[" "]" }
-    private void paramType() {
-        type();
+    private String paramType() {
+        Token t = type();
+        String pType = t.lexeme();
+        // TODO: optional: extend enum to include array types 
         if (accept(Kind.OPEN_BRACKET)) {
             expect(Kind.CLOSE_BRACKET);
         }
+
+        return pType;
     }
 
     // paramDecl = paramType ident
-    private void paramDecl() {
-        paramType();
-        expectRetrieve(Kind.IDENT);
+    private String paramDecl() {
+        String pType = paramType();
+        Token ident = expectRetrieve(Kind.IDENT);
+
+        Symbol symbol = new Symbol(ident.lexeme(), pType, "param");
+
+        tryDeclareVariable(ident, symbol);
+
+        return pType;
     }
 
     // formalParam = "(" [ paramDecl { "," paramDecl } ] ")"
-    private void formalParam() {
+    private ArrayList<String> formalParam() {
         expect(Kind.OPEN_PAREN);
+        System.out.println("tok " + currentToken);
+        ArrayList<String> paramTypes = new ArrayList<String>();
         if (have(NonTerminal.PARAM_DECL)) {
             do {
                 paramDecl();
+                // Add parameter types to the paramTypes list
+                paramTypes.add(paramDecl());
             } while (accept(Kind.COMMA));
         }
         expect(Kind.CLOSE_PAREN);
+
+        return paramTypes;
     }
 
     // funcBody = "{" { varDecl } statSeq "}" ";"
@@ -619,18 +665,30 @@ public class Compiler {
         expect(NonTerminal.FUNC_DECL);
         Token identTok = expectRetrieve(Kind.IDENT);
 
-        formalParam();
+        // Declare function in parent scope (still needs paramTypes list)
+        Symbol func = new Symbol(identTok.lexeme(), typeTok.lexeme(), "func");
+        tryDeclareVariable(identTok, func);
+
+        // Enter function scope
+        enterScope(identTok.lexeme());
+
+        ArrayList<String> paramTypes = formalParam();
+
+        func.addParams(paramTypes);
 
         expect(Kind.COLON);
 
-        if (!accept(Kind.VOID)) {
-            typeTok = type();
-        }
+         // Set func return type
+        func.setReturnType(type().lexeme());
 
         funcBody = funcBody();
 
-        funcDec = new FunctionDeclaration(lineNumber(), charPosition(), typeTok.lexeme(), identTok.lexeme(), funcBody);
+        funcDec = new FunctionDeclaration(lineNumber(), charPosition(), func, funcBody);
         funcs.decList.add(funcDec);
+
+        // Exit function scope
+        exitScope();
+
         return funcs;
     }
 
@@ -666,7 +724,7 @@ public class Compiler {
         expect(Kind.CLOSE_BRACE);
         expect(Kind.PERIOD);
 
-        Symbol compSymbol = new Symbol("main", "void", "function");
+        Symbol compSymbol = new Symbol("main", "void", "func");
         return new Computation(0, 0, compSymbol, vars, funcs, mainSeq);
 
     }
