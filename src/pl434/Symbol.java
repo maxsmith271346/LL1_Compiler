@@ -46,6 +46,7 @@ public class Symbol implements Expression {
     // ^ var, func, param, arr?
     private List<Type> paramTypes;
     public ArrayIndex arrayIndex;
+    public List<String> dimList; // for var[2][3], will store [2, 3]
 
     // TODO: Will need to assign addresses for symbols
     // private int address;
@@ -54,6 +55,7 @@ public class Symbol implements Expression {
         this.name = name;
         this.symbolType = symbolType; 
         this.paramTypes = new ArrayList<Type>();
+        this.dimList = new ArrayList<String>(); 
 
         for (Type t: Type.values()){
             if(returnType.equals(t.getDefaultTypeStr())){
@@ -115,6 +117,15 @@ public class Symbol implements Expression {
         }
     }
 
+
+    public void addDims(List<String> dims){
+        this.dimList = dims;
+    }
+
+    public List<String> getDims(){
+        return dimList;
+    }
+
     @Override
     public String toString(){
         if (symbolType.equals("func")){
@@ -122,6 +133,10 @@ public class Symbol implements Expression {
             return name + ":(" + paramTypesStr.replace("[", "").replace("]", "") + ")->" + returnType.getDefaultTypeStr();
         } 
         else if (symbolType.equals("var") || symbolType.equals("param")){ 
+            if (dimList.size() != 0){
+                String dimListStr  = dimList.toString();
+                return name + ":" + returnType.getDefaultTypeStr() + dimListStr.replace(", ", "][");
+            }
             return name + ":" + returnType.getDefaultTypeStr();
         }  
         else{ 

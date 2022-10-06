@@ -267,8 +267,8 @@ public class PrettyPrinter implements NodeVisitor {
 	public void visit(ArrayIndex node) {
 		println(node, "");
         depth++; 
-        node.rightExpr().accept(this);
         node.leftExpr().accept(this);
+        node.rightExpr().accept(this);
         depth--;
 		
 	}

@@ -1,0 +1,9 @@
+Computation[main:()->void]
+  DeclarationList
+    VariableDeclaration[x:int]
+    VariableDeclaration[y:int]
+    VariableDeclaration[z:int]
+  StatementSequence
+    Assignment
+      
+      IntegerLiteral[2]

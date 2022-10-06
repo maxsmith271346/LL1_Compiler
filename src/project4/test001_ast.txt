@@ -15,7 +15,7 @@ Computation[main:()->void]
       ArgumentList
     Assignment
       fX:float
-      FunctionCall[readInt:()->float]
+      FunctionCall[readFloat:()->float]
         ArgumentList
     FunctionCall[printFloat:(float)->void]
       ArgumentList
@@ -24,11 +24,10 @@ Computation[main:()->void]
       ArgumentList
     Assignment
       bX:bool
-      FunctionCall[readInt:()->bool]
+      FunctionCall[readBool:()->bool]
         ArgumentList
     FunctionCall[printBool:(bool)->void]
       ArgumentList
         bX:bool
     FunctionCall[println:()->void]
       ArgumentList
-

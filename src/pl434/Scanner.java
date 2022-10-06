@@ -58,7 +58,7 @@ public class Scanner implements Iterator<Token> {
             lineNum++;
             charPos = 0; 
         }
-        else if (prevChar != ' ' && prevChar != '\t'){
+        else if (prevChar != ' '){
             charPos++; 
         }
         return inputChar;

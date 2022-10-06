@@ -78,8 +78,8 @@ public class Compiler {
         // TODO: At some point, should likely change Symbol constructor to take in
         // list of types
         rootScope.insert("readInt", new Symbol("readInt", "int", "func"));
-        rootScope.insert("readFloat", new Symbol("readInt", "float", "func"));
-        rootScope.insert("readBool", new Symbol("readInt", "bool", "func"));
+        rootScope.insert("readFloat", new Symbol("readFloat", "float", "func"));
+        rootScope.insert("readBool", new Symbol("readBool", "bool", "func"));
         rootScope.insert("printInt", new Symbol("printInt", "void", "func", new ArrayList<String>(Arrays.asList("int"))));
         rootScope.insert("printFloat", new Symbol("printFloat", "void", "func", new ArrayList<String>(Arrays.asList("float"))));
         rootScope.insert("printBool", new Symbol("printBool", "void", "func", new ArrayList<String>(Arrays.asList("bool"))));
@@ -279,23 +279,19 @@ public class Compiler {
         Token ident = expectRetrieve(Kind.IDENT);
 
         Expression designator = tryResolveVariable(ident); 
-        ArrayIndex arrayIndex = null;
-        Expression expr;
 
         // while
         if (accept(Kind.OPEN_BRACKET)){
-            expr = relExpr();
-            arrayIndex = new ArrayIndex(lineNumber(), charPosition(), expr, designator);
+            Expression lhsExpr = designator;
+            Expression rhsExpr =  relExpr();
+            ArrayIndex arrayIndex = new ArrayIndex(lineNumber(), charPosition(), lhsExpr, rhsExpr);
             expect(Kind.CLOSE_BRACKET);
-        }
 
-        while (accept(Kind.OPEN_BRACKET)){
-            expr = relExpr();
-            arrayIndex = new ArrayIndex(lineNumber(), charPosition(), expr, arrayIndex);
-            expect(Kind.CLOSE_BRACKET);
-        }
-
-        if (arrayIndex != null){
+            while(accept(Kind.OPEN_BRACKET)){
+                rhsExpr = relExpr();
+                arrayIndex.leftExpr = new ArrayIndex(lineNumber(), charPosition(), lhsExpr, rhsExpr);
+                expect(Kind.CLOSE_BRACKET);
+            }
             return arrayIndex;
         }
         // TODO: get the actual type from the Symbol table?
@@ -567,10 +563,10 @@ public class Compiler {
     // typeDecl = type { "[" integerLit "]" }
     private Token typeDecl() {
         Token tok = type();
-        while (accept(Kind.OPEN_BRACKET)) {
+        /*while (accept(Kind.OPEN_BRACKET)) {
             expect(Kind.INT_VAL);
             expect(Kind.CLOSE_BRACKET);
-        }
+        }*/
         return tok;
     }
 
@@ -579,12 +575,24 @@ public class Compiler {
         // create a new Declaration List node and fill it with Variable Declarations
         DeclarationList vars = new DeclarationList(lineNumber(), charPosition());
         VariableDeclaration varDec;
+        List<String> dimList = new ArrayList<String>();
 
         Token typeTok = typeDecl();
+
+        // moved this from typeDecl since it only returns a Token & this is the only method that calls typeDecl
+        while (accept(Kind.OPEN_BRACKET)) {
+            dimList.add(expectRetrieve(Kind.INT_VAL).lexeme());
+            expect(Kind.CLOSE_BRACKET);
+        }
+
         do {
             Token identTok = expectRetrieve(Kind.IDENT);
             varDec = new VariableDeclaration(lineNumber(), charPosition(), typeTok.lexeme(), identTok.lexeme());
-
+            
+            if (dimList.size() != 0){
+                varDec.symbol().addDims(dimList);
+            }
+    
             tryDeclareVariable(identTok, varDec.symbol());
 
             vars.decList.add(varDec);
@@ -677,8 +685,16 @@ public class Compiler {
 
         expect(Kind.COLON);
 
+
          // Set func return type
-        func.setReturnType(type().lexeme());
+         // special case for void because void is not a valid variable type so didn't want to modify the type() method 
+        if (currentToken.kind != Token.Kind.VOID){
+            func.setReturnType(type().lexeme());
+        }
+        else{ 
+            func.setReturnType(Token.Kind.VOID.getDefaultLexeme());
+            accept(Token.Kind.VOID);
+        }
 
         funcBody = funcBody();
 

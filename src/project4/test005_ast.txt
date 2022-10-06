@@ -1,0 +1,14 @@
+Computation[main:()->void]
+  DeclarationList
+    VariableDeclaration[x:int[]]
+    VariableDeclaration[y:int[]]
+    VariableDeclaration[z:int[]]
+    VariableDeclaration[x:float[]]
+  StatementSequence
+    Assignment
+      x:int[]
+      IntegerLiteral[2]
+    Assignment
+      y:int[]
+      IntegerLiteral[2]
+
