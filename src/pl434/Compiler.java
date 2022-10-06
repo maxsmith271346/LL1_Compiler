@@ -621,11 +621,10 @@ public class Compiler {
     // formalParam = "(" [ paramDecl { "," paramDecl } ] ")"
     private ArrayList<String> formalParam() {
         expect(Kind.OPEN_PAREN);
-        System.out.println("tok " + currentToken);
         ArrayList<String> paramTypes = new ArrayList<String>();
         if (have(NonTerminal.PARAM_DECL)) {
             do {
-                paramDecl();
+                //paramDecl();
                 // Add parameter types to the paramTypes list
                 paramTypes.add(paramDecl());
             } while (accept(Kind.COMMA));
