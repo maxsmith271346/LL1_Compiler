@@ -10,7 +10,6 @@ function b(int x) : void {
     int a;
     call printInt(x);
 };
-
 {
     call a();
 }.

@@ -3,6 +3,7 @@ package pl434;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
+import java.util.HashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
 
@@ -63,6 +64,7 @@ public class Compiler {
     private SymbolTable rootScope = new SymbolTable("_root");
     private SymbolTable currScope = rootScope;
 
+    private HashMap<String, FunctionCall> functionResolution;
 
     // Need to map from IDENT to memory offset
 
@@ -72,18 +74,9 @@ public class Compiler {
         numDataRegisters = numRegs;
         instructions = new ArrayList<>();
 
-        
-        // Initialization of root scope
+        functionResolution = new HashMap<String, FunctionCall>();
 
-        // TODO: At some point, should likely change Symbol constructor to take in
-        // list of types
-        rootScope.insert("readInt", new Symbol("readInt", "int", "func"));
-        rootScope.insert("readFloat", new Symbol("readFloat", "float", "func"));
-        rootScope.insert("readBool", new Symbol("readBool", "bool", "func"));
-        rootScope.insert("printInt", new Symbol("printInt", "void", "func", new ArrayList<String>(Arrays.asList("int"))));
-        rootScope.insert("printFloat", new Symbol("printFloat", "void", "func", new ArrayList<String>(Arrays.asList("float"))));
-        rootScope.insert("printBool", new Symbol("printBool", "void", "func", new ArrayList<String>(Arrays.asList("bool"))));
-        rootScope.insert("println", new Symbol("println", "void", "func"));
+        initSymbolTable();
     }
 
     // TODO
@@ -110,6 +103,17 @@ public class Compiler {
     private SymbolTable symbolTable;
 
     private void initSymbolTable() {
+        // Initialization of root scope
+
+        // TODO: At some point, should likely change Symbol constructor to take in
+        // list of types
+        rootScope.insert("readInt", new Symbol("readInt", "int", "func"));
+        rootScope.insert("readFloat", new Symbol("readFloat", "float", "func"));
+        rootScope.insert("readBool", new Symbol("readBool", "bool", "func"));
+        rootScope.insert("printInt", new Symbol("printInt", "void", "func", new ArrayList<String>(Arrays.asList("int"))));
+        rootScope.insert("printFloat", new Symbol("printFloat", "void", "func", new ArrayList<String>(Arrays.asList("float"))));
+        rootScope.insert("printBool", new Symbol("printBool", "void", "func", new ArrayList<String>(Arrays.asList("bool"))));
+        rootScope.insert("println", new Symbol("println", "void", "func"));
     }
 
     private void enterScope(String scopeName) {
@@ -129,6 +133,27 @@ public class Compiler {
         return new Symbol("", "", "");
     }
 
+    private Symbol tryResolveFunction(Token ident, FunctionCall funcCall) {
+        try {
+            return currScope.lookup(ident.lexeme());
+        } catch (SymbolNotFoundError e) {
+            functionResolution.put(ident.lexeme(), funcCall);
+        }
+        return new Symbol("", "", "");
+    }
+
+    private void resolveFunctions(){
+        Symbol funcSymbol;
+        for(String fR : functionResolution.keySet()){
+            try{ 
+                funcSymbol = currScope.lookup(fR);
+                functionResolution.get(fR).putFunc(funcSymbol);
+            } catch (SymbolNotFoundError e) {
+                insertResolveSymbolError(fR, functionResolution.get(fR).lineNumber(), functionResolution.get(fR).lineNumber());
+            }
+        }
+    } 
+    
     private void tryDeclareVariable(Token ident, Symbol symbol) {
         try {
             currScope.insert(ident.lexeme(), symbol);
@@ -141,6 +166,35 @@ public class Compiler {
         String message = "ResolveSymbolError(" + lineNum + "," + charPos + ")[Could not find " + name + ".]";
         errorBuffer.append(message + "\n");
         return message;
+    }
+
+    private void insertResolveSymbolError(String name, int lineNum, int charPos){
+        List<String> errorBufferList = Arrays.asList(errorBuffer.toString().split("\n"));
+
+        if (errorBuffer.length() != 0){
+            int offset = 0;
+            int openParenIndex = 0; 
+            int commaIndex = 0;
+            int closeParenIndex = 0;
+            for (String error : errorBufferList){
+                openParenIndex = error.indexOf("(");
+                commaIndex = error.indexOf(",");
+                closeParenIndex = error.indexOf(")");
+                if (Integer.parseInt(error.substring(openParenIndex + 1, commaIndex)) < lineNum){
+                    offset += error.length() + 1;
+                }
+                else if (Integer.parseInt(error.substring(openParenIndex + 1, commaIndex)) == lineNum){
+                    if (Integer.parseInt(error.substring(commaIndex + 1, closeParenIndex)) < charPos){
+                        offset += error.length() + 1;
+                    }
+                }
+            }
+            String message = "ResolveSymbolError(" + lineNum + "," + charPos + ")[Could not find " + name + ".]";
+            errorBuffer.insert(offset, message + "\n");
+        }   
+        else{ 
+            reportResolveSymbolError(name, lineNum, charPos);
+        }
     }
 
     private String reportDeclareSymbolError(String name, int lineNum, int charPos) {
@@ -458,12 +512,14 @@ public class Compiler {
 
     // funcCall = "call" ident "(" [relExpr {"," relExpr}] ")"
     private FunctionCall funcCall() {
+        FunctionCall funcCall = new FunctionCall(lineNumber(), charPosition());
         //Symbol symbol = new Symbol("TEMP FUNC", "int", "func");
         ArgumentList arguments = new ArgumentList(lineNumber(), charPosition());
         expect(NonTerminal.FUNC_CALL);
 
         Token identTok = expectRetrieve(Kind.IDENT); 
-        Symbol symbol = tryResolveVariable(identTok); 
+        //Symbol symbol = tryResolveVariable(identTok); 
+        Symbol symbol = tryResolveFunction(identTok, funcCall);
         expect(Kind.OPEN_PAREN);
 
         if (have(NonTerminal.EXPRESSION)) {
@@ -474,7 +530,8 @@ public class Compiler {
 
         expect(Kind.CLOSE_PAREN);
 
-        FunctionCall funcCall = new FunctionCall(lineNumber(), charPosition(), symbol, arguments);
+        funcCall.putArgs(arguments);
+        funcCall.putFunc(symbol);
         return funcCall;
     }
 
@@ -674,8 +731,12 @@ public class Compiler {
 
         // Declare function in parent scope (still needs paramTypes list)
         Symbol func = new Symbol(identTok.lexeme(), typeTok.lexeme(), "func");
-        tryDeclareVariable(identTok, func);
 
+        // save off the char pos and line number in case they are needed later for an error
+        int funcCharPos = charPosition();
+        int funcLineNum = lineNumber();
+
+        tryDeclareVariable(identTok, func);
         // Enter function scope
         enterScope(identTok.lexeme());
 
@@ -684,7 +745,6 @@ public class Compiler {
         func.addParams(paramTypes);
 
         expect(Kind.COLON);
-
 
          // Set func return type
          // special case for void because void is not a valid variable type so didn't want to modify the type() method 
@@ -698,18 +758,24 @@ public class Compiler {
 
         funcBody = funcBody();
 
-        funcDec = new FunctionDeclaration(lineNumber(), charPosition(), func, funcBody);
+        funcDec = new FunctionDeclaration(funcLineNum, funcCharPos, func, funcBody);
         funcs.decList.add(funcDec);
 
         // Exit function scope
         exitScope();
+
+        // Check for param conflicts here
+        try {
+            currScope.checkParamConflicts(identTok.lexeme());
+        } catch (RedeclarationError e) {
+            reportDeclareSymbolError(identTok.lexeme(), funcLineNum, funcCharPos);
+        }
 
         return funcs;
     }
 
     // computation = "main" {varDecl} {funcDecl} "{" statSeq "}" "."
     private Computation computation() {
-
         expect(Kind.MAIN);
 
         DeclarationList vars = new DeclarationList(lineNumber(), charPosition());
@@ -733,11 +799,14 @@ public class Compiler {
         while (have(NonTerminal.FUNC_DECL)) {
             funcs.decList.addAll(funcDecl().decList);
         }
+        
 
         expect(Kind.OPEN_BRACE);
         mainSeq = statSeq();
         expect(Kind.CLOSE_BRACE);
         expect(Kind.PERIOD);
+
+        resolveFunctions();
 
         Symbol compSymbol = new Symbol("main", "void", "func");
         return new Computation(0, 0, compSymbol, vars, funcs, mainSeq);

@@ -3,7 +3,7 @@ Computation[main:()->void]
     FunctionDeclaration[a:()->void]
       FunctionBody
         StatementSequence
-          FunctionCall[]
+          FunctionCall[b:(int)->void]
             ArgumentList
               IntegerLiteral[1]
     FunctionDeclaration[b:(int)->void]

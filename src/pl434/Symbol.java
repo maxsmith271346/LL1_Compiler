@@ -126,6 +126,14 @@ public class Symbol implements Expression {
         return dimList;
     }
 
+    public List<Type> getParamTypes(){
+        return paramTypes;
+    }
+
+    public String getSymbolType(){
+        return symbolType;
+    }
+
     @Override
     public String toString(){
         if (symbolType.equals("func")){

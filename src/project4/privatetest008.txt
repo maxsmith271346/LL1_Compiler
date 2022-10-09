@@ -1,0 +1,29 @@
+// function redeclaration
+main
+int a;
+
+function f1 (int n) : int
+{
+    call f1(0);
+    return 0;
+};
+
+function f1 (int n) : void
+{
+    return;
+};
+
+function f1 (int n, int a) : void
+{
+    return; // No error
+};
+
+function printInt (int n) : void
+{
+    return;
+};
+
+{
+	let a = 2;
+	call f1(a);
+}.

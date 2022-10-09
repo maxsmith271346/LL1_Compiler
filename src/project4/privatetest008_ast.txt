@@ -1,0 +1,31 @@
+Computation[main:()->void]
+  DeclarationList
+    VariableDeclaration[a:int]
+  DeclarationList
+    FunctionDeclaration[f1:(int)->int]
+      FunctionBody
+        StatementSequence
+          FunctionCall[f1:(int)->int]
+            ArgumentList
+              IntegerLiteral[0]
+          ReturnStatement
+            IntegerLiteral[0]
+    FunctionDeclaration[f1:(int)->void]
+      FunctionBody
+        StatementSequence
+          ReturnStatement
+    FunctionDeclaration[f1:(int, int)->void]
+      FunctionBody
+        StatementSequence
+          ReturnStatement
+    FunctionDeclaration[printInt:(int)->void]
+      FunctionBody
+        StatementSequence
+          ReturnStatement
+  StatementSequence
+    Assignment
+      a:int
+      IntegerLiteral[2]
+    FunctionCall[f1:(int)->int]
+      ArgumentList
+        a:int
