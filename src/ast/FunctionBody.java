@@ -1,4 +1,6 @@
 package ast;
+import types.Type;
+
 
 public class FunctionBody extends Node {
 
@@ -12,8 +14,8 @@ public class FunctionBody extends Node {
     }
 
     @Override
-    public void accept(NodeVisitor visitor) {
-        visitor.visit(this);
+    public Type accept(NodeVisitor visitor) {
+        return visitor.visit(this);
     }
 
     public DeclarationList variables(){

@@ -1,4 +1,5 @@
 package ast;
+import types.Type;
 
 public class Relation extends Node implements Expression {
     private String relOp;
@@ -13,8 +14,8 @@ public class Relation extends Node implements Expression {
     }
 
     @Override
-    public void accept(NodeVisitor visitor) {
-        visitor.visit(this);
+    public Type accept(NodeVisitor visitor) {
+        return visitor.visit(this);
 
     }
 

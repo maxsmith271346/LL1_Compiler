@@ -1,6 +1,8 @@
 package ast;
 
 import pl434.Symbol;
+import types.Type;
+
 
 public class Assignment extends Node implements Statement{
     // Designator equivalent to ident if not allowing arrays
@@ -16,8 +18,8 @@ public class Assignment extends Node implements Statement{
     }
 
     @Override
-    public void accept(NodeVisitor visitor) {
-        visitor.visit(this);
+    public Type accept(NodeVisitor visitor) {
+        return visitor.visit(this);
     }
 
     public Expression lhsDesignator() {

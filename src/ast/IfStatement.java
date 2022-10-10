@@ -1,4 +1,6 @@
 package ast;
+import types.Type;
+
 
 public class IfStatement extends Node implements Statement {
     private Expression relation;
@@ -13,8 +15,8 @@ public class IfStatement extends Node implements Statement {
     }
 
     @Override
-    public void accept(NodeVisitor visitor) {
-        visitor.visit(this);
+    public Type accept(NodeVisitor visitor) {
+        return visitor.visit(this);
     }
 
     public Expression condition() {

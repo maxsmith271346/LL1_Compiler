@@ -1,4 +1,5 @@
 package ast;
+import types.Type;
 
 public class LogicalAnd extends Node implements Expression {
     private Expression leftRelExpr;
@@ -11,8 +12,8 @@ public class LogicalAnd extends Node implements Expression {
     }
 
     @Override
-    public void accept(NodeVisitor visitor) {
-        visitor.visit(this);
+    public Type accept(NodeVisitor visitor) {
+       return visitor.visit(this);
 
     }
 

@@ -1,6 +1,8 @@
 package ast;
 
 import pl434.Symbol;
+import types.Type;
+
 
 public class FunctionCall extends Node implements Statement, Expression{
     private Symbol func;
@@ -12,8 +14,8 @@ public class FunctionCall extends Node implements Statement, Expression{
     }
 
     @Override
-    public void accept(NodeVisitor visitor) {
-        visitor.visit(this);
+    public Type accept(NodeVisitor visitor) {
+        return visitor.visit(this);
     }
 
     public Symbol function() {

@@ -1,6 +1,8 @@
 package ast;
 
 import pl434.Symbol;
+import types.Type;
+
 
 public class VariableDeclaration extends Node implements Declaration {
     private Symbol var;
@@ -11,8 +13,8 @@ public class VariableDeclaration extends Node implements Declaration {
 
     }
     @Override
-    public void accept(NodeVisitor visitor) {
-        visitor.visit(this);
+    public Type accept(NodeVisitor visitor) {
+        return visitor.visit(this);
     }
 
     public Symbol symbol(){

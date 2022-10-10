@@ -1,5 +1,5 @@
 package ast;
-
+/* 
 import pl434.Symbol;
 
 public class PrettyPrinter implements NodeVisitor {
@@ -272,4 +272,4 @@ public class PrettyPrinter implements NodeVisitor {
         depth--;
 		
 	}
-}
+}*/

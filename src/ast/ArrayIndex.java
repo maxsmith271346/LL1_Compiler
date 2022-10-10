@@ -1,5 +1,7 @@
 package ast;
 
+import types.Type;
+
 public class ArrayIndex extends Node implements Expression {
     public Expression leftExpr;
     public Expression rightExpr;
@@ -11,8 +13,8 @@ public class ArrayIndex extends Node implements Expression {
     }
 
     @Override
-    public void accept(NodeVisitor visitor) {
-        visitor.visit(this);
+    public Type accept(NodeVisitor visitor) {
+        return visitor.visit(this);
 
     }
 

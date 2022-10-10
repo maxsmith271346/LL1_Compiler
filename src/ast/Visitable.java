@@ -1,6 +1,8 @@
 package ast;
 
+import types.Type;
+
 public interface Visitable {
 
-    public void accept (NodeVisitor visitor);
+    public Type accept (NodeVisitor visitor);
 }

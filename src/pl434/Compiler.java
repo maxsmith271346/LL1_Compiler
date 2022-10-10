@@ -8,7 +8,7 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import ast.*;
-import pl434.Symbol.Type;
+import pl434.Symbol.primitiveType;
 import pl434.Token.Kind;
 
 public class Compiler {

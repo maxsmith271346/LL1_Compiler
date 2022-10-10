@@ -3,6 +3,8 @@ package ast;
 import java.util.ArrayList;
 import java.util.List;
 
+import types.Type;
+
 public class ArgumentList extends Node {
     public List<Expression> argList;
 
@@ -13,8 +15,8 @@ public class ArgumentList extends Node {
     }
 
     @Override
-    public void accept(NodeVisitor visitor) {
-        visitor.visit(this);
+    public Type accept(NodeVisitor visitor) {
+       return visitor.visit(this);
     }
 
     public boolean empty(){

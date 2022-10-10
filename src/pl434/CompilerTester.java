@@ -1,11 +1,11 @@
 package pl434;
 
-import ast.AST; 
-
 import java.io.*;
+import types.*;
 
-// You need to put jar files in lib/ in your classpath
 import org.apache.commons.cli.*;
+
+import ast.AST;
 
 public class CompilerTester {
 
@@ -16,7 +16,11 @@ public class CompilerTester {
         options.addOption("nr", "reg", true, "Num Regs");
         options.addOption("b", "asm", false, "Print DLX instructions");
         options.addOption("a", "astOut", false, "Print AST");
-        options.addOption("o", "opt", true, "Order-sensitive optimization -allowed to have multiple");
+        options.addOption("ast", "ast", false, "Print AST.dot - requires graphs/");
+
+        options.addOption("cfg", "cfg", false, "Print CFG.dot - requires graphs/");
+        options.addOption("o", "opt", true, "Order-sensitive optimization -allowed to have multiple");      
+        options.addOption("max", "maxOpt", false, "Run all available optimizations till convergence");
 
         HelpFormatter formatter = new HelpFormatter();
         CommandLineParser cmdParser = new DefaultParser();
@@ -44,7 +48,6 @@ public class CompilerTester {
             try {
                 in = new FileInputStream(inputFilename);
             }
-
             catch (IOException e) {
                 System.err.println("Error accessing the data file: \"" + inputFilename + "\"");
                 System.exit(-2);
@@ -71,23 +74,13 @@ public class CompilerTester {
         
         Compiler c = new Compiler(s, numRegs);
         AST ast = c.genAST();
-        // For PA4 you are not required to generate and execute any code
+        TypeChecker tc = new TypeChecker();
 
-        if (cmd.hasOption("astOut")) {
-            String astFile = sourceFile.substring(0, sourceFile.lastIndexOf('.')) + "_ast.txt";
-            try (PrintStream out = new PrintStream(astFile)) {
-                out.println(ast.printPreOrder());
-                //System.out.println(ast.printPreOrder());
-            } catch (IOException e) {
-                System.err.println("Error accessing the ast file: \"" + astFile + "\"");
-                System.exit(-7);
-            }
+        if (!tc.check(ast)) {
+            System.out.println("Error type-checking file.");
+            System.out.println(tc.errorReport());
+            System.exit(-4);
         }
-
-        if (c.hasError()) {
-            System.out.println("Error parsing file.");
-            System.out.println(c.errorReport());
-            System.exit(-8);
-        }
+       
     }
 }
