@@ -54,11 +54,11 @@ public class Scanner implements Iterator<Token> {
             Error("Error reading char from input", e);
         }
 
-        if (prevChar == '\n' || prevChar == '\r'){
+        if (prevChar == '\n'){
             lineNum++;
             charPos = 0; 
         }
-        else if (prevChar != ' '){
+        else {
             charPos++; 
         }
         return inputChar;
