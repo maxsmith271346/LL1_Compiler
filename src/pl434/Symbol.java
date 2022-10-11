@@ -12,49 +12,19 @@ import types.VoidType;
 import java.util.ArrayList;
 import java.util.List;
 
+import javax.print.FlavorException;
+
 //import types.*;
 
 public class Symbol implements Expression {
 
-    public enum primitiveType{ 
-        VOID("void"),
-        BOOL("bool"),
-        INT("int"),
-        FLOAT("float");
-
-        private String defaultTypeStr; 
-
-        primitiveType (String typeStr){
-            defaultTypeStr = typeStr;
-        }
-
-        public String getDefaultTypeStr(){ 
-            return this.defaultTypeStr;
-        }
-
-        public boolean matches (String type){
-            if (this.defaultTypeStr.equals(type)){
-                return true; 
-            }
-            else{ 
-                return false; 
-            }
-        }
-
-        @Override
-        public String toString() {
-            return this.defaultTypeStr;
-        }
-    }
-
     private String name;
-    private primitiveType returnType; 
+    private Type returnType; 
     private String symbolType; // function, variable, etc TODO enum here - maybe we want to make classes that extend symbol for the different kinds? 
     // ^ var, func, param, arr?
-    private List<primitiveType> paramTypes;
+    private List<Type> paramTypes;
     public ArrayIndex arrayIndex;
     public List<String> dimList; // for var[2][3], will store [2, 3]
-    private Type type; // added this for type checker
 
     // TODO: Will need to assign addresses for symbols
     // private int address;
@@ -62,40 +32,61 @@ public class Symbol implements Expression {
     public Symbol (String name, String returnType, String symbolType) {
         this.name = name;
         this.symbolType = symbolType; 
-        this.paramTypes = new ArrayList<primitiveType>();
+        this.paramTypes = new ArrayList<Type>();
         this.dimList = new ArrayList<String>(); 
 
-        for (primitiveType t: primitiveType.values()){
-            if(returnType.equals(t.getDefaultTypeStr())){
-                this.returnType = t; 
+        switch (returnType){
+            case "int": 
+                this.returnType = new IntType();
                 break;
-            }
-        }
-
-        this.type = getTypeFromPrimitiveType(this.returnType);
-
+            case "float":
+                this.returnType = new FloatType();
+                break;
+            case "void":
+                this.returnType = new VoidType();
+                break;
+            case "bool":
+                this.returnType = new BoolType();
+                break;
+            };
     }
 
     public Symbol (String name, String returnType, String symbolType, List<String> paramTypes) {
         this.name = name;
         this.symbolType = symbolType; 
 
-        for (primitiveType t : primitiveType.values()){
-            if(returnType.equals(t.getDefaultTypeStr())) {
-                this.returnType = t; 
+        switch (returnType){
+            case "int": 
+                this.returnType = new IntType();
                 break;
-            }
-        }
+            case "float":
+                this.returnType = new FloatType();
+                break;
+            case "void":
+                this.returnType = new VoidType();
+                break;
+            case "bool":
+                this.returnType = new BoolType();
+                break;
+            };
 
-        this.paramTypes = new ArrayList<primitiveType>();
+        this.paramTypes = new ArrayList<Type>();
 
         for (String pt : paramTypes) {
-            for (primitiveType t : primitiveType.values()) {
-                if(pt.equals(t.getDefaultTypeStr())) {
-                    this.paramTypes.add(t); 
+            switch (pt){
+                case "int": 
+                    this.paramTypes.add(new IntType());
                     break;
-                }
-            }
+                case "float":
+                    this.paramTypes.add(new FloatType());
+                    break;
+                case "void":
+                    this.paramTypes.add(new VoidType());
+                    break;
+                case "bool":
+                    this.paramTypes.add(new BoolType());
+                    break;
+                };
         }
     }
     
@@ -103,28 +94,43 @@ public class Symbol implements Expression {
         return name;
     }
     public String type (){
-        return returnType.getDefaultTypeStr();
+        return returnType.toString();
     }
 
     public void setReturnType(String type) {
-        for (primitiveType t : primitiveType.values()){
-            if(type.equals(t.getDefaultTypeStr())) {
-                this.returnType = t; 
+        switch (type){
+            case "int": 
+                this.returnType = new IntType();
                 break;
-            }
-        }
+            case "float":
+                this.returnType = new FloatType();
+                break;
+            case "void":
+                this.returnType = new VoidType();
+                break;
+            case "bool":
+                this.returnType = new BoolType();
+                break;
+            };
     }
 
     public void addParams (List<String> paramTypes) {
-        this.paramTypes = new ArrayList<primitiveType>();
-
+        this.paramTypes = new ArrayList<Type>();
         for (String pt : paramTypes) {
-            for (primitiveType t : primitiveType.values()) {
-                if(pt.equals(t.getDefaultTypeStr())) {
-                    this.paramTypes.add(t); 
+            switch (pt){
+                case "int": 
+                    this.paramTypes.add(new IntType());
                     break;
-                }
-            }
+                case "float":
+                    this.paramTypes.add(new FloatType());
+                    break; 
+                case "void":
+                    this.paramTypes.add(new VoidType());
+                    break;
+                case "bool":
+                    this.paramTypes.add(new BoolType());
+                    break;
+                };
         }
     }
 
@@ -137,7 +143,7 @@ public class Symbol implements Expression {
         return dimList;
     }
 
-    public List<primitiveType> getParamTypes(){
+    public List<Type> getParamTypes(){
         return paramTypes;
     }
 
@@ -146,37 +152,20 @@ public class Symbol implements Expression {
     }
 
     public Type getType(){
-        return type;
+        return returnType;
     }
-
-    public Type getTypeFromPrimitiveType(primitiveType pt){
-        if (pt == primitiveType.INT){
-            return new IntType();
-        }
-        else if (pt == primitiveType.FLOAT){
-            return new FloatType();
-        }
-        else if (pt == primitiveType.BOOL){
-            return new BoolType();
-        }
-        else if (pt == primitiveType.VOID){
-            return new VoidType();
-        }
-        return null;
-    }
-
     @Override
     public String toString(){
         if (symbolType.equals("func")){
             String paramTypesStr = paramTypes.toString();
-            return name + ":(" + paramTypesStr.replace("[", "").replace("]", "") + ")->" + returnType.getDefaultTypeStr();
+            return name + ":(" + paramTypesStr.replace("[", "").replace("]", "") + ")->" + returnType;
         } 
         else if (symbolType.equals("var") || symbolType.equals("param")){ 
             if (dimList.size() != 0){
                 String dimListStr  = dimList.toString();
-                return name + ":" + returnType.getDefaultTypeStr() + dimListStr.replace(", ", "][");
+                return name + ":" + returnType + dimListStr.replace(", ", "][");
             }
-            return name + ":" + returnType.getDefaultTypeStr();
+            return name + ":" + returnType;
         }  
         else{ 
             return "";

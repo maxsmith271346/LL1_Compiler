@@ -1,5 +1,6 @@
 package ast;
 import pl434.Symbol;
+import pl434.SymbolTable;
 
 public class AST {
 
@@ -12,7 +13,6 @@ public class AST {
         //throw new RuntimeException("implement AST");
     }*/
     public AST(){
-
     }
 
     public String printPreOrder(){

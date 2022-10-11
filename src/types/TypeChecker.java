@@ -7,6 +7,7 @@ import java.util.Map;
 
 import ast.*;
 import pl434.Symbol;
+import pl434.SymbolTable;
 
 public class TypeChecker implements NodeVisitor {
 
@@ -81,7 +82,19 @@ public class TypeChecker implements NodeVisitor {
     }
     @Override
     public Type visit(ArrayIndex node) {
-        return new ArrayType();
+        /*System.out.println(node.leftExpr().getClass());
+        System.out.println(node.rightExpr().getClass());
+        //System.out.println(node.arrayIdent);
+
+        if (node.leftExpr() instanceof Symbol){ 
+            System.out.println(((Symbol) node.leftExpr()).dimList);
+        }
+        if (node.rightExpr() instanceof IntegerLiteral){
+            System.out.println(((IntegerLiteral) node.rightExpr()).value());
+        }*/
+        node.leftExpr().accept(this);
+        node.rightExpr().accept(this);
+        return new IntType();
     }
     @Override
     public Type visit(LogicalNot node) {
@@ -93,8 +106,37 @@ public class TypeChecker implements NodeVisitor {
     }
     @Override
     public Type visit(Power node) {
-        // TODO Auto-generated method stub
-        return null;
+        //check for negative in the base and/or exponent
+        if (node.rightExpression() instanceof IntegerLiteral){
+            if (Integer.parseInt(((IntegerLiteral) node.rightExpression()).value()) < 0){
+                ErrorType error = new ErrorType("power cannot have negative");
+                reportError(node.lineNumber(), node.charPosition(), error.getMessage());
+            }
+        }
+        else if (node.rightExpression() instanceof FloatLiteral){
+            if (Integer.parseInt(((FloatLiteral) node.rightExpression()).value()) < 0){
+                ErrorType error = new ErrorType("power cannot have negative");
+                reportError(node.lineNumber(), node.charPosition(), error.getMessage());
+            }
+        }
+
+        if (node.leftExpression() instanceof IntegerLiteral){
+            if (Integer.parseInt(((IntegerLiteral) node.leftExpression()).value()) < 0){
+                ErrorType error = new ErrorType("power cannot have negative");
+                reportError(node.lineNumber(), node.charPosition(), error.getMessage());
+            }
+        }
+        else if (node.leftExpression() instanceof FloatLiteral){
+            if (Integer.parseInt(((FloatLiteral) node.leftExpression()).value()) < 0){
+                ErrorType error = new ErrorType("power cannot have negative");
+                reportError(node.lineNumber(), node.charPosition(), error.getMessage());
+            }
+        }
+        Type returnType = node.leftExpression().accept(this).pow(node.rightExpression().accept(this));
+        if (returnType instanceof ErrorType){
+            reportError(node.lineNumber(), node.charPosition(), ((ErrorType) returnType).getMessage());
+        }
+        return returnType;
     }
     @Override
     public Type visit(Multiplication node) {
@@ -106,6 +148,7 @@ public class TypeChecker implements NodeVisitor {
     }
     @Override
     public Type visit(Division node) {
+        //TODO: check for div by 0
         Type returnType = node.leftExpression().accept(this).div(node.rightExpression().accept(this));
         if (returnType instanceof ErrorType){
             reportError(node.lineNumber(), node.charPosition(), ((ErrorType) returnType).getMessage());
@@ -114,8 +157,11 @@ public class TypeChecker implements NodeVisitor {
     }
     @Override
     public Type visit(Modulo node) {
-        // TODO Auto-generated method stub
-        return null;
+        Type returnType = node.leftExpression().accept(this).div(node.rightExpression().accept(this));
+        if (returnType instanceof ErrorType){
+            reportError(node.lineNumber(), node.charPosition(), ((ErrorType) returnType).getMessage());
+        }
+        return returnType;
     }
     @Override
     public Type visit(LogicalAnd node) {
@@ -151,8 +197,11 @@ public class TypeChecker implements NodeVisitor {
     }
     @Override
     public Type visit(Relation node) {
-        // TODO Auto-generated method stub
-        return null;
+        Type returnType = node.leftExpression().accept(this).compare(node.rightExpression().accept(this));
+        if (returnType instanceof ErrorType){
+            reportError(node.lineNumber(), node.charPosition(), ((ErrorType) returnType).getMessage());
+        }
+        return returnType;
     }
     @Override
     public Type visit(Assignment node) {
@@ -164,16 +213,21 @@ public class TypeChecker implements NodeVisitor {
     }
     @Override
     public Type visit(ArgumentList node) { //TODO: this only works for one arg currently
+        TypeList typeList = new TypeList();
         if (!node.empty()){
             for (Expression e : node.argList) { 
-                return e.accept(this);
+                Type eType = e.accept(this);
+                if (eType instanceof AddressOf){
+                    eType = ((AddressOf) eType).getType();
+                }
+                typeList.append(eType);
             }
         }
-        return null;
+        return typeList;
     }
     @Override
     public Type visit(FunctionCall node) {
-        Type returnType = Type.call(node.argList.accept(this));
+        Type returnType = Type.call(node.argList.accept(this), node.function());
         if (returnType instanceof ErrorType){
             reportError(node.lineNumber(), node.charPosition(), ((ErrorType) returnType).getMessage());
         }
@@ -181,53 +235,87 @@ public class TypeChecker implements NodeVisitor {
     }
     @Override
     public Type visit(IfStatement node) {
-        // TODO Auto-generated method stub
+        Type returnType = Type.ifStat(node.condition().accept(this));
+        if (returnType instanceof ErrorType){ 
+            reportError(node.lineNumber(), node.charPosition(), ((ErrorType) returnType).getMessage());
+        }
+
+        node.thenStatementSeq().accept(this);
+        if (node.elseStatementSeq() != null){
+            node.elseStatementSeq().accept(this);
+        }
+
         return null;
     }
     @Override
     public Type visit(WhileStatement node) {
-        // TODO Auto-generated method stub
-        return null;
+        Type returnType = Type.whileStat(node.condition().accept(this));
+        if (returnType instanceof ErrorType){ 
+            reportError(node.lineNumber(), node.charPosition(), ((ErrorType) returnType).getMessage());
+        }
+        node.statementSeq().accept(this);
+        return returnType;
     }
     @Override
     public Type visit(RepeatStatement node) {
-        // TODO Auto-generated method stub
+        node.statementSeq().accept(this);
+        Type returnType = Type.repeatStat(node.condition().accept(this));
+        if (returnType instanceof ErrorType){ 
+            reportError(node.lineNumber(), node.charPosition(), ((ErrorType) returnType).getMessage());
+        }
         return null;
     }
     @Override
     public Type visit(ReturnStatement node) {
-        // TODO Auto-generated method stub
+        if (node.returnValue() != null){
+            Type returnType = Type.returnStat(node.returnValue().accept(this), currentFunction);
+            if(returnType instanceof ErrorType){
+                reportError(node.lineNumber(), node.charPosition(), ((ErrorType) returnType).getMessage());
+            }
+        }
         return null;
     }
     @Override
     public Type visit(StatementSequence node) {
-        for (Statement s : node.statSeq) { // TODO: make statement sequence iterable
+        for (Statement s : node.statSeq) { 
             s.accept(this);
         }
         return null;
     }
     @Override
     public Type visit(VariableDeclaration node) {
-        // TODO Auto-generated method stub
+        node.symbol().accept(this);
+        if (node.symbol().dimList.size() != 0){
+            Type returnType = Type.dimList(node.symbol().dimList, node.symbol().name());
+            if(returnType instanceof ErrorType){
+                reportError(node.lineNumber(), node.charPosition(), ((ErrorType) returnType).getMessage());
+            }
+        }
         return null;
     }
     @Override
     public Type visit(FunctionBody node) {
-        // TODO Auto-generated method stub
+        node.variables().accept(this);
+        node.statements().accept(this);
         return null;
     }
     @Override
     public Type visit(FunctionDeclaration node) {
-        // TODO Auto-generated method stub
+        currentFunction = node.function();
+        node.body().accept(this);
         return null;
     }
     @Override
     public Type visit(DeclarationList node) {
-        // TODO Auto-generated method stub
+        if (node.empty()) return null;
+        for (Declaration d : node.decList) { // TODO: make statement sequence iterable
+            d.accept(this);
+        }
         return null;
     }
     @Override
     public Type visit(Symbol node) {
-        return node.getType();
+        AddressOf addressOf = new AddressOf(node.getType());
+        return addressOf;
     }
 }

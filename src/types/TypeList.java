@@ -25,6 +25,19 @@ public class TypeList extends Type implements Iterable<Type> {
         return list.iterator();
     }
 
-    //TODO more helper here
+    @Override
+    public String toString(){
+        List<String> listWithMessages = new ArrayList<>();
+        for (Type t : list){
+            if (t instanceof ErrorType){ 
+                listWithMessages.add(t.getClass().getSimpleName() + "(" + ((ErrorType) t).getMessage() + ")");
+            }
+            else{ 
+                listWithMessages.add(t.toString());
+            }
+        }
+        String listStr = listWithMessages.toString();
+        return this.getClass().getSimpleName() + "(" + listStr.substring(1, listStr.length() - 1) + ")";
+    }
     
 }

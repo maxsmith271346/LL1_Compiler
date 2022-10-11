@@ -1,0 +1,6 @@
+// 2 type errors expected
+main 
+int x, y;
+{
+    let y = x ^ -2;
+}.

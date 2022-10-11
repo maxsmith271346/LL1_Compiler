@@ -11,7 +11,7 @@ public interface NodeVisitor {
     public Type visit (FloatLiteral node);
 
     // designator
-    //public void visit (AddressOf node);
+    //public Type visit (AddressOf node);
     public Type visit (ArrayIndex node);
     //public void visit (Dereference node); // useful for the DLX code & going into the right hand side and loading in the register
     

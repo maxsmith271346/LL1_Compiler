@@ -1,4 +1,6 @@
 // 2 type errors expected
-main {
-    call printInt(1 + false);
+main 
+bool x;
+{
+    call printInt(1 + x);
 }.

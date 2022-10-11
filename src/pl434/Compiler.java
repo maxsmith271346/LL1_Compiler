@@ -8,7 +8,6 @@ import java.util.List;
 import java.util.NoSuchElementException;
 
 import ast.*;
-import pl434.Symbol.primitiveType;
 import pl434.Token.Kind;
 
 public class Compiler {
@@ -123,7 +122,6 @@ public class Compiler {
     private void exitScope() {
         currScope = currScope.getParentTable();
     }
-
     private Symbol tryResolveVariable(Token ident) {
         try {
             return currScope.lookup(ident.lexeme());
@@ -461,6 +459,7 @@ public class Compiler {
         Expression rhs = null;
         expect(NonTerminal.ASSIGN);
         Expression designator = designator();
+
         Token op;
 
         if (have(NonTerminal.ASSIGN_OP)) {

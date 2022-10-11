@@ -12,4 +12,9 @@ public class ErrorType extends Type {
         return message; 
     }
 
+    @Override
+    public String toString(){
+        return this.getClass().getSimpleName() + "(" + message + ")";
+    }
+
 }
