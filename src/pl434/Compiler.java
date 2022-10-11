@@ -310,15 +310,18 @@ public class Compiler {
 
     // literal = integerLit | floatLit
     private Expression literal() {
+        int lineNum = lineNumber();
+        int charPos = charPosition();
         Token tok = matchNonTerminal(NonTerminal.LITERAL);
+
         if (tok.kind() == Token.Kind.INT_VAL) {
-            return new IntegerLiteral(lineNumber(), charPosition(), tok.lexeme());
+            return new IntegerLiteral(lineNum, charPos, tok.lexeme());
         }
         else if (tok.kind() == Token.Kind.TRUE || tok.kind() == Token.Kind.FALSE) {
-            return new BoolLiteral(lineNumber(), charPosition(), tok.lexeme());
+            return new BoolLiteral(lineNum, charPos, tok.lexeme());
         }
         else if (tok.kind() == Token.Kind.FLOAT_VAL) {
-            return new FloatLiteral(lineNumber(), charPosition(), tok.lexeme());
+            return new FloatLiteral(lineNum, charPos, tok.lexeme());
         }
         return null;
     }
@@ -336,13 +339,16 @@ public class Compiler {
         if (accept(Kind.OPEN_BRACKET)){
             Expression lhsExpr = designator;
             Expression rhsExpr =  relExpr();
-            ArrayIndex arrayIndex = new ArrayIndex(lineNumber(), charPosition(), lhsExpr, rhsExpr);
+            ArrayIndex arrayIndex = new ArrayIndex(lineNum, charPos, lhsExpr, rhsExpr);
             expect(Kind.CLOSE_BRACKET);
 
             while(accept(Kind.OPEN_BRACKET)){
                 rhsExpr = relExpr();
-                arrayIndex.leftExpr = new ArrayIndex(lineNumber(), charPosition(), lhsExpr, rhsExpr);
+                arrayIndex.leftExpr = new ArrayIndex(lineNum, charPos, lhsExpr, rhsExpr);
                 expect(Kind.CLOSE_BRACKET);
+
+                lineNum = lineNumber();
+                charPos = charPosition();
             }
             return arrayIndex;
         }
@@ -353,19 +359,22 @@ public class Compiler {
     // groupExpr = literal | designator | "not" relExpr | "(" relExpr ")"
     // | funcCall
     private Expression groupExpr() {
+        int lineNum = lineNumber();
+        int charPos = charPosition();
         Expression groupExpr;
+
         if (have(NonTerminal.LITERAL)) {
             groupExpr = literal();
             return groupExpr;
         } else if (have(NonTerminal.BOOL_LIT)) {
             Token tok = boolLit();
-            return new BoolLiteral(lineNumber(), charPosition(), tok.lexeme());
+            return new BoolLiteral(lineNum, charPos, tok.lexeme());
         } else if (have(NonTerminal.DESIGNATOR)) {
             groupExpr = designator(); // In this case, the expression node will have an expression and a null
             return groupExpr;
         } else if (accept(Kind.NOT)) {
             Expression relExpr = relExpr();
-            return new LogicalNot(lineNumber(), charPosition(), relExpr);
+            return new LogicalNot(lineNum, charPos, relExpr);
         } else if (accept(Kind.OPEN_PAREN)) {
             groupExpr =  relExpr();
             expect(Kind.CLOSE_PAREN);
@@ -377,19 +386,28 @@ public class Compiler {
 
     // powExpr = groupExpr {powOp groupExpr}
     private Expression powExpr() {
+        int lineNum = lineNumber();
+        int charPos = charPosition();
+
         Expression lhsExpr = groupExpr();
         Expression rhsExpr = null; 
 
         while (have(NonTerminal.POW_OP)) {
             powOp();
             rhsExpr = groupExpr();
-            lhsExpr = new Power(lineNumber(), charPosition(), lhsExpr, rhsExpr);
+            lhsExpr = new Power(lineNum, charPos, lhsExpr, rhsExpr);
+
+            lineNum = lineNumber();
+            charPos = charPosition();
         }
         return lhsExpr;
     }
 
     // multExpr = powExpr {relOp powExpr}
     private Expression multExpr() {
+        int lineNum = lineNumber();
+        int charPos = charPosition();
+
         Expression lhsExpr = powExpr();
         Expression rhsExpr = null;
 
@@ -397,26 +415,32 @@ public class Compiler {
             //multOp();
             if (accept(Token.Kind.MUL)){
                 rhsExpr = powExpr();
-                lhsExpr = new Multiplication(lineNumber(), charPosition(), lhsExpr, rhsExpr);
+                lhsExpr = new Multiplication(lineNum, charPos, lhsExpr, rhsExpr);
             }
             else if(accept(Token.Kind.DIV)){
                 rhsExpr = powExpr();
-                lhsExpr = new Division(lineNumber(), charPosition(), lhsExpr, rhsExpr);
+                lhsExpr = new Division(lineNum, charPos, lhsExpr, rhsExpr);
             }
             else if(accept(Token.Kind.MOD)){
                 rhsExpr = powExpr();
-                lhsExpr = new Modulo(lineNumber(), charPosition(), lhsExpr, rhsExpr);
+                lhsExpr = new Modulo(lineNum, charPos, lhsExpr, rhsExpr);
             }
             else if(accept(Token.Kind.AND)){
                 rhsExpr = powExpr();
-                lhsExpr = new LogicalAnd(lineNumber(), charPosition(), lhsExpr, rhsExpr);   
+                lhsExpr = new LogicalAnd(lineNum, charPos, lhsExpr, rhsExpr);   
             }
+
+            lineNum = lineNumber();
+            charPos = charPosition();
         }
         return lhsExpr;
     }
 
     // addExpr = multExpr {addOp multExpr}
     private Expression addExpr() {
+        int lineNum = lineNumber();
+        int charPos = charPosition();
+
         Expression lhsExpr = multExpr();
         Expression rhsExpr = null;
         Token opTok = null;
@@ -425,16 +449,19 @@ public class Compiler {
             //opTok = addOp();
             if (accept(Token.Kind.ADD)){
                 rhsExpr = multExpr();
-                lhsExpr = new Addition(lineNumber(), charPosition(), lhsExpr, rhsExpr);
+                lhsExpr = new Addition(lineNum, charPos, lhsExpr, rhsExpr);
             }
             else if(accept(Token.Kind.SUB)){
                 rhsExpr = multExpr();
-                lhsExpr = new Subtraction(lineNumber(), charPosition(), lhsExpr, rhsExpr);
+                lhsExpr = new Subtraction(lineNum, charPos, lhsExpr, rhsExpr);
             }
             else if(accept(Token.Kind.OR)){
                 rhsExpr = multExpr();
-                lhsExpr = new LogicalOr(lineNumber(), charPosition(), lhsExpr, rhsExpr);
+                lhsExpr = new LogicalOr(lineNum, charPos, lhsExpr, rhsExpr);
             }
+
+            lineNum = lineNumber();
+            charPos = charPosition();
         }
         return lhsExpr;
     }
@@ -446,9 +473,15 @@ public class Compiler {
         Token opTok = null;
 
         while (have(NonTerminal.REL_OP)) {
+            int lineNum = lineNumber();
+            int charPos = charPosition();
+
             opTok = relOp();
             rhsExpr = addExpr();
-            lhsExpr = new Relation(lineNumber(), charPosition(), opTok.lexeme(), lhsExpr, rhsExpr);
+            lhsExpr = new Relation(lineNum, charPos, opTok.lexeme(), lhsExpr, rhsExpr);
+
+            lineNum = lineNumber();
+            charPos = charPosition();
         }
 
         return lhsExpr;
@@ -456,6 +489,9 @@ public class Compiler {
 
     // assign = "let" designator ((assignOp relExpr) | unaryOp)
     private Assignment assign() {
+        int lineNum = lineNumber();
+        int charPos = charPosition();
+
         Expression rhs = null;
         expect(NonTerminal.ASSIGN);
         Expression designator = designator();
@@ -467,35 +503,35 @@ public class Compiler {
             rhs = relExpr();
             switch (op.kind()) {
                 case ADD_ASSIGN:
-                    rhs = new Addition(lineNumber(), charPosition(), designator, rhs);
+                    rhs = new Addition(lineNum, charPos, designator, rhs);
                     break; 
                 case SUB_ASSIGN:
-                    rhs = new Subtraction(lineNumber(), charPosition(), designator, rhs);
+                    rhs = new Subtraction(lineNum, charPos, designator, rhs);
                     break; 
                 case MUL_ASSIGN:
-                    rhs = new Multiplication(lineNumber(), charPosition(), designator, rhs);
+                    rhs = new Multiplication(lineNum, charPos, designator, rhs);
                     break; 
                 case DIV_ASSIGN:
-                    rhs = new Division(lineNumber(), charPosition(), designator, rhs);
+                    rhs = new Division(lineNum, charPos, designator, rhs);
                     break; 
                 case MOD_ASSIGN:
-                    rhs = new Modulo(lineNumber(), charPosition(), designator, rhs);
+                    rhs = new Modulo(lineNum, charPos, designator, rhs);
                     break; 
                 case POW_ASSIGN:
-                    rhs = new Power(lineNumber(), charPosition(), designator, rhs);
+                    rhs = new Power(lineNum, charPos, designator, rhs);
                     break;
             }
         } else {
             op = unaryOp();
             if (op.kind() == Kind.UNI_INC) {
-                rhs = new Addition(lineNumber(), charPosition(), designator, new IntegerLiteral(lineNumber(), charPosition(), "1"));
+                rhs = new Addition(lineNum, charPos, designator, new IntegerLiteral(lineNum, charPos, "1"));
             }
             else {
-                rhs = new Subtraction(lineNumber(), charPosition(), designator, new IntegerLiteral(lineNumber(), charPosition(), "1"));
+                rhs = new Subtraction(lineNum, charPos, designator, new IntegerLiteral(lineNum, charPos, "1"));
             }
         }
 
-        Assignment assign = new Assignment(lineNumber(), charPosition(), designator, rhs);
+        Assignment assign = new Assignment(lineNum, charPos, designator, rhs);
         return assign;
     }
 
@@ -511,9 +547,12 @@ public class Compiler {
 
     // funcCall = "call" ident "(" [relExpr {"," relExpr}] ")"
     private FunctionCall funcCall() {
-        FunctionCall funcCall = new FunctionCall(lineNumber(), charPosition());
+        int lineNum = lineNumber();
+        int charPos = charPosition();
+
+        FunctionCall funcCall = new FunctionCall(lineNum, charPos);
         //Symbol symbol = new Symbol("TEMP FUNC", "int", "func");
-        ArgumentList arguments = new ArgumentList(lineNumber(), charPosition());
+        ArgumentList arguments = new ArgumentList(lineNum, charPos);
         expect(NonTerminal.FUNC_CALL);
 
         Token identTok = expectRetrieve(Kind.IDENT); 
@@ -536,6 +575,9 @@ public class Compiler {
 
     // ifStat = "if" relation "then" statSeq ["else" statSeq] "fi"
     private IfStatement ifStat() {
+        int lineNum = lineNumber();
+        int charPos = charPosition();
+
         expect(NonTerminal.IF_STAT);
         Expression rel = relation();
         expect(Kind.THEN);
@@ -548,38 +590,47 @@ public class Compiler {
 
         expect(Kind.FI);
 
-        return new IfStatement(lineNumber(), charPosition(), rel, thenStatSeq, elseStatSeq);
+        return new IfStatement(lineNum, charPos, rel, thenStatSeq, elseStatSeq);
     }
 
     // whileStat = "while" relation "do" statSeq "od"
     private WhileStatement whileStat() {
+        int lineNum = lineNumber();
+        int charPos = charPosition();
+
         expect(NonTerminal.WHILE_STAT);
         Expression exp = relation();
         expect(Kind.DO);
         StatementSequence statSeq = statSeq();
         expect(Kind.OD);
 
-        return new WhileStatement(lineNumber(), charPosition(), exp, statSeq);
+        return new WhileStatement(lineNum, charPos, exp, statSeq);
     }
 
     // repeatStat = "repeat" statSeq "until" relation
     private RepeatStatement repeatStat() {
+        int lineNum = lineNumber();
+        int charPos = charPosition();
+
         expect(NonTerminal.REPEAT_STAT);
         StatementSequence statSeq = statSeq();
         expect(Kind.UNTIL);
         Expression exp = relation();
 
-        return new RepeatStatement(lineNumber(), charPosition(), exp, statSeq);
+        return new RepeatStatement(lineNum, charPos, exp, statSeq);
     }
 
     // returnStat = "return" [relExpr]
     private ReturnStatement returnStat() {
+        int lineNum = lineNumber();
+        int charPos = charPosition();
+
         Expression returnVal = null;
         expect(NonTerminal.RETURN_STAT);
         if (have(NonTerminal.EXPRESSION)) {
             returnVal = relExpr();
         }
-        return new ReturnStatement(lineNumber(), charPosition(), returnVal);
+        return new ReturnStatement(lineNum, charPos, returnVal);
     }
 
     // statement = assign | funcCall | ifStat | whileStat |
@@ -605,7 +656,10 @@ public class Compiler {
 
     // statSeq = statement ";" {statement ";"}
     private StatementSequence statSeq() {
-        StatementSequence statSeq = new StatementSequence(lineNumber(), charPosition());
+        int lineNum = lineNumber();
+        int charPos = charPosition();
+
+        StatementSequence statSeq = new StatementSequence(lineNum, charPos);
         Statement statement;
         do {
             statement = statement();
@@ -628,8 +682,11 @@ public class Compiler {
 
     // varDecl = typeDecl ident {"," ident} ";"
     private DeclarationList varDecl() {
+        int lineNum = lineNumber();
+        int charPos = charPosition();
+
         // create a new Declaration List node and fill it with Variable Declarations
-        DeclarationList vars = new DeclarationList(lineNumber(), charPosition());
+        DeclarationList vars = new DeclarationList(lineNum, charPos);
         VariableDeclaration varDec;
         List<String> dimList = new ArrayList<String>();
 
@@ -642,8 +699,14 @@ public class Compiler {
         }
 
         do {
+            lineNum = lineNumber();
+            charPos = charPosition();
+
             Token identTok = expectRetrieve(Kind.IDENT);
-            varDec = new VariableDeclaration(lineNumber(), charPosition(), typeTok.lexeme(), identTok.lexeme());
+            varDec = new VariableDeclaration(lineNum, charPos, typeTok.lexeme(), identTok.lexeme());
+
+            lineNum = lineNumber();
+            charPos = charPosition();
             
             if (dimList.size() != 0){
                 varDec.symbol().addDims(dimList);
@@ -700,8 +763,11 @@ public class Compiler {
 
     // funcBody = "{" { varDecl } statSeq "}" ";"
     private FunctionBody funcBody() {
+        int lineNum = lineNumber();
+        int charPos = charPosition();
+
         FunctionBody funcBody;
-        DeclarationList varDecl = new DeclarationList(0, 0);
+        DeclarationList varDecl = new DeclarationList(lineNum, charPos);
         StatementSequence statSeq;
 
         expect(Kind.OPEN_BRACE);
@@ -714,13 +780,16 @@ public class Compiler {
         expect(Kind.CLOSE_BRACE);
         expect(Kind.SEMICOLON);
 
-        funcBody = new FunctionBody(lineNumber(), charPosition(), varDecl, statSeq);
+        funcBody = new FunctionBody(lineNum, charPos, varDecl, statSeq);
         return funcBody;
     }
 
     // funcDecl = "function" ident formalParam ":" ( "void" | type ) funcBody
     private DeclarationList funcDecl() {
-        DeclarationList funcs = new DeclarationList(lineNumber(), charPosition());
+        int lineNum = lineNumber();
+        int charPos = charPosition();
+
+        DeclarationList funcs = new DeclarationList(lineNum, charPos);
         FunctionDeclaration funcDec;
         FunctionBody funcBody;
         Token typeTok = new Token("void", 0, 0);
