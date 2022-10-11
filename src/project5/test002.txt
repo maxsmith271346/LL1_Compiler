@@ -1,6 +1,7 @@
 main
 
-int a,b;
+int b;
+bool a;
 
 {
     let a = call readInt();

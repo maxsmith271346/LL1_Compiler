@@ -35,7 +35,7 @@ public abstract class Type {
             thisType = ((AddressOf) this).getType();
         }
         if(!(((thisType instanceof FloatType) && (thatType instanceof FloatType)) || ((thisType instanceof IntType) && (thatType instanceof IntType)))){
-            return new ErrorType("Cannot power " + thisType + " with " + thatType + ".");
+            return new ErrorType("Cannot raise " + thisType + " to " + thatType + ".");
         }
         else{ 
             return this; 
@@ -52,7 +52,7 @@ public abstract class Type {
             thisType = ((AddressOf) this).getType();
         }
         if(!(((thisType instanceof FloatType) && (thatType instanceof FloatType)) || ((thisType instanceof IntType) && (thatType instanceof IntType)))){
-            return new ErrorType("Cannot modulo " + thisType + " with " + thatType + ".");
+            return new ErrorType("Cannot modulo " + thisType + " by " + thatType + ".");
         }
         else{ 
             return this; 
@@ -112,8 +112,16 @@ public abstract class Type {
 
     // boolean
     public Type and (Type that) {
-        if(!(that instanceof BoolType) || !(this instanceof BoolType)){
-            return new ErrorType("Cannot compute " + this + " and " + that + ".");
+        Type thatType = that; 
+        Type thisType = this;
+        if (that instanceof AddressOf){
+            thatType = ((AddressOf) that).getType();
+        }
+        if (this instanceof AddressOf){
+            thisType = ((AddressOf) this).getType();
+        }
+        if(!(thatType instanceof BoolType) || !(thisType instanceof BoolType)){
+            return new ErrorType("Cannot compute " + thisType + " and " + thatType + ".");
         }
         else{ 
             return this;
@@ -121,8 +129,16 @@ public abstract class Type {
     }
 
     public Type or (Type that) {
-        if(!(that instanceof BoolType) || !(this instanceof BoolType)){
-            return new ErrorType("Cannot compute " + this + " or " + that + ".");
+        Type thatType = that; 
+        Type thisType = this;
+        if (that instanceof AddressOf){
+            thatType = ((AddressOf) that).getType();
+        }
+        if (this instanceof AddressOf){
+            thisType = ((AddressOf) this).getType();
+        }
+        if(!(thatType instanceof BoolType) || !(thisType instanceof BoolType)){
+            return new ErrorType("Cannot compute " + thisType + " or " + thatType + ".");
         }
         else{ 
             return this;
@@ -130,8 +146,12 @@ public abstract class Type {
     }
 
     public Type not () {
-        if(!(this instanceof BoolType)){
-            return new ErrorType("Cannot negate " + this + ".");
+        Type thisType = this;
+        if (this instanceof AddressOf){
+            thisType = ((AddressOf) this).getType();
+        }
+        if(!(thisType instanceof BoolType)){
+            return new ErrorType("Cannot negate " + thisType + ".");
         }
         else{ 
             return this;
@@ -152,7 +172,7 @@ public abstract class Type {
             return new ErrorType("Cannot compare " + thisType + " with " + thatType + ".");
         }
         else{ 
-            return this;
+            return new BoolType();
         }
     }
 
@@ -171,6 +191,9 @@ public abstract class Type {
 
     // statements
     public Type assign (Type source) {
+        if (source instanceof AddressOf){
+            source = ((AddressOf) source).getType();
+        }
         if(!this.getClass().equals(source.getClass())){
             if (this instanceof AddressOf){
                 if(!((AddressOf)this).getType().getClass().equals(source.getClass())){
@@ -257,7 +280,7 @@ public abstract class Type {
     public static Type dimList (List<String> dimList, String arrayName){
         for (String d : dimList){
             if (Integer.parseInt(d) <= 0){ 
-                return new ErrorType("Array " + arrayName + " has invalid size " + d);
+                return new ErrorType("Array " + arrayName + " has invalid size " + d + ".");
             } 
         }
         return null;

@@ -98,7 +98,7 @@ public class TypeChecker implements NodeVisitor {
     }
     @Override
     public Type visit(LogicalNot node) {
-        Type returnType = node.expr().accept(this);
+        Type returnType = node.expr().accept(this).not();
         if (returnType instanceof ErrorType){
             reportError(node.lineNumber(), node.charPosition(), ((ErrorType) returnType).getMessage());
         }
@@ -109,27 +109,31 @@ public class TypeChecker implements NodeVisitor {
         //check for negative in the base and/or exponent
         if (node.rightExpression() instanceof IntegerLiteral){
             if (Integer.parseInt(((IntegerLiteral) node.rightExpression()).value()) < 0){
-                ErrorType error = new ErrorType("power cannot have negative");
+                ErrorType error = new ErrorType("Power cannot have a negative exponent of " + ((IntegerLiteral) node.rightExpression()).value() + ".");
                 reportError(node.lineNumber(), node.charPosition(), error.getMessage());
+                return error;
             }
         }
         else if (node.rightExpression() instanceof FloatLiteral){
             if (Integer.parseInt(((FloatLiteral) node.rightExpression()).value()) < 0){
-                ErrorType error = new ErrorType("power cannot have negative");
+                ErrorType error = new ErrorType("Power cannot have a negative exponent of " + ((FloatLiteral) node.rightExpression()).value()+ ".");
                 reportError(node.lineNumber(), node.charPosition(), error.getMessage());
+                return error;
             }
         }
 
         if (node.leftExpression() instanceof IntegerLiteral){
             if (Integer.parseInt(((IntegerLiteral) node.leftExpression()).value()) < 0){
-                ErrorType error = new ErrorType("power cannot have negative");
+                ErrorType error = new ErrorType("Power cannot have a negative base of " + ((IntegerLiteral) node.leftExpression()).value()+ ".");
                 reportError(node.lineNumber(), node.charPosition(), error.getMessage());
+                return error;
             }
         }
         else if (node.leftExpression() instanceof FloatLiteral){
             if (Integer.parseInt(((FloatLiteral) node.leftExpression()).value()) < 0){
-                ErrorType error = new ErrorType("power cannot have negative");
+                ErrorType error = new ErrorType("Power cannot have a negative base of " + ((FloatLiteral) node.leftExpression()).value()+ ".");
                 reportError(node.lineNumber(), node.charPosition(), error.getMessage());
+                return error; 
             }
         }
         Type returnType = node.leftExpression().accept(this).pow(node.rightExpression().accept(this));
@@ -149,6 +153,14 @@ public class TypeChecker implements NodeVisitor {
     @Override
     public Type visit(Division node) {
         //TODO: check for div by 0
+        if (node.rightExpression() instanceof IntegerLiteral){
+            if (Integer.parseInt(((IntegerLiteral) node.rightExpression()).value()) == 0){
+                ErrorType error = new ErrorType("Cannot divide by 0.");
+                reportError(node.lineNumber(), node.charPosition(), error.getMessage());
+                return error;
+            }
+        }
+
         Type returnType = node.leftExpression().accept(this).div(node.rightExpression().accept(this));
         if (returnType instanceof ErrorType){
             reportError(node.lineNumber(), node.charPosition(), ((ErrorType) returnType).getMessage());
@@ -157,7 +169,7 @@ public class TypeChecker implements NodeVisitor {
     }
     @Override
     public Type visit(Modulo node) {
-        Type returnType = node.leftExpression().accept(this).div(node.rightExpression().accept(this));
+        Type returnType = node.leftExpression().accept(this).mod(node.rightExpression().accept(this));
         if (returnType instanceof ErrorType){
             reportError(node.lineNumber(), node.charPosition(), ((ErrorType) returnType).getMessage());
         }
