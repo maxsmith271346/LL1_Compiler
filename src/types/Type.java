@@ -203,6 +203,15 @@ public abstract class Type {
                     return this;
                 }
             }
+            else if (this instanceof ArrayType){
+                // check types
+                if (!((ArrayType) this).type().getClass().equals(source.getClass())){
+                    return new ErrorType("Cannot assign " + source + " to " + this + ".");
+                }
+                else{ // check dimensions
+                    return this;
+                }
+            }
             return new ErrorType("Cannot assign " + source + " to " + this + ".");
         }
         else{ 
@@ -216,25 +225,26 @@ public abstract class Type {
     }
 
     // made this static
-    public static Type call (Type args, Symbol function) {
-        try{
-            // check that the args are the same
-            if (function.getParamTypes().size() == ((TypeList) args).getList().size()){
+    public static Type call (Type args, List<Symbol> functions) {
+        boolean paramsNotEqual = false;
+        // check that the args are the same
+        for (Symbol function : functions){
+            paramsNotEqual = false;
+            // check that the sizes of the parameter lists are the same 
+           if (function.getParamTypes().size() == ((TypeList) args).getList().size()){
+                // if they are, iterate through and check that they are the same 
                 for (int i = 0; i < function.getParamTypes().size(); i++){
                     if (!function.getParamTypes().get(i).toString().equals(((TypeList) args).getList().get(i).toString())){
-                        return new ErrorType("Call with args " + ((TypeList) args).toString() + " matches no function signature.");
+                        paramsNotEqual = true;
+                        break;
                     }
                 }
-            }
-            else{ 
-                return new ErrorType("Call with args " + ((TypeList) args).toString() + " matches no function signature.");
-            }
-            
-            return function.getType();
-        }catch (Error e){
-            return new ErrorType("Call with args " + ((TypeList) args).toString() + " matches no function signature.");
-        }
-        //return new ErrorType("Cannot call " + this + " using " + args + "."); -- original but doesnt match tests
+                if (!paramsNotEqual){
+                    return function.getType();
+                }
+             }
+         }
+        return new ErrorType("Call with args " + ((TypeList) args).toString() + " matches no function signature.");
     }
 
     public static Type whileStat (Type condition){

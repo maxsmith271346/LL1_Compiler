@@ -26,14 +26,14 @@ public class SymbolTable {
     }
 
     // lookup name in SymbolTable
-    public Symbol lookup (String name) throws SymbolNotFoundError {
+    public List<Symbol> lookup (String name) throws SymbolNotFoundError {
         // TODO: Need to handle function overloading?
         SymbolTable currTable = this;
         List<Symbol> s;
         do {
             s = currTable.symbols.get(name);
             if (s != null) {
-                return s.get(0);
+                return s;
             }
             currTable = currTable.parentTable;
         } while (currTable != null);

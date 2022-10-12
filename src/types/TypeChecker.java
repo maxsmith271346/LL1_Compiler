@@ -14,6 +14,7 @@ public class TypeChecker implements NodeVisitor {
     
     private StringBuilder errorBuffer;
     private Symbol currentFunction;
+    private int currentArrayIndex;
 
     /* 
      * Useful error strings:
@@ -82,19 +83,9 @@ public class TypeChecker implements NodeVisitor {
     }
     @Override
     public Type visit(ArrayIndex node) {
-        /*System.out.println(node.leftExpr().getClass());
-        System.out.println(node.rightExpr().getClass());
-        //System.out.println(node.arrayIdent);
-
-        if (node.leftExpr() instanceof Symbol){ 
-            System.out.println(((Symbol) node.leftExpr()).dimList);
-        }
-        if (node.rightExpr() instanceof IntegerLiteral){
-            System.out.println(((IntegerLiteral) node.rightExpr()).value());
-        }*/
         node.leftExpr().accept(this);
         node.rightExpr().accept(this);
-        return new IntType();
+        return node.getType();
     }
     @Override
     public Type visit(LogicalNot node) {

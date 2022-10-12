@@ -122,26 +122,28 @@ public class Compiler {
     private void exitScope() {
         currScope = currScope.getParentTable();
     }
-    private Symbol tryResolveVariable(Token ident) {
+    private List<Symbol> tryResolveVariable(Token ident) {
         try {
             return currScope.lookup(ident.lexeme());
         } catch (SymbolNotFoundError e) {
             reportResolveSymbolError(ident.lexeme(), lineNumber(), charPosition());
         }
-        return new Symbol("", "", "");
+        List<Symbol> symbolList = new ArrayList<Symbol>();
+        return symbolList;
     }
 
-    private Symbol tryResolveFunction(Token ident, FunctionCall funcCall) {
+    private List<Symbol> tryResolveFunction(Token ident, FunctionCall funcCall) {
         try {
             return currScope.lookup(ident.lexeme());
         } catch (SymbolNotFoundError e) {
             functionResolution.put(ident.lexeme(), funcCall);
         }
-        return new Symbol("", "", "");
+        List<Symbol> symbolList = new ArrayList<Symbol>();
+        return symbolList;
     }
 
     private void resolveFunctions(){
-        Symbol funcSymbol;
+        List<Symbol> funcSymbol;
         for(String fR : functionResolution.keySet()){
             try{ 
                 funcSymbol = currScope.lookup(fR);
@@ -330,7 +332,7 @@ public class Compiler {
 
         Token ident = expectRetrieve(Kind.IDENT);
 
-        Expression designator = tryResolveVariable(ident); 
+        Expression designator = tryResolveVariable(ident).get(0); 
 
         // while
         if (accept(Kind.OPEN_BRACKET)){
@@ -518,7 +520,7 @@ public class Compiler {
 
         Token identTok = expectRetrieve(Kind.IDENT); 
         //Symbol symbol = tryResolveVariable(identTok); 
-        Symbol symbol = tryResolveFunction(identTok, funcCall);
+        List<Symbol> symbol = tryResolveFunction(identTok, funcCall);
         expect(Kind.OPEN_PAREN);
 
         if (have(NonTerminal.EXPRESSION)) {

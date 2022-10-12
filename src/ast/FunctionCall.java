@@ -1,11 +1,13 @@
 package ast;
 
+import java.util.List;
+
 import pl434.Symbol;
 import types.Type;
 
 
 public class FunctionCall extends Node implements Statement, Expression{
-    private Symbol func;
+    private List<Symbol> func;
     public ArgumentList argList;
 
 
@@ -18,7 +20,7 @@ public class FunctionCall extends Node implements Statement, Expression{
         return visitor.visit(this);
     }
 
-    public Symbol function() {
+    public List<Symbol> function() {
         return func;
     }
 
@@ -26,7 +28,7 @@ public class FunctionCall extends Node implements Statement, Expression{
         return argList;
     }
 
-    public void putFunc(Symbol func){
+    public void putFunc(List<Symbol> func){
         this.func = func; 
     }
 
