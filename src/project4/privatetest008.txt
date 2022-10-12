@@ -25,5 +25,5 @@ function printInt (int n) : void
 
 {
 	let a = 2;
-	call f1();
+	call f1(2);
 }.

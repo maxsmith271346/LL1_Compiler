@@ -233,6 +233,7 @@ public abstract class Type {
             // check that the sizes of the parameter lists are the same 
            if (function.getParamTypes().size() == ((TypeList) args).getList().size()){
                 // if they are, iterate through and check that they are the same 
+
                 for (int i = 0; i < function.getParamTypes().size(); i++){
                     if (!function.getParamTypes().get(i).toString().equals(((TypeList) args).getList().get(i).toString())){
                         paramsNotEqual = true;
@@ -242,7 +243,7 @@ public abstract class Type {
                 if (!paramsNotEqual){
                     return function.getType();
                 }
-             }
+            }
          }
         return new ErrorType("Call with args " + ((TypeList) args).toString() + " matches no function signature.");
     }
@@ -282,7 +283,7 @@ public abstract class Type {
             returnVal = ((AddressOf) returnVal).getType();
         }
         if (!currentFunction.getType().toString().equals(returnVal.toString())){
-            return new ErrorType("Function " + currentFunction.name() + " returns " + returnVal +  " instead of " + currentFunction.getType());
+            return new ErrorType("Function " + currentFunction.name() + " returns " + returnVal +  " instead of " + currentFunction.getType() + ".");
         }
         return null;
     }
