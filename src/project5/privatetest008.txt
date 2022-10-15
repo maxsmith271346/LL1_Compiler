@@ -1,0 +1,24 @@
+main
+
+bool x, x_1, x_2;
+
+{
+    let x_1 = true; let x_2 = true;
+    let x = not (x_1 and x_2);
+    call printBool(x);
+
+    if((not (call readBool())) and (call readBool())) then
+        call printBool(x_1);
+    else
+        call printBool(x_2);
+    fi;
+
+    if((call readBool()) or (call readBool())) then
+        call printBool(x_1);
+    else
+        call printBool(x_2);
+    fi;
+
+    call printBool( true and false );
+
+}.

@@ -1,64 +1,62 @@
 package ast;
 
 import pl434.Symbol;
-import types.Type;
 
 public interface NodeVisitor {
 
     // literal
-    public Type visit (BoolLiteral node);
-    public Type visit (IntegerLiteral node);
-    public Type visit (FloatLiteral node);
+    public void visit (BoolLiteral node);
+    public void visit (IntegerLiteral node);
+    public void visit (FloatLiteral node);
 
     // designator
-    //public Type visit (AddressOf node);
-    public Type visit (ArrayIndex node);
+    //public void visit (AddressOf node);
+    public void visit (ArrayIndex node);
     //public void visit (Dereference node); // useful for the DLX code & going into the right hand side and loading in the register
     
     // groupExpr
-    public Type visit (LogicalNot node);
+    public void visit (LogicalNot node);
     // powExpr
-    public Type visit (Power node);
+    public void visit (Power node);
     // multExpr
-    public Type visit (Multiplication node);
-    public Type visit (Division node);
-    public Type visit (Modulo node);
-    public Type visit (LogicalAnd node);
+    public void visit (Multiplication node);
+    public void visit (Division node);
+    public void visit (Modulo node);
+    public void visit (LogicalAnd node);
     // addExpr
-    public Type visit (Addition node);
-    public Type visit (Subtraction node);
-    public Type visit (LogicalOr node);
+    public void visit (Addition node);
+    public void visit (Subtraction node);
+    public void visit (LogicalOr node);
     // relExpr
-    public Type visit (Relation node);
+    public void visit (Relation node);
     
     // assign
-    public Type visit (Assignment node);
+    public void visit (Assignment node);
     
     // funcCall
-    public Type visit (ArgumentList node);
-    public Type visit (FunctionCall node);
+    public void visit (ArgumentList node);
+    public void visit (FunctionCall node);
     // ifStat
-    public Type visit (IfStatement node);
+    public void visit (IfStatement node);
     // whileStat
-    public Type visit (WhileStatement node);
+    public void visit (WhileStatement node);
     // repeatStat
-    public Type visit (RepeatStatement node);
+    public void visit (RepeatStatement node);
     // returnStat
-    public Type visit (ReturnStatement node); 
+    public void visit (ReturnStatement node); 
     // statSeq
-    public Type visit (StatementSequence node);
+    public void visit (StatementSequence node);
     // varDecl
-    public Type visit (VariableDeclaration node);
+    public void visit (VariableDeclaration node);
     // funcBody
-    public Type visit (FunctionBody node);
+    public void visit (FunctionBody node);
     // funcDecl
-    public Type visit (FunctionDeclaration node);
+    public void visit (FunctionDeclaration node);
 
     // computation
-    public Type visit (DeclarationList node);
-    public Type visit (Computation node);
+    public void visit (DeclarationList node);
+    public void visit (Computation node);
 
-    public Type visit (Symbol node); //added this
-    
+    public void visit (Symbol node); //added this
 }
 

@@ -1,7 +1,8 @@
 package ast;
 
-import types.Type;
+import types.*;
 
 public interface Expression extends Visitable {
-    public Type accept(NodeVisitor visitor); // this wasn't in the original code, could get rid of this
+    public void accept(NodeVisitor visitor);
+    public Type type();
 }

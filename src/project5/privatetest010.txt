@@ -1,0 +1,27 @@
+main
+
+int input;
+
+function fib (int n) : int
+{
+
+    float a;
+
+    if (n < 0) then
+        return -1;
+    fi;
+
+    if (n <= 1) then
+        return n;
+    fi;
+    let a = 10.0;
+
+    return call fib(a - 2.0) + call fib(a - 1.0);
+};
+
+{
+    let input = call readInt();
+    call printInt(call fib(input));
+    call printFloat(call fib(input));
+    call println();
+}.

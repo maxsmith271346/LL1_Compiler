@@ -2,8 +2,6 @@ package ast;
 
 import java.util.ArrayList;
 import java.util.List;
-import types.Type;
-
 
 
 // TODO: make Declaration List iterable 
@@ -16,8 +14,8 @@ public class DeclarationList extends Node {
     }
 
     @Override
-    public Type accept(NodeVisitor visitor) {
-        return visitor.visit(this);
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
     }
 
     public boolean empty(){

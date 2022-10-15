@@ -1,0 +1,22 @@
+main
+
+int i;
+int[45] fib;
+
+{
+    let fib[0] = 0;
+    let fib[1] = 1;
+    let i = 2;
+    while (i < 45) do
+        let fib[i] = fib[i - 1] + fib[i - 2];
+        let i++;
+    od;
+
+    let i = 0;
+    repeat
+        call printInt(i);
+        call printInt(fib[i]);
+        call println();
+        let i++;
+    until (i >= 45);
+}.

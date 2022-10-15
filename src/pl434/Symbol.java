@@ -1,20 +1,9 @@
 package pl434;
 
-import ast.ArrayIndex;
-import ast.Expression;
-import ast.NodeVisitor;
-import types.BoolType;
-import types.FloatType;
-import types.IntType;
-import types.Type;
-import types.VoidType;
-
+import ast.*;
+import types.*;
 import java.util.ArrayList;
 import java.util.List;
-
-import javax.print.FlavorException;
-
-//import types.*;
 
 public class Symbol implements Expression {
 
@@ -93,8 +82,12 @@ public class Symbol implements Expression {
     public String name () {
         return name;
     }
-    public String type (){
-        return returnType.toString();
+    //public String type (){
+    //    return returnType.toString();
+    //}
+    
+    public Type type(){
+        return returnType;
     }
 
     public void setReturnType(String type) {
@@ -137,6 +130,7 @@ public class Symbol implements Expression {
 
     public void addDims(List<String> dims){
         this.dimList = dims;
+        //this.returnType = new ArrayType(this);
     }
 
     public List<String> getDims(){
@@ -152,6 +146,9 @@ public class Symbol implements Expression {
     }
 
     public Type getType(){
+        /*if (returnType instanceof ArrayType){
+            return ((ArrayType) returnType).type();
+        }*/
         return returnType;
     }
     @Override
@@ -172,9 +169,13 @@ public class Symbol implements Expression {
         }
     }
     @Override
-    public Type accept(NodeVisitor visitor) {
-        return visitor.visit(this);
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
         
+    }
+
+    public void addType (Type type){
+        this.returnType = type;
     }
 
 }

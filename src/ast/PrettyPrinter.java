@@ -1,5 +1,5 @@
 package ast;
-/* 
+
 import pl434.Symbol;
 
 public class PrettyPrinter implements NodeVisitor {
@@ -267,9 +267,9 @@ public class PrettyPrinter implements NodeVisitor {
 	public void visit(ArrayIndex node) {
 		println(node, "");
         depth++; 
-        node.leftExpr().accept(this);
-        node.rightExpr().accept(this);
+        //node.leftExpr().accept(this);
+        //node.rightExpr().accept(this);
         depth--;
 		
 	}
-}*/
+}

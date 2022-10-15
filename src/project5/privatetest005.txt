@@ -1,0 +1,65 @@
+main
+int a,b,c; float m,n,o; bool x,y,z;
+
+function f1() : bool
+{
+    return true;
+};
+
+function positive(int n) : bool
+{
+    if(n>0) then
+        return true;
+    fi;
+    return false;
+};
+
+{
+	let a = call readInt();
+	let b = call readInt();
+	let c = call readInt();
+
+	let m = call readFloat();
+	let n = call readFloat();
+	let o = call readFloat();
+
+	let x = call readBool();
+	let y = call readBool();
+	let z = call readBool();
+
+	if(not (a+b-c)) then
+	    call printInt(a+b);
+	fi;
+
+	if(not (((a+b)>(b+c)) and ((m+n)>(n+o)))) then // valid
+	    call println();
+	fi;
+
+	while(true) do call println(); return; od;
+	while(1) do call println(); return; od;
+	while(1.0) do call println(); return; od;
+	while(z+m+n) do call println(); return; od;
+
+	if(call readBool()) then
+	    call println();
+	fi;
+	if(call readInt()) then
+        call println();
+    fi;
+    if(call readFloat() > call readFloat()) then
+        call println();
+    fi;
+
+	repeat
+        call println();
+    until (call f1());
+
+    repeat
+        let a++; let b++;
+    until (call positive(a) and call positive(b));
+
+    repeat
+        let a++; let b++;
+    until (a+b);
+
+}.

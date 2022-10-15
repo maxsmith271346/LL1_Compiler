@@ -1,0 +1,19 @@
+main
+
+int x;
+float y;
+
+function fn(int a) : float {
+    if(a < 10) then 
+        return 10.0;
+    fi;
+
+    return -10.0;
+};
+
+{
+    let x = 5;
+    let y = 10.0;
+
+    let y = call fn(y);
+}.

@@ -1,0 +1,23 @@
+// More Expressions
+main
+
+int a, b, c;
+float x, y, z;
+bool res;
+
+{
+    let x = y + a;
+    let x = a + y;
+    let y = a - y;
+    let y = a * y;
+    let y = a / y;
+    let y = a % y;
+    let y = a % 0;
+    let y = a ^ x;
+
+    if((a==y) and (b==z)) then
+        call printInt(a);
+    else
+        call printInt(a);
+    fi;
+}.

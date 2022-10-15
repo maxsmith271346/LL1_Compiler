@@ -2,8 +2,6 @@ package ast;
 
 import java.util.ArrayList;
 import java.util.List;
-import types.Type;
-
 
 public class StatementSequence extends Node {
 
@@ -16,8 +14,8 @@ public class StatementSequence extends Node {
     }
 
     @Override
-    public Type accept(NodeVisitor visitor) {
-        return visitor.visit(this);
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
     }
     
 }

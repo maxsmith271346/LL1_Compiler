@@ -338,7 +338,7 @@ public class Compiler {
         Expression designator = tryResolveVariable(ident).get(0); 
 
         // while
-        if (accept(Kind.OPEN_BRACKET)){
+        /*if (accept(Kind.OPEN_BRACKET)){
             Expression lhsExpr = designator;
             Expression rhsExpr =  relExpr();
             ArrayIndex arrayIndex = new ArrayIndex(lineNum, charPos, lhsExpr, rhsExpr);
@@ -352,6 +352,23 @@ public class Compiler {
                 lineNum = lineNumber();
                 charPos = charPosition();
             }
+            return arrayIndex;
+        }*/
+        if (accept(Kind.OPEN_BRACKET)){
+            List<Expression> indices = new ArrayList<Expression>();
+            indices.add(relExpr());
+            expect(Kind.CLOSE_BRACKET);
+
+            lineNum = lineNumber();
+            charPos = charPosition();
+
+            while (accept(Kind.OPEN_BRACKET)){
+                indices.add(relExpr());
+                expect(Kind.CLOSE_BRACKET);
+            }
+
+            ArrayIndex arrayIndex = new ArrayIndex(lineNum, charPos, (Symbol) designator, indices);
+
             return arrayIndex;
         }
         // TODO: get the actual type from the Symbol table?

@@ -6,31 +6,40 @@ import pl434.Symbol;
 import types.Type;
 
 public class ArrayIndex extends Node implements Expression {
-    public Expression leftExpr;
-    public Expression rightExpr;
+    // originally used leftExpr and rightExpr for pretty printer, but instead I will just be using a list of expressions
+    //public Expression leftExpr;
+    //public Expression rightExpr;
     private Symbol arrayIdent;
+    private List<Expression> indices;
+    private Type type;
 
     //public Symbol arrayIdent;
-    public ArrayIndex(int lineNum, int charPos, Expression leftExpr, Expression rightExpr) {
+    /*public ArrayIndex(int lineNum, int charPos, Expression leftExpr, Expression rightExpr) {
         super(lineNum, charPos);
         this.arrayIdent = ((Symbol) leftExpr);
         this.leftExpr = leftExpr;
         this.rightExpr = rightExpr;
+    }*/
+
+    public ArrayIndex(int lineNum, int charPos, Symbol arrayIdent, List<Expression> indices) {
+        super(lineNum, charPos);
+        this.arrayIdent = arrayIdent;
+        this.indices = indices;
     }
 
     @Override
-    public Type accept(NodeVisitor visitor) {
-        return visitor.visit(this);
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
 
     }
 
-    public Expression leftExpr() {
+    /*public Expression leftExpr() {
         return leftExpr;
     }
 
     public Expression rightExpr() {
         return rightExpr;
-    }
+    }*/
     
     public List<String> dimList(){
         return arrayIdent.dimList;
@@ -42,5 +51,22 @@ public class ArrayIndex extends Node implements Expression {
 
     public String name(){
         return arrayIdent.name();
+    }
+
+    public List<Expression> indices(){
+        return indices;
+    }
+
+    public Symbol arrayIdent(){
+        return arrayIdent;
+    }
+
+    @Override
+    public Type type() {
+        return type;
+    }
+
+    public void addType(Type type){
+        this.type = type;
     }
 }

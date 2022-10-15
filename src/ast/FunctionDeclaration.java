@@ -5,8 +5,6 @@ import java.util.List;
 
 import pl434.Symbol;
 import pl434.Token;
-import types.Type;
-
 
 public class FunctionDeclaration extends Node implements Declaration {
     private Symbol func;
@@ -19,8 +17,8 @@ public class FunctionDeclaration extends Node implements Declaration {
         this.funcBody = funcBody;
     }
     @Override
-    public Type accept(NodeVisitor visitor) {
-        return visitor.visit(this);
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
     }
     // TODO: consistent naming convention w/ getters and attributes b/t classes (esp. varDecl)
     public Symbol function() {
@@ -28,7 +26,7 @@ public class FunctionDeclaration extends Node implements Declaration {
     }
     
     public String returnType() {
-        return func.type();
+        return func.type().toString();
     }
 
     // public void setReturnType(Token type)  {

@@ -1,0 +1,34 @@
+main
+
+int a, b, c, d, e, f;
+float x, y, z;
+
+{
+    let a = call readInt();
+    let b = call readInt();
+    let c = call readInt();
+    let d = call readInt();
+    let e = call readInt();
+
+    if (a ^ b * c + d < e) then
+        call printInt(a ^ b * c + d );
+    else
+        call printInt(e);
+    fi;
+
+    let a = call readInt();
+    let b = call readInt();
+    let c = call readInt();
+    let d = call readInt();
+    let e = call readInt();
+    let x = call readFloat();
+    let y = call readFloat();
+    let z = call readFloat();
+
+    call printInt(a * b ^ c / d - e * a * b % e * 2 + 3);
+    call printFloat(x / y + a * x - y + 5.61);
+
+    let a = (a + b) * x;
+    let b = c;
+    let c = a;
+}.

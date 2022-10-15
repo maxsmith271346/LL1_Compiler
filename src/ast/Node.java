@@ -8,11 +8,12 @@ public abstract class Node implements Visitable {
 
     private int lineNum;
     private int charPos;
-    public static boolean displayLocation = false;
+    public static boolean displayLocation;
 
     protected Node (int lineNum, int charPos) {
         this.lineNum = lineNum;
         this.charPos = charPos;
+        this.displayLocation = false;
     }
 
     public int lineNumber () {

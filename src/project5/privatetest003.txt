@@ -1,0 +1,13 @@
+// declaration Errors
+main
+
+int a;
+int[0] b,c ;
+int[-4] m;
+float[-4] n;
+float[4][9][0][8] o;
+
+
+{
+    return;
+}.

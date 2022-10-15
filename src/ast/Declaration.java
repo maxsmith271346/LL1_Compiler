@@ -1,7 +1,5 @@
 package ast;
-import types.Type;
-
 
 public interface Declaration extends Visitable {
-    public Type accept(NodeVisitor visitor);
+    public void accept(NodeVisitor visitor);
 }

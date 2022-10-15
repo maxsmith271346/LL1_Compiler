@@ -40,13 +40,13 @@ public class SymbolTable {
         
         throw new SymbolNotFoundError(name);
     }
-
+    
     // insert name in SymbolTable
     // public Symbol insert (String name) throws RedeclarationError {}
     public void insert (String name, Symbol symbol) throws RedeclarationError {
         if (symbols.get(name) != null) {
             // if there is a name clash, check if the clash is with a function
-            if (symbols.get(name).get(0).getSymbolType() == "func"){
+            if (symbol.getSymbolType() == "func"){
                 // go ahead and add the new symbol to the list
                 // will check the param types later
                 symbols.get(name).add(symbol);            

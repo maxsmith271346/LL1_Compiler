@@ -1,0 +1,41 @@
+main
+int a;
+float b;
+
+function f1() : void
+{
+    call println();
+};
+
+function f1(int n) : void
+{
+    call printInt(n);
+    call println();
+};
+
+function f1(int n, int m) : void
+{
+    call printInt(n);
+    call printInt(m);
+    call println();
+    return n + m;
+};
+
+function f1(int n, int m, int o) : int
+{
+    call printInt(n);
+    call printInt(m);
+    call printInt(o);
+    call println();
+    return n + m + o;
+};
+
+{
+	let a = 2;
+	call f1();
+	call f1(a, a);
+	call f1(a);
+    call f1(a+b);
+	call f1(a, a, a);
+	let a = call f1(a, a, a);
+}.

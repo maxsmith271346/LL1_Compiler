@@ -1,8 +1,6 @@
 package ast;
 
 import pl434.Symbol;
-import types.Type;
-
 
 public class Computation extends Node {
 
@@ -38,7 +36,7 @@ public class Computation extends Node {
     }
 
     @Override
-    public Type accept(NodeVisitor visitor) {
-        return visitor.visit(this);
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
     }
 }

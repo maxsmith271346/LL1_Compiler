@@ -1,0 +1,26 @@
+main
+
+function writeInt (int x) : void
+{
+    call printInt(x);
+    call println();
+    let x = 5;
+};
+
+function inbetween () : float
+{
+    float i;
+    
+    let i = call readInt();
+    call printFloat(i);
+    call println();
+
+    call printInt(i);
+    call println();
+
+    return i;
+};
+
+{
+    call writeInt(call inbetween());
+}.

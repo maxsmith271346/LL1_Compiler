@@ -9,15 +9,15 @@ import types.Type;
 public class FunctionCall extends Node implements Statement, Expression{
     private List<Symbol> func;
     public ArgumentList argList;
-
+    public Type type; 
 
     public FunctionCall(int lineNum, int charPos) {
         super(lineNum, charPos);
     }
 
     @Override
-    public Type accept(NodeVisitor visitor) {
-        return visitor.visit(this);
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
     }
 
     public List<Symbol> function() {
@@ -34,5 +34,14 @@ public class FunctionCall extends Node implements Statement, Expression{
 
     public void putArgs(ArgumentList argList){
         this.argList = argList;
+    }
+
+    @Override
+    public Type type() {
+        return type;
+    }
+
+    public void addType(Type type){
+        this.type = type;
     }
 }

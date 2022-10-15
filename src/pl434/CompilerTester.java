@@ -76,11 +76,29 @@ public class CompilerTester {
         AST ast = c.genAST();
         TypeChecker tc = new TypeChecker();
 
+
+
         if (!tc.check(ast)) {
             System.out.println("Error type-checking file.");
             System.out.println(tc.errorReport());
             System.exit(-4);
         }
        
+
+       /*  if (cmd.hasOption("astOut")) {
+            String astFile = sourceFile.substring(0, sourceFile.lastIndexOf('.')) + "_ast.txt";
+            try (PrintStream out = new PrintStream(astFile)) {
+                out.println(ast.printPreOrder());
+            } catch (IOException e) {
+                System.err.println("Error accessing the ast file: \"" + astFile + "\"");
+                System.exit(-7);
+            }
+        }
+
+        if (c.hasError()) {
+            System.out.println("Error parsing file.");
+            System.out.println(c.errorReport());
+            System.exit(-8);
+        }*/
     }
 }

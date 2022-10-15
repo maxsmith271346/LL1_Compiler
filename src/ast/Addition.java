@@ -1,10 +1,10 @@
 package ast;
-
-import types.Type;
+import types.*;
 
 public class Addition extends Node implements Expression {
     private Expression leftRelExpr;
     private Expression rightRelExpr;
+    private Type type;
 
     public Addition(int lineNum, int charPos, Expression leftRelExpr, Expression rightRelExpr) {
         super(lineNum, charPos);
@@ -13,8 +13,8 @@ public class Addition extends Node implements Expression {
     }
 
     @Override
-    public Type accept(NodeVisitor visitor) {
-        return visitor.visit(this);
+    public void accept(NodeVisitor visitor) {
+        visitor.visit(this);
 
     }
 
@@ -24,5 +24,13 @@ public class Addition extends Node implements Expression {
 
     public Expression rightExpression() {
         return rightRelExpr;
+    }
+
+    public Type type(){
+        return type;
+    }
+
+    public void addType(Type type){
+        this.type = type;
     }
 }

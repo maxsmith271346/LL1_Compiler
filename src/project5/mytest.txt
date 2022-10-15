@@ -1,10 +1,6 @@
-// 2 type errors expected
 main 
-float x;
-int y; 
-bool z;
+
+int x; 
 {
-    let x = y;
-    let z = x;
-    let x = 10 ^ -3;
+    let x = 5 + 4.5;
 }.
