@@ -1,8 +1,9 @@
 package ast;
 
+import SSA.Operand;
 import types.*;
 
-public class BoolLiteral extends Node implements Expression{
+public class BoolLiteral extends Node implements Expression, Operand{
     private String value; 
     private Type type;
 

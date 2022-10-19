@@ -5,7 +5,9 @@ import types.*;
 import java.util.ArrayList;
 import java.util.List;
 
-public class Symbol implements Expression {
+import SSA.Operand;
+
+public class Symbol implements Expression, Operand {
 
     private String name;
     private Type returnType; 

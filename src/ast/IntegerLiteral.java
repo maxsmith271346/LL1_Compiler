@@ -1,8 +1,9 @@
 package ast;
 
+import SSA.Operand;
 import types.*;
 
-public class IntegerLiteral extends Node implements Expression{
+public class IntegerLiteral extends Node implements Expression, Operand{
     private String value; 
     private Type type; 
 

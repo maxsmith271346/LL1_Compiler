@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import SSA.SSA;
 import ast.*;
 import pl434.Token.Kind;
 
@@ -78,7 +79,6 @@ public class Compiler {
         initSymbolTable();
     }
 
-    // TODO
     public AST genAST() {
         AST retAST = new AST();
         retAST.computation = computation();
@@ -86,6 +86,9 @@ public class Compiler {
         return retAST;
     }
 
+    public SSA genSSA(AST ast){
+        return new SSA(ast);
+    }
     public int[] compile() {
         initSymbolTable();
         try {
