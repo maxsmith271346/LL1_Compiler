@@ -1,12 +1,15 @@
 package ast;
 
 import SSA.Operand;
+import SSA.InstructionNumber;
 import types.*;
 
 public class Subtraction extends Node implements Expression {
     private Expression leftRelExpr;
     private Expression rightRelExpr;
     private Type type;
+    private InstructionNumber insNumber; 
+
 
     public Subtraction(int lineNum, int charPos, Expression leftRelExpr, Expression rightRelExpr) {
         super(lineNum, charPos);
@@ -37,7 +40,10 @@ public class Subtraction extends Node implements Expression {
 
     @Override
     public Operand getOperand() {
-        // TODO Auto-generated method stub
-        return null;
+        return insNumber;
+    }
+
+    public void setInsNumber(int insNumber){
+        this.insNumber = new InstructionNumber(insNumber);
     }
 }

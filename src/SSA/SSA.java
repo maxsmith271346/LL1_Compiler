@@ -5,6 +5,7 @@ import java.util.List;
 
 import ast.*;
 import pl434.Symbol;
+import SSA.IntermediateInstruction.SSAOperator;
 
 public class SSA implements NodeVisitor{
 //public class SSA{
@@ -18,14 +19,6 @@ public class SSA implements NodeVisitor{
     public SSA(AST ast){
         BasicBlockList = new ArrayList<BasicBlock>();
         visit(ast.computation);
-        // generate a base SSA with the following instructions: 
-        // 0: ADD b c 
-        // 1: ADD (0) d 
-        // 2: MOVE (1) a
-        /*IntermediateInstructionList.add(new IntermediateInstruction("ADD", new Symbol("b", "int", "var"), new Symbol("c", "int", "var")));
-        IntermediateInstructionList.add(new IntermediateInstruction("ADD", new InstructionNumber(0), new Symbol("d", "int", "var")));
-        IntermediateInstructionList.add(new IntermediateInstruction("MOVE", new InstructionNumber(1), new Symbol("a", "int", "var")));
-        */
     }
 
     public List<BasicBlock> getBasicBlockList(){
@@ -36,7 +29,6 @@ public class SSA implements NodeVisitor{
         IRVisualizer IRVis = new IRVisualizer(this);
         return IRVis.generateDotGraph();
     }
-
     @Override
     public void visit(BoolLiteral node) {
         // TODO Auto-generated method stub
@@ -68,32 +60,42 @@ public class SSA implements NodeVisitor{
 
     @Override
     public void visit(Power node) {
-        // TODO Auto-generated method stub
-        
+        node.leftExpression().accept(this);
+        node.rightExpression().accept(this);
+
+        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.POW, node.leftExpression().getOperand(),  node.rightExpression().getOperand())));
     }
 
     @Override
     public void visit(Multiplication node) {
-        // TODO Auto-generated method stub
-        
+        node.leftExpression().accept(this);
+        node.rightExpression().accept(this);
+
+        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.MUL, node.leftExpression().getOperand(),  node.rightExpression().getOperand())));
     }
 
     @Override
     public void visit(Division node) {
-        // TODO Auto-generated method stub
-        
+        node.leftExpression().accept(this);
+        node.rightExpression().accept(this);
+
+        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.DIV, node.leftExpression().getOperand(),  node.rightExpression().getOperand())));
     }
 
     @Override
     public void visit(Modulo node) {
-        // TODO Auto-generated method stub
-        
+        node.leftExpression().accept(this);
+        node.rightExpression().accept(this);
+
+        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.MOD, node.leftExpression().getOperand(),  node.rightExpression().getOperand())));
     }
 
     @Override
     public void visit(LogicalAnd node) {
-        // TODO Auto-generated method stub
-        
+        node.leftExpression().accept(this);
+        node.rightExpression().accept(this);
+
+        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.AND, node.leftExpression().getOperand(),  node.rightExpression().getOperand())));
     }
 
     @Override
@@ -101,19 +103,23 @@ public class SSA implements NodeVisitor{
         node.leftExpression().accept(this);
         node.rightExpression().accept(this);
 
-        node.setInsNumber(currentBB.add(new IntermediateInstruction("ADD", node.leftExpression().getOperand(),  node.rightExpression().getOperand())));
+        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.ADD, node.leftExpression().getOperand(),  node.rightExpression().getOperand())));
     }
 
     @Override
     public void visit(Subtraction node) {
-        // TODO Auto-generated method stub
-        
+        node.leftExpression().accept(this);
+        node.rightExpression().accept(this);
+
+        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.SUB, node.leftExpression().getOperand(),  node.rightExpression().getOperand())));
     }
 
     @Override
     public void visit(LogicalOr node) {
-        // TODO Auto-generated method stub
-        
+        node.leftExpression().accept(this);
+        node.rightExpression().accept(this);
+
+        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.OR, node.leftExpression().getOperand(),  node.rightExpression().getOperand())));
     }
 
     @Override
@@ -126,6 +132,8 @@ public class SSA implements NodeVisitor{
     public void visit(Assignment node) {
         node.lhsDesignator().accept(this);
         node.rhsExpr().accept(this);
+
+       currentBB.add(new IntermediateInstruction(SSAOperator.MOVE, node.rhsExpr().getOperand(), node.lhsDesignator().getOperand()));
     }
 
     @Override
@@ -198,7 +206,6 @@ public class SSA implements NodeVisitor{
 
     @Override
     public void visit(Computation node) {
-        System.out.println("in computation");
         currentBB = new BasicBlock("main");
         BasicBlockList.add(currentBB);
         node.variables().accept(this);

@@ -1,13 +1,6 @@
 package SSA;
 
 public class IntermediateInstruction {
-    // operator - Type for this? It could just be a String 
-    // operand1
-    // operand2
-    // operator1 & operator2 can be symbols, values (constants), or references to previous instructions return vals
-    // should we make Integer Literal & Float Literal & Bool Literal extend an Operator interface? 
-    // should we make a LineNumber class that also extends Operator interface? 
-
     public enum SSAOperator {
         NEG("NEG"),
         ADD("ADD"),
@@ -40,7 +33,9 @@ public class IntermediateInstruction {
         WRITE_B("WRITE_B"),
         READ_F("READ_F"),
         WRITE_F("WRITE_F"),
-        WRITE_NL("WRITE_NL");
+        WRITE_NL("WRITE_NL"),
+
+        MOVE("MOVE");
 
     
         private String opString;

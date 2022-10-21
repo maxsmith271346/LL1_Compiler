@@ -2,12 +2,14 @@ package ast;
 
 
 import SSA.Operand;
+import SSA.InstructionNumber;
 import types.*;
 
 public class Division extends Node implements Expression {
     private Expression leftRelExpr;
     private Expression rightRelExpr;
     private Type type;
+    private InstructionNumber insNumber; 
 
     public Division(int lineNum, int charPos, Expression leftRelExpr, Expression rightRelExpr) {
         super(lineNum, charPos);
@@ -39,7 +41,10 @@ public class Division extends Node implements Expression {
 
     @Override
     public Operand getOperand() {
-        // TODO Auto-generated method stub
-        return null;
+        return insNumber;
+    }
+
+    public void setInsNumber(int insNumber){
+        this.insNumber = new InstructionNumber(insNumber);
     }
 }

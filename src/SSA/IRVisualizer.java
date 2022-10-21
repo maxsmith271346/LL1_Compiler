@@ -17,39 +17,34 @@ public class IRVisualizer {
     }
 
     public String generateDotGraph(){
-        /*dotGraph.append("digraph G { \n");
-        dotGraph.append(enterBasicBlock()); // enter basic block at the beginning
-        for (IntermediateInstruction intIns : SSA){ // need to add conditional to enter basic block each time a branch is found? 
-            if (currentLineNum != SSA.size() - 1){
-                dotGraph.append(currentLineNum + " : " + intIns.toString() + "|");
-            }
-            else{ 
-                dotGraph.append(currentLineNum + " : " + intIns.toString());
-            }
-            
-            currentLineNum++;
-        }
-        dotGraph.append(exitBasicBlock());
-        dotGraph.append("\n}");*/
-
+        dotGraph.append("digraph G { \n");
         for (BasicBlock BB : ssa.getBasicBlockList()){
-            for (IntermediateInstruction II: BB.getIntInsList()){
-                dotGraph.append(II.toString() + "\n");
+            enterBasicBlock(BB.name());
+            for (IntermediateInstruction intIns: BB.getIntInsList()){
+                if (currentLineNum != BB.size() - 1){
+                    dotGraph.append(currentLineNum + " : " + intIns.toString() + "|");
+                }
+                else{ 
+                    dotGraph.append(currentLineNum + " : " + intIns.toString());
+                }
+                
+                currentLineNum++;
             }
+            exitBasicBlock();
         }
-
+        dotGraph.append("\n}");
         return dotGraph.toString();
     }
 
-    public String enterBasicBlock(){
+    public void enterBasicBlock(String name){
         String BBLabel = "BB" + BasicBlockCount + "|{";
         if (BasicBlockCount == 1){
-            BBLabel = "main\\nBB1|{";
+            BBLabel = name + "\\nBB1|{";
         }
-        return "BB" + BasicBlockCount + "[shape=record, label=\"<b>" + BBLabel; 
+        dotGraph.append("BB" + BasicBlockCount + "[shape=record, label=\"<b>" + BBLabel); 
     }
 
-    public String exitBasicBlock(){
-        return "}\"];";
+    public void exitBasicBlock(){
+        dotGraph.append("}\"];");
     }
 }

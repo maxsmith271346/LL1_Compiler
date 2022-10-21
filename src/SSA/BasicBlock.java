@@ -32,4 +32,11 @@ public class BasicBlock {
         return IntermediateInstructionList;
     }
 
+    public int size(){
+        return IntermediateInstructionList.size();
+    }
+
+    public String name(){
+        return BBName;
+    }
 }
