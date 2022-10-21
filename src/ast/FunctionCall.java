@@ -2,6 +2,7 @@ package ast;
 
 import java.util.List;
 
+import SSA.Operand;
 import pl434.Symbol;
 import types.Type;
 
@@ -43,5 +44,11 @@ public class FunctionCall extends Node implements Statement, Expression{
 
     public void addType(Type type){
         this.type = type;
+    }
+
+    @Override
+    public Operand getOperand() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

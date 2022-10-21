@@ -1,5 +1,6 @@
 package ast;
 
+import SSA.Operand;
 import types.*;
 
 public class LogicalNot extends Node implements Expression {
@@ -27,5 +28,11 @@ public class LogicalNot extends Node implements Expression {
 
     public void addType(Type type){
         this.type = type;
+    }
+
+    @Override
+    public Operand getOperand() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

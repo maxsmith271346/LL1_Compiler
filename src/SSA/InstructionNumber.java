@@ -13,6 +13,6 @@ public class InstructionNumber implements Operand{
 
     @Override
     public String toString(){
-        return Integer.toString(instructionNumber);
+        return "(" + Integer.toString(instructionNumber) + ")";
     }
 }

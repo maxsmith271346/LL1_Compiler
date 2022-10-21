@@ -1,5 +1,6 @@
 package ast;
 
+import SSA.Operand;
 import pl434.Symbol;
 
 public interface NodeVisitor {

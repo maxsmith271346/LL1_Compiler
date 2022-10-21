@@ -2,6 +2,7 @@ package ast;
 
 import java.util.List;
 
+import SSA.Operand;
 import pl434.Symbol;
 import types.Type;
 
@@ -68,5 +69,11 @@ public class ArrayIndex extends Node implements Expression {
 
     public void addType(Type type){
         this.type = type;
+    }
+
+    @Override
+    public Operand getOperand() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }

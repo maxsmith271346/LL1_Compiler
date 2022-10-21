@@ -90,7 +90,7 @@ public class CompilerTester {
         // create graph dir if needed
         String graphDir = "";
         if (cmd.hasOption("graphdir")) {
-            graphDir = cmd.getOptionValue("graph-dir"); // TODO: commented this out - is this wrong?
+            graphDir = cmd.getOptionValue("graph-dir"); 
             File dir = new File(graphDir);
             if (!dir.exists()) {
                 dir.mkdirs();

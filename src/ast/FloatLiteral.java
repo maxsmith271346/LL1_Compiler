@@ -25,5 +25,11 @@ public class FloatLiteral extends Node implements Expression, Operand{
     public Type type(){
         return type;
     }
+
+    @Override
+    public Operand getOperand() {
+        // TODO Auto-generated method stub
+        return null;
+    }
     
 }

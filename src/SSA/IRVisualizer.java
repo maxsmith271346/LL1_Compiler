@@ -4,20 +4,20 @@ import java.util.List;
 
 public class IRVisualizer {
     // this will contain the methods to generate the dot representation of the SSA IR
-    private List<IntermediateInstruction> SSA; 
+    private SSA ssa; 
     private StringBuilder dotGraph;
     private int BasicBlockCount;
     private int currentLineNum;
 
-    public IRVisualizer(List<IntermediateInstruction> SSA){
+    public IRVisualizer(SSA ssa){
         dotGraph = new StringBuilder();
-        this.SSA = SSA; 
+        this.ssa = ssa; 
         this.BasicBlockCount = 1;
         this.currentLineNum = 0;
     }
 
     public String generateDotGraph(){
-        dotGraph.append("digraph G { \n");
+        /*dotGraph.append("digraph G { \n");
         dotGraph.append(enterBasicBlock()); // enter basic block at the beginning
         for (IntermediateInstruction intIns : SSA){ // need to add conditional to enter basic block each time a branch is found? 
             if (currentLineNum != SSA.size() - 1){
@@ -30,7 +30,13 @@ public class IRVisualizer {
             currentLineNum++;
         }
         dotGraph.append(exitBasicBlock());
-        dotGraph.append("\n}");
+        dotGraph.append("\n}");*/
+
+        for (BasicBlock BB : ssa.getBasicBlockList()){
+            for (IntermediateInstruction II: BB.getIntInsList()){
+                dotGraph.append(II.toString() + "\n");
+            }
+        }
 
         return dotGraph.toString();
     }

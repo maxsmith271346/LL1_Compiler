@@ -1,0 +1,6 @@
+//Simple parsing test
+main 
+int a,b,c,d;
+{
+    let a = c + 2 + 3;
+}.

@@ -25,4 +25,14 @@ public class IntegerLiteral extends Node implements Expression, Operand{
     public Type type(){
         return type;
     }
+
+    @Override
+    public Operand getOperand() {
+        return this;
+    }
+
+    @Override
+    public String toString(){
+        return value;
+    }
 }

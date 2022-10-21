@@ -153,7 +153,7 @@ public class Symbol implements Expression, Operand {
         }*/
         return returnType;
     }
-    @Override
+    /*@Override
     public String toString(){
         if (symbolType.equals("func")){
             String paramTypesStr = paramTypes.toString();
@@ -169,6 +169,10 @@ public class Symbol implements Expression, Operand {
         else{ 
             return "";
         }
+    }*/
+    @Override
+    public String toString(){
+        return name;
     }
     @Override
     public void accept(NodeVisitor visitor) {
@@ -178,6 +182,11 @@ public class Symbol implements Expression, Operand {
 
     public void addType (Type type){
         this.returnType = type;
+    }
+
+    @Override
+    public Operand getOperand() {
+        return this;
     }
 
 }

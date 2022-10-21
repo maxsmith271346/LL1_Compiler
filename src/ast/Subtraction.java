@@ -1,5 +1,6 @@
 package ast;
 
+import SSA.Operand;
 import types.*;
 
 public class Subtraction extends Node implements Expression {
@@ -32,5 +33,11 @@ public class Subtraction extends Node implements Expression {
 
     public void addType(Type type){
         this.type = type;
+    }
+
+    @Override
+    public Operand getOperand() {
+        // TODO Auto-generated method stub
+        return null;
     }
 }
