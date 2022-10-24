@@ -1,24 +1,48 @@
 package SSA;
 
+import java.util.ArrayDeque;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
+
+import javax.sql.rowset.spi.TransactionalWriter;
 
 import ast.*;
 import pl434.Symbol;
+import SSA.BasicBlock.Transitions;
 import SSA.IntermediateInstruction.SSAOperator;
 
 public class SSA implements NodeVisitor{
-//public class SSA{
-
-    // will contain a List<IntermediateInstruction> as a member
-    // will walk through the AST and generate this list
-
     private List<BasicBlock> BasicBlockList; 
     private BasicBlock currentBB;
+    private int BBNumber = 1;
     
     public SSA(AST ast){
         BasicBlockList = new ArrayList<BasicBlock>();
         visit(ast.computation);
+        //pruneEmpty();
+    }
+
+    public void pruneEmpty(){
+        List<BasicBlock> toRemove = new ArrayList<BasicBlock>(); 
+        int decrease = 0;
+        for (BasicBlock BB1 : BasicBlockList){
+            if (BB1.size() == 0){
+                for (BasicBlock BB2 : BasicBlockList){
+                    for (Transitions t : BB2.transitionList){
+                        if (t.toBB.BBNumber == BB1.BBNumber){
+                            t.toBB = BB1.transitionList.get(0).toBB;
+                        }
+                    }
+                }
+                toRemove.add(BB1);
+                decrease++;
+            }
+            BB1.BBNumber -= decrease;
+        }
+        for (BasicBlock BB : toRemove){
+            BasicBlockList.remove(BB);
+        }
     }
 
     public List<BasicBlock> getBasicBlockList(){
@@ -124,8 +148,10 @@ public class SSA implements NodeVisitor{
 
     @Override
     public void visit(Relation node) {
-        // TODO Auto-generated method stub
-        
+        node.leftExpression().accept(this);
+        node.rightExpression().accept(this);
+
+        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.CMP, node.leftExpression().getOperand(),  node.rightExpression().getOperand())));
     }
 
     @Override
@@ -134,6 +160,7 @@ public class SSA implements NodeVisitor{
         node.rhsExpr().accept(this);
 
        currentBB.add(new IntermediateInstruction(SSAOperator.MOVE, node.rhsExpr().getOperand(), node.lhsDesignator().getOperand()));
+
     }
 
     @Override
@@ -144,20 +171,83 @@ public class SSA implements NodeVisitor{
 
     @Override
     public void visit(FunctionCall node) {
-        // TODO Auto-generated method stub
-        
+        // need to check if predefined function call
+        Symbol function = node.getFunctionFromType();
     }
 
     @Override
     public void visit(IfStatement node) {
-        // TODO Auto-generated method stub
+        BBNumber++; 
+        BasicBlock thenBlock = new BasicBlock(BBNumber);
+        BasicBlockList.add(thenBlock);
+        BBNumber++;
+        BasicBlock elseBlock = new BasicBlock(BBNumber);
+        BasicBlockList.add(elseBlock);
+        BBNumber++; 
+        BasicBlock joinBlock = new BasicBlock(BBNumber);
+        BasicBlockList.add(joinBlock);
+
+        currentBB.transitionList.add(currentBB.new Transitions(currentBB, thenBlock, "then"));
+        currentBB.transitionList.add(currentBB.new Transitions(currentBB, elseBlock, "else"));
+        node.condition().accept(this);
+        if (node.condition() instanceof Relation){
+            currentBB.add(new IntermediateInstruction(getBranchOperator((Relation) node.condition()), node.condition().getOperand(), currentBB));
+        }
+
+        currentBB = thenBlock; 
+        node.thenStatementSeq().accept(this);
+        thenBlock = currentBB;
+        thenBlock.transitionList.add(thenBlock.new Transitions(thenBlock, joinBlock, ""));
         
+        currentBB = elseBlock;
+        if (node.elseStatementSeq() != null){
+            node.elseStatementSeq().accept(this);
+        }
+        elseBlock = currentBB;
+        elseBlock.transitionList.add(elseBlock.new Transitions(elseBlock, joinBlock, ""));
+
+        currentBB = joinBlock;
     }
 
+    public SSAOperator getBranchOperator(Relation node){
+        SSAOperator op;        
+        if(node.relOp().equals(">")){op = SSAOperator.BLE; }
+        else if(node.relOp().equals(">=")){op = SSAOperator.BLT;}
+        else if(node.relOp().equals("<")){op = SSAOperator.BGE;}
+        else if(node.relOp().equals("<=")){op = SSAOperator.BGT;}
+        else if (node.relOp().equals("==")){op = SSAOperator.BEQ;}
+        else {op = SSAOperator.BNE;}
+
+        return op;
+    }
     @Override
     public void visit(WhileStatement node) {
-        // TODO Auto-generated method stub
-        
+        BBNumber++;
+        BasicBlock whileBlock = new BasicBlock(BBNumber);
+        BasicBlockList.add(whileBlock);
+        currentBB.transitionList.add(currentBB.new Transitions(currentBB, whileBlock, ""));
+        currentBB = whileBlock;
+
+        node.condition().accept(this);
+
+        if (node.condition() instanceof Relation){
+            currentBB.add(new IntermediateInstruction(getBranchOperator((Relation) node.condition()), node.condition().getOperand(), currentBB));
+        }
+
+        BBNumber++;
+        BasicBlock thenBlock = new BasicBlock(BBNumber);
+        BasicBlockList.add(thenBlock);
+        currentBB.transitionList.add(currentBB.new Transitions(whileBlock, thenBlock, "then"));
+        currentBB = thenBlock;
+        node.statementSeq().accept(this);
+        currentBB.add(new IntermediateInstruction(SSAOperator.BRA, whileBlock, null));
+        currentBB.transitionList.add(currentBB.new Transitions(thenBlock, whileBlock, ""));
+
+        BBNumber++;
+        BasicBlock elseBlock = new BasicBlock(BBNumber);
+        BasicBlockList.add(elseBlock);
+        currentBB.transitionList.add(currentBB.new Transitions(whileBlock, elseBlock, "else"));
+        currentBB = thenBlock;
     }
 
     @Override
@@ -192,7 +282,7 @@ public class SSA implements NodeVisitor{
 
     @Override
     public void visit(FunctionDeclaration node) {
-        currentBB = new BasicBlock(node.name());
+        currentBB = new BasicBlock(BBNumber, node.name());
         node.body().accept(this);    
     }
 
@@ -206,7 +296,7 @@ public class SSA implements NodeVisitor{
 
     @Override
     public void visit(Computation node) {
-        currentBB = new BasicBlock("main");
+        currentBB = new BasicBlock(BBNumber, "main");
         BasicBlockList.add(currentBB);
         node.variables().accept(this);
         node.functions().accept(this);

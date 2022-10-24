@@ -1,5 +1,7 @@
 package SSA;
 
+import java.util.List;
+
 public class IntermediateInstruction {
     public enum SSAOperator {
         NEG("NEG"),
@@ -57,6 +59,7 @@ public class IntermediateInstruction {
     private SSAOperator operator; 
     private Operand operand_one; 
     private Operand operand_two; 
+    private List<Operand> extraOperands;
 
     public IntermediateInstruction(SSAOperator operator, Operand operand_one, Operand operand_two){
         this.operator = operator; 
@@ -66,6 +69,19 @@ public class IntermediateInstruction {
 
     @Override
     public String toString(){
+        if (operand_one == null){
+            return operator + " " + operand_two.toString() + " ";
+        }
+        if (operand_two == null){
+            return operator + " " + operand_one.toString() + " ";
+        }
+        if (operand_two == null && operand_one == null){ 
+            return operator + " " ;
+        }
         return operator + " " + operand_one.toString() + " " + operand_two.toString() + " ";
+    }
+
+    public void addExtraOperands(List<Operand> extraOperands){
+        this.extraOperands = extraOperands;
     }
 }

@@ -1,7 +1,10 @@
 package ast;
 
+import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.List;
 
+import SSA.IntermediateInstruction;
 import SSA.Operand;
 import pl434.Symbol;
 import types.Type;
@@ -11,9 +14,18 @@ public class FunctionCall extends Node implements Statement, Expression{
     private List<Symbol> func;
     public ArgumentList argList;
     public Type type; 
+    public List<Symbol> predefinedFunctions;
 
     public FunctionCall(int lineNum, int charPos) {
         super(lineNum, charPos);
+        predefinedFunctions = new ArrayList<Symbol>();
+        predefinedFunctions.add(new Symbol("readInt", "int", "func"));
+        predefinedFunctions.add(new Symbol("readFloat", "float", "func"));
+        predefinedFunctions.add(new Symbol("readBool", "bool", "func"));
+        predefinedFunctions.add(new Symbol("printInt", "void", "func", new ArrayList<String>(Arrays.asList("int"))));
+        predefinedFunctions.add(new Symbol("printFloat", "void", "func", new ArrayList<String>(Arrays.asList("float"))));
+        predefinedFunctions.add(new Symbol("printBool", "void", "func", new ArrayList<String>(Arrays.asList("bool"))));
+        predefinedFunctions.add(new Symbol("println", "void", "func"));
     }
 
     @Override
@@ -49,6 +61,26 @@ public class FunctionCall extends Node implements Statement, Expression{
     @Override
     public Operand getOperand() {
         // TODO Auto-generated method stub
+        return null;
+    }
+
+    public Symbol getFunctionFromType(){
+        boolean paramsNotEqual = false;
+        for (Symbol function: func){
+            paramsNotEqual = false;
+            if (function.getParamTypes().size() == (argList.type().getList().size())){
+                 // if they are, iterate through and check that they are the same 
+                 for (int i = 0; i < function.getParamTypes().size(); i++){
+                    if (!function.getParamTypes().get(i).toString().equals(argList.type().getList().get(i).toString())){
+                        paramsNotEqual = true;
+                        break;
+                    }
+                }
+                if (!paramsNotEqual){
+                    return function;
+                }
+            }
+        }
         return null;
     }
 }

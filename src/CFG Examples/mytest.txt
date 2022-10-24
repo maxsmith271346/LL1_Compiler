@@ -1,6 +1,24 @@
-//Simple parsing test
-main 
-int a,b,c,d;
+// Copy propagation test
+// Adapted from Muchnick, p.357
+main
+int a, b, c, d, e;
 {
-    let a = c + 2 + 3;
-}.
+	let a = 1;
+	let b = a;
+	let c = 4 * b;
+	if (c > b) then
+		//if (a > b) then
+			let d = b + 2;
+		//else
+		//	let b = 5;
+		//fi; 
+   else
+        if (a > b) then
+			let a = 2;
+		else
+			let a = 5;
+		fi; 
+	fi;
+	let e = a + b;
+}
+.

@@ -1,6 +1,7 @@
 package ast;
 
 import SSA.Operand;
+import SSA.InstructionNumber;
 import types.*;
 
 public class Relation extends Node implements Expression {
@@ -8,6 +9,7 @@ public class Relation extends Node implements Expression {
     private Expression leftRelExpr;
     private Expression rightRelExpr;
     private Type type;
+    private InstructionNumber insNumber;
 
     public Relation(int lineNum, int charPos, String relOp, Expression leftRelExpr, Expression rightRelExpr) {
         super(lineNum, charPos);
@@ -44,8 +46,15 @@ public class Relation extends Node implements Expression {
 
     @Override
     public Operand getOperand() {
-        // TODO Auto-generated method stub
-        return null;
+        return insNumber;
+    }
+
+    public void setInsNumber(int insNumber){
+        this.insNumber = new InstructionNumber(insNumber);
+    }
+
+    public String relOp(){
+        return relOp;
     }
 
 }
