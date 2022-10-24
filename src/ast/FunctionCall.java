@@ -6,6 +6,7 @@ import java.util.List;
 
 import SSA.IntermediateInstruction;
 import SSA.Operand;
+import SSA.InstructionNumber;
 import pl434.Symbol;
 import types.Type;
 
@@ -15,6 +16,7 @@ public class FunctionCall extends Node implements Statement, Expression{
     public ArgumentList argList;
     public Type type; 
     public List<Symbol> predefinedFunctions;
+    private InstructionNumber insNumber; 
 
     public FunctionCall(int lineNum, int charPos) {
         super(lineNum, charPos);
@@ -60,8 +62,11 @@ public class FunctionCall extends Node implements Statement, Expression{
 
     @Override
     public Operand getOperand() {
-        // TODO Auto-generated method stub
-        return null;
+        return insNumber;
+    }
+
+    public void setInsNumber(int insNumber){
+        this.insNumber = new InstructionNumber(insNumber);
     }
 
     public Symbol getFunctionFromType(){

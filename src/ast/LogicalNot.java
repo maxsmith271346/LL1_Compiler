@@ -1,11 +1,14 @@
 package ast;
 
+import SSA.InstructionNumber;
 import SSA.Operand;
 import types.*;
 
 public class LogicalNot extends Node implements Expression {
     private Expression expr;
     private Type type;
+    private InstructionNumber insNumber; 
+
 
     public LogicalNot (int lineNum, int charPos, Expression expr) {
         super(lineNum, charPos);
@@ -32,7 +35,10 @@ public class LogicalNot extends Node implements Expression {
 
     @Override
     public Operand getOperand() {
-        // TODO Auto-generated method stub
-        return null;
+        return insNumber;
+    }
+
+    public void setInsNumber(int insNumber){
+        this.insNumber = new InstructionNumber(insNumber);
     }
 }

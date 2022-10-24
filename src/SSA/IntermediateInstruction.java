@@ -37,7 +37,9 @@ public class IntermediateInstruction {
         WRITE_F("WRITE_F"),
         WRITE_NL("WRITE_NL"),
 
-        MOVE("MOVE");
+        MOVE("MOVE"),
+        CALL("CALL"), 
+        RET("RET");
 
     
         private String opString;

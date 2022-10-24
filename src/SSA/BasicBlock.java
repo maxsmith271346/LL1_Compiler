@@ -52,7 +52,10 @@ public class BasicBlock implements Operand {
     }
 
     public String name(){
-        return BBName;
+        if(BBName != null){
+            return BBName;
+        }
+        return "";
     }
 
     @Override 
