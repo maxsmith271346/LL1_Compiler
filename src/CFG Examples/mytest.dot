@@ -1,15 +1,18 @@
 digraph G { 
-BB1[shape=record, label="<b>main\nBB1|{0 : CALL foo }"];
-BB1:s -> BB1:n [label="call"];
-BB1[shape=record, label="<b>foo\nBB1|{1 : MOVE 1 c |2 : MOVE c d |3 : MUL d d |4 : MOVE (2) e |5 : ADD a c |6 : MOVE (4) f |7 : MOVE e g |8 : ADD g d |9 : MOVE (7) a |10 : CMP a c |11 : BGE (9) [3] }"];
-BB1:s -> BB2:n [label="then"];
-BB1:s -> BB3:n [label="else"];
-BB2[shape=record, label="<b>BB2|{12 : ADD g 1 |13 : MOVE (11) h }"];
-BB2:s -> BB4:n [label=""];
-BB3[shape=record, label="<b>BB3|{14 : ADD d g |15 : MOVE (13) f |16 : CMP f a |17 : BLE (15) [6] }"];
-BB3:s -> BB5:n [label="then"];
-BB3:s -> BB4:n [label="else"];
-BB4[shape=record, label="<b>BB4|{18 : MUL g a |19 : MOVE (18) b |20 : WRITE a |21 : WRITE b |22 : WRITE c |23 : WRITE d |24 : WRITE e |25 : WRITE f |26 : WRITE g |27 : WRITE h }"];
-BB5[shape=record, label="<b>BB5|{28 : MOVE 2 c }"];
-BB5:s -> BB4:n [label=""];
+BB1[shape=record, label="<b>main\nBB1|{<cfoo>0 : CALL foo |<cbar>1 : CALL 1 bar |2 : ADD 3 7 |3 : SUB (32) 2 |4 : MOVE (33) x |5 : MUL 895 2 |6 : MUL (35) 2 |7 : DIV (36) 2 |8 : MOVE (37) y |<cbaz>9 : CALL x y baz|<cboo>10 : CALL 2 4 boo|11 : ADD y |12 : MOVE (41) y |13 : WRITE x |14 : WRITE y }"];
+BB1:cfoo -> BB2:b [];
+BB1:cbar -> BB3:b [];
+BB1:cbaz -> BB4:b [];
+BB1:cboo -> BB5:b [];
+BB2[shape=record, label="<b>foo\nBB1|{15 : MOVE 1 a |16 : MOVE 2 b |17 : MOVE a x |18 : MOVE b y |19 : WRITE a |20 : WRITE b |21 : WRITE x |22 : WRITE y }"];
+BB3[shape=record, label="<b>bar\nBB1|{23 : MOVE 1 b |24 : MOVE 1 c |25 : MOVE b y |26 : WRITE a |27 : WRITE b |28 : WRITE c |29 : WRITE y }"];
+BB4[shape=record, label="<b>baz\nBB1|{30 : MOVE 1 c |31 : WRITE a |32 : WRITE b |33 : WRITE x |34 : WRITE y }"];
+BB5[shape=record, label="<b>boo\nBB1|{35 : MOVE 0 i }"];
+BB5:s -> BB6:n [label=""];
+BB6[shape=record, label="<b>BB6|{36 : CMP i 5 |37 : BGE (21) [8] }"];
+BB6:s -> BB7:n [label="then"];
+BB7[shape=record, label="<b>BB7|{38 : MUL x x |39 : MOVE (23) x |40 : ADD i 1 |41 : MOVE (25) i |42 : BRA [6] }"];
+BB7:s -> BB6:n [label=""];
+BB6:s -> BB8:n [label="else"];
+BB8[shape=record, label="<b>BB8|{43 : ADD x 4 |44 : RET (28) }"];
 }

@@ -2,6 +2,8 @@ package SSA;
 
 import java.util.List;
 
+import pl434.Symbol;
+
 public class IntermediateInstruction {
     public enum SSAOperator {
         NEG("NEG"),
@@ -80,10 +82,60 @@ public class IntermediateInstruction {
         if (operand_two == null && operand_one == null){ 
             return operator + " " ;
         }
-        return operator + " " + operand_one.toString() + " " + operand_two.toString() + " ";
+
+        if (extraOperands == null){
+            return operator + " " + operand_one.toString() + " " + operand_two.toString() + " ";
+        }
+        else{ 
+            String retStr = operator + " " + operand_one.toString() + " " + operand_two.toString();
+            for (Operand extra : extraOperands){
+                retStr += " " + extra.toString();
+            }
+
+            return retStr;
+        }
+       
     }
 
     public void addExtraOperands(List<Operand> extraOperands){
         this.extraOperands = extraOperands;
+    }
+
+    public SSAOperator getOperator(){
+        return operator;
+    }
+    public void updateBranchIns(BasicBlock BB){
+        if (operand_two == null){
+            operand_one = BB;
+        }
+        else{ 
+            operand_two = BB;
+        }
+    }
+
+    public Boolean isBranch(){
+        if (operator.equals(SSAOperator.BRA) || operator.equals(SSAOperator.BNE) || operator.equals(SSAOperator.BEQ) || operator.equals(SSAOperator.BLE) || operator.equals(SSAOperator.BLT) || operator.equals(SSAOperator.BGE)  || operator.equals(SSAOperator.BGT)){
+            return true; 
+        }
+        return false;
+    }
+
+    public String getFuncName(){
+        if (extraOperands == null){
+            if (operand_two == null){
+                if (operand_one instanceof Symbol){
+                    return ((Symbol) operand_one).name();
+                }
+            }
+            else{ 
+                return ((Symbol) operand_two).name();
+            }
+        }
+        else{ 
+            if (extraOperands.get(extraOperands.size() - 1) instanceof Symbol){
+                return ((Symbol) extraOperands.get(extraOperands.size() - 1)).name();
+            }
+        }
+        return "";
     }
 }

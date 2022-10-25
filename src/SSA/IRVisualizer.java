@@ -3,6 +3,7 @@ package SSA;
 import java.util.List;
 
 import SSA.BasicBlock.Transitions;
+import SSA.IntermediateInstruction.SSAOperator;
 
 public class IRVisualizer {
     // this will contain the methods to generate the dot representation of the SSA IR
@@ -23,8 +24,10 @@ public class IRVisualizer {
         for (BasicBlock BB : ssa.getBasicBlockList()){
             enterBasicBlock(BB);
             for (IntermediateInstruction intIns: BB.getIntInsList()){
+                if (intIns.getOperator().equals(SSAOperator.CALL)){
+                    dotGraph.append("<c" + intIns.getFuncName() + ">");
+                }
                 dotGraph.append(currentLineNum + " : " + intIns.toString() + "|");
-
                 currentLineNum++;
             }
             exitBasicBlock();
@@ -41,7 +44,7 @@ public class IRVisualizer {
 
     public void enterBasicBlock(BasicBlock BB){
         String BBLabel = "BB" + BB.BBNumber + "|{";
-        if (BB.BBNumber == 1){
+        if (!BB.name().equals("")){
             BBLabel = BB.name() + "\\nBB1|{";
         }
         dotGraph.append("BB" + BB.BBNumber + "[shape=record, label=\"<b>" + BBLabel); 
@@ -53,6 +56,9 @@ public class IRVisualizer {
     }
     
     public void addTransition(Transitions transition){
-        dotGraph.append("\nBB" + transition.fromBB.BBNumber + ":s -> BB" + transition.toBB.BBNumber + ":n [label=\"" + transition.label + "\"];");
+        if (transition.label.contains("call")){
+            dotGraph.append("\nBB" + transition.fromBB.BBNumber + ":c" + transition.label.substring(4, transition.label.length())  +" -> BB" + transition.toBB.BBNumber + ":b [];");
+        }
+        else{ dotGraph.append("\nBB" + transition.fromBB.BBNumber + ":s -> BB" + transition.toBB.BBNumber + ":n [label=\"" + transition.label + "\"];");}
     }
 }

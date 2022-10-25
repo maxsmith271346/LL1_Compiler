@@ -36,6 +36,11 @@ public class SSA implements NodeVisitor{
                             //System.out.println("from BB " + t.fromBB);
                             if (BB1.transitionList.size() != 0 ){
                                 t.toBB = BB1.transitionList.get(0).toBB;
+
+                                // need to update the branch instructions - isn't updating by reference 
+                                if (t.fromBB.getIntInsList().get(t.fromBB.getIntInsList().size() - 1).isBranch()){
+                                    t.fromBB.getIntInsList().get(t.fromBB.getIntInsList().size() - 1).updateBranchIns(BB1.transitionList.get(0).toBB);
+                                }
                             }
                             else if (BB1.transitionList.size() == 0){
                                 transitionsToRemove.add(t);
@@ -228,12 +233,27 @@ public class SSA implements NodeVisitor{
 
         // handle user-defined functions: 
         else{
-            currentBB.add(new IntermediateInstruction(SSAOperator.CALL, function, null));
+            if (node.argList.argList.size() == 0){
+                currentBB.add(new IntermediateInstruction(SSAOperator.CALL, function, null));
+            }
+            if (node.argList.argList.size() == 1){
+                currentBB.add(new IntermediateInstruction(SSAOperator.CALL, node.argList.argList.get(0).getOperand(), function));
+            }
+            if (node.argList.argList.size() >= 2){
+                List<Operand> extra = new ArrayList<Operand>();
+                IntermediateInstruction intIns = new IntermediateInstruction(SSAOperator.CALL, node.argList.argList.get(0).getOperand(), node.argList.argList.get(1).getOperand());
+                currentBB.add(intIns);
+                for (int i = 2; i < node.argList.argList.size(); i++){
+                    extra.add(node.argList.argList.get(i).getOperand());
+                }
+                extra.add(function);
+                intIns.addExtraOperands(extra);
+            }
             BasicBlock functionBB;
             for (BasicBlock BB : BasicBlockList){
                 if(BB.name() == function.name()){
                     functionBB = BB;
-                    currentBB.transitionList.add(currentBB.new Transitions(currentBB, functionBB, "call"));
+                    currentBB.transitionList.add(currentBB.new Transitions(currentBB, functionBB, "call" + function.name()));
                 }
             }
         }
@@ -249,7 +269,7 @@ public class SSA implements NodeVisitor{
         BBNumber++; 
         BasicBlock joinBlock = new BasicBlock(BBNumber);
         BasicBlockList.add(joinBlock);
-        BBNumber++; 
+        BBNumber++;  
 
         currentBB.transitionList.add(currentBB.new Transitions(currentBB, thenBlock, "then"));
         currentBB.transitionList.add(currentBB.new Transitions(currentBB, elseBlock, "else"));
@@ -263,8 +283,11 @@ public class SSA implements NodeVisitor{
         thenBlock = currentBB;
         thenBlock.transitionList.add(thenBlock.new Transitions(thenBlock, joinBlock, ""));
         
+        
         currentBB = elseBlock;
         if (node.elseStatementSeq() != null){
+            thenBlock.add(new IntermediateInstruction(SSAOperator.BRA, joinBlock, null));
+            //thenBlock.add(new IntermediateInstruction(SSAOperator.BRA, thenBlock.transitionList.get(thenBlock.transitionList.size() - 1).toBB, null));
             node.elseStatementSeq().accept(this);
         }
         elseBlock = currentBB;

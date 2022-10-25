@@ -1,0 +1,32 @@
+// Copy propagation test
+// Adapted from Muchnick, p.357
+main
+int a, b, c, d, e, f, g, h;
+{
+	let c = 1;
+	let c = a + b;
+	let d = c;
+	let e = d * d;
+	let f = a + c;
+	let g = e;
+	let a = g + d;
+	
+	if (a < c) then
+		let h = g + 1;
+		if (f > a) then
+			let c = 2;
+		//else
+		//	let f = 4;
+		fi;
+	else
+		let f = d + g;
+        if (f > a) then
+			let c = 5;
+		else
+			let f = 0;
+		fi;
+	fi;
+	let g = e;
+	let a = g + d;
+}
+.
