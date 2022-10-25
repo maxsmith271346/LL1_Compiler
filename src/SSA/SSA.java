@@ -333,7 +333,9 @@ public class SSA implements NodeVisitor{
         currentBB = thenBlock;
         node.statementSeq().accept(this);
         currentBB.add(new IntermediateInstruction(SSAOperator.BRA, whileBlock, null));
-        currentBB.transitionList.add(currentBB.new Transitions(thenBlock, whileBlock, ""));
+        //currentBB.transitionList.add(currentBB.new Transitions(thenBlock, whileBlock, ""));
+        currentBB.transitionList.add(currentBB.new Transitions(currentBB, whileBlock, ""));
+
 
         currentBB.transitionList.add(currentBB.new Transitions(whileBlock, elseBlock, "else"));
         currentBB = elseBlock;
