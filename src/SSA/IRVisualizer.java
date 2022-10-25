@@ -33,7 +33,7 @@ public class IRVisualizer {
             exitBasicBlock();
 
             for (Transitions transition : BB.transitionList){
-                addTransition(transition);
+                addTransition(transition, BB);
             }
             BasicBlockCount++;
             dotGraph.append("\n");
@@ -55,10 +55,10 @@ public class IRVisualizer {
         dotGraph.append("}\"];");
     }
     
-    public void addTransition(Transitions transition){
+    public void addTransition(Transitions transition, BasicBlock BB){
         if (transition.label.contains("call")){
-            dotGraph.append("\nBB" + transition.fromBB.BBNumber + ":c" + transition.label.substring(4, transition.label.length())  +" -> BB" + transition.toBB.BBNumber + ":b [];");
+            dotGraph.append("\nBB" + BB.BBNumber + ":c" + transition.label.substring(4, transition.label.length())  +" -> BB" + transition.toBB.BBNumber + ":b [];");
         }
-        else{ dotGraph.append("\nBB" + transition.fromBB.BBNumber + ":s -> BB" + transition.toBB.BBNumber + ":n [label=\"" + transition.label + "\"];");}
+        else{ dotGraph.append("\nBB" + BB.BBNumber + ":s -> BB" + transition.toBB.BBNumber + ":n [label=\"" + transition.label + "\"];");}
     }
 }

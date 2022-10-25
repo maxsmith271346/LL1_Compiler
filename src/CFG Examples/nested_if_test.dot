@@ -1,7 +1,7 @@
 digraph G { 
 BB1[shape=record, label="<b>main\nBB1|{0 : MOVE 1 c |1 : ADD a b |2 : MOVE (1) c |3 : MOVE c d |4 : MUL d d |5 : MOVE (4) e |6 : ADD a c |7 : MOVE (6) f |8 : MOVE e g |9 : ADD g d |10 : MOVE (9) a |11 : CMP a c |12 : BGE (11) [3] }"];
-BB1:s -> BB2:n [label="then"];
 BB1:s -> BB3:n [label="else"];
+BB1:s -> BB2:n [label="then"];
 BB2[shape=record, label="<b>BB2|{13 : ADD g 1 |14 : MOVE (13) h |15 : CMP f a |16 : BLE (15) [6] }"];
 BB2:s -> BB5:n [label="then"];
 BB2:s -> BB6:n [label="else"];

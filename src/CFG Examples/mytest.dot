@@ -1,18 +1,2 @@
-digraph G { 
-BB1[shape=record, label="<b>main\nBB1|{<cfoo>0 : CALL foo |<cbar>1 : CALL 1 bar |2 : ADD 3 7 |3 : SUB (32) 2 |4 : MOVE (33) x |5 : MUL 895 2 |6 : MUL (35) 2 |7 : DIV (36) 2 |8 : MOVE (37) y |<cbaz>9 : CALL x y baz|<cboo>10 : CALL 2 4 boo|11 : ADD y |12 : MOVE (41) y |13 : WRITE x |14 : WRITE y }"];
-BB1:cfoo -> BB2:b [];
-BB1:cbar -> BB3:b [];
-BB1:cbaz -> BB4:b [];
-BB1:cboo -> BB5:b [];
-BB2[shape=record, label="<b>foo\nBB1|{15 : MOVE 1 a |16 : MOVE 2 b |17 : MOVE a x |18 : MOVE b y |19 : WRITE a |20 : WRITE b |21 : WRITE x |22 : WRITE y }"];
-BB3[shape=record, label="<b>bar\nBB1|{23 : MOVE 1 b |24 : MOVE 1 c |25 : MOVE b y |26 : WRITE a |27 : WRITE b |28 : WRITE c |29 : WRITE y }"];
-BB4[shape=record, label="<b>baz\nBB1|{30 : MOVE 1 c |31 : WRITE a |32 : WRITE b |33 : WRITE x |34 : WRITE y }"];
-BB5[shape=record, label="<b>boo\nBB1|{35 : MOVE 0 i }"];
-BB5:s -> BB6:n [label=""];
-BB6[shape=record, label="<b>BB6|{36 : CMP i 5 |37 : BGE (21) [8] }"];
-BB6:s -> BB7:n [label="then"];
-BB7[shape=record, label="<b>BB7|{38 : MUL x x |39 : MOVE (23) x |40 : ADD i 1 |41 : MOVE (25) i |42 : BRA [6] }"];
-BB7:s -> BB6:n [label=""];
-BB6:s -> BB8:n [label="else"];
-BB8[shape=record, label="<b>BB8|{43 : ADD x 4 |44 : RET (28) }"];
-}
+a
+Error caught - see stderr for stack trace Cannot read field "varMap" because "this.currentBB" is null
