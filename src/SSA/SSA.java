@@ -181,8 +181,10 @@ public class SSA implements NodeVisitor{
         // put new subscript in
         Symbol lhs =  new Symbol(((Symbol) node.lhsDesignator()).name() + "_" + BasicBlock.insNumber, ((Symbol) node.lhsDesignator()).getType().toString(), "var");
         currentBB.varMap.put((Symbol) node.lhsDesignator(), lhs);
+        System.out.println(node.lhsDesignator());
+        System.out.println(BasicBlock.insNumber);
 
-       currentBB.add(new IntermediateInstruction(SSAOperator.MOVE, node.rhsExpr().getOperand(), lhs.getOperand()));
+       System.out.println(currentBB.add(new IntermediateInstruction(SSAOperator.MOVE, node.rhsExpr().getOperand(), lhs.getOperand())));
     }
 
     @Override
