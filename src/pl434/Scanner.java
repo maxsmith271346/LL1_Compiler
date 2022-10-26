@@ -114,21 +114,24 @@ public class Scanner implements Iterator<Token> {
             // Keep going until reach whitespace or end of file
             while (nextChar != ' ' && nextChar != '\t' && nextChar != '\n' && nextChar != '\r' && nextChar != -1){
                 // Read in Char
-
                 if (nextChar == -1){
                     closed = true;
                     return Token.EOF(lineNum, charPos);
                 }
+
+                int line = lineNum;
+                int character = charPos;
 
                 scan += (char) nextChar; 
                 nextChar = readChar();
                 //charPos++;
 
                 // Generate token with Char
-                tok = generateToken(scan, lineNum, charPos);
+                tok = generateToken(scan, line, character);
             
                 // if token is valid, try adding more chars to it for maximal munch 
                 while (tok.kind() != Token.Kind.ERROR){
+
                     scan += (char) nextChar;
 
                     if (scan.contains("//")){
@@ -136,10 +139,10 @@ public class Scanner implements Iterator<Token> {
                         scan = "";
                         break;
                     }
-                    tok = generateToken(scan, lineNum, charPos);
+                    tok = generateToken(scan, line, character);
 
                     if(tok.kind() == Token.Kind.ERROR){
-                        tok = generateToken(scan.substring(0, scan.length() - 1), lineNum, charPos);
+                        tok = generateToken(scan.substring(0, scan.length() - 1), line, character);
                         scan = "";
                         return tok;
                     }
@@ -198,9 +201,9 @@ public class Scanner implements Iterator<Token> {
 
     public Token generateToken(String scan, int lineNum, int charPos){
         Token tok = new Token(scan, lineNum, charPos); 
-
+        
         if (tok.kind() == Token.Kind.ERROR){
-            Token specialTok = checkSpecialCases(scan); 
+            Token specialTok = checkSpecialCases(scan, lineNum, charPos); 
             if (specialTok != null){
                 return specialTok; 
             }
@@ -209,7 +212,7 @@ public class Scanner implements Iterator<Token> {
         return tok; 
     }
 
-    public Token checkSpecialCases(String newScan){
+    public Token checkSpecialCases(String newScan, int lineNum, int charPos){
         // See if the token is an IDENT
         if ((newScan.charAt(0) >= 'a' && newScan.charAt(0) <= 'z') || (newScan.charAt(0) >= 'A' && newScan.charAt(0) <= 'Z')){
             if (checkIDENT(newScan)){
