@@ -3,7 +3,9 @@ package SSA;
 import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import ast.*;
 import pl434.Symbol;
@@ -11,14 +13,30 @@ import SSA.BasicBlock.Transitions;
 import SSA.IntermediateInstruction.SSAOperator;
 
 public class SSA implements NodeVisitor{
-    private List<BasicBlock> BasicBlockList; 
+    private Set<BasicBlock> BasicBlockList; 
     private BasicBlock currentBB;
     private int BBNumber = 1;
     
     public SSA(AST ast){
-        BasicBlockList = new ArrayList<BasicBlock>();
+        BasicBlockList = new HashSet<BasicBlock>();
         visit(ast.computation);
         pruneEmpty();
+    }
+
+
+    /**
+     * Returns set of nodes in a tree starting at the root
+     * argument that are dominated by x
+     * 
+     * @param root of the control flow graph
+     * @param x node in the control flow graph
+     * @return set of nodes dominated by x
+    */
+    public Set<BasicBlock> getDominators(BasicBlock root, BasicBlock x) {
+
+
+
+        return null;
     }
 
     public void pruneEmpty(){
@@ -65,7 +83,7 @@ public class SSA implements NodeVisitor{
         }
     }
 
-    public List<BasicBlock> getBasicBlockList(){
+    public Set<BasicBlock> getBasicBlockList(){
         return BasicBlockList;
     }
 
