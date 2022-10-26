@@ -2,9 +2,12 @@ package ast;
 
 import java.util.List;
 
+import SSA.InstructionNumber;
 import SSA.Operand;
 import pl434.Symbol;
 import types.Type;
+import java.util.HashMap;
+import pl434.Symbol;
 
 public class ArrayIndex extends Node implements Expression {
     // originally used leftExpr and rightExpr for pretty printer, but instead I will just be using a list of expressions
@@ -13,6 +16,7 @@ public class ArrayIndex extends Node implements Expression {
     private Symbol arrayIdent;
     private List<Expression> indices;
     private Type type;
+    private InstructionNumber insNumber;
 
     //public Symbol arrayIdent;
     /*public ArrayIndex(int lineNum, int charPos, Expression leftExpr, Expression rightExpr) {
@@ -72,8 +76,11 @@ public class ArrayIndex extends Node implements Expression {
     }
 
     @Override
-    public Operand getOperand() {
-        // TODO Auto-generated method stub
-        return null;
+    public Operand getOperand(HashMap<Symbol, Symbol> varMa) {
+        return insNumber;
+    }
+
+    public void setInsNumber(int insNumber){
+        this.insNumber = new InstructionNumber(insNumber);
     }
 }

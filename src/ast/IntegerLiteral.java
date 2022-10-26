@@ -2,6 +2,8 @@ package ast;
 
 import SSA.Operand;
 import types.*;
+import java.util.HashMap;
+import pl434.Symbol;
 
 public class IntegerLiteral extends Node implements Expression, Operand{
     private String value; 
@@ -27,7 +29,7 @@ public class IntegerLiteral extends Node implements Expression, Operand{
     }
 
     @Override
-    public Operand getOperand() {
+    public Operand getOperand(HashMap<Symbol, Symbol> varMa) {
         return this;
     }
 

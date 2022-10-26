@@ -25,9 +25,9 @@ public class IRVisualizer {
             enterBasicBlock(BB);
             for (IntermediateInstruction intIns: BB.getIntInsList()){
                 if (intIns.getOperator().equals(SSAOperator.CALL)){
-                    dotGraph.append("<c" + intIns.getFuncName() + ">");
+                    dotGraph.append("<c" + intIns.getFuncName() + intIns.insNum() +  ">");
                 }
-                dotGraph.append(currentLineNum + " : " + intIns.toString() + "|");
+                dotGraph.append(intIns.insNum() + " : " + intIns.toString() + "|");
                 currentLineNum++;
             }
             exitBasicBlock();

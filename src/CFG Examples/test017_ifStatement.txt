@@ -7,7 +7,10 @@ int a, b, c, d, e;
 	let b = a;
 	let c = 4 * b;
 	if (c > b) then
-		let d = b + 2;
+		let a = 5;
+		//let d = b + 2;
+	else
+		let a = 4 + a;
 	fi;
 	let e = a + b;
 }

@@ -3,6 +3,7 @@ package pl434;
 import ast.*;
 import types.*;
 import java.util.ArrayList;
+import java.util.HashMap;
 import java.util.List;
 
 import SSA.Operand;
@@ -185,7 +186,14 @@ public class Symbol implements Expression, Operand {
     }
 
     @Override
-    public Operand getOperand() {
+    public Operand getOperand(HashMap<Symbol, Symbol> varMap) {
+        if (varMap != null){
+            if (varMap.containsKey(this)){
+                //System.out.println("before " + this.name);
+                return varMap.get(this);
+                //System.out.println("after " + this.name);
+           }
+        }
         return this;
     }
 

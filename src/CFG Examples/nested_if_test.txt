@@ -19,7 +19,7 @@ int a, b, c, d, e, f, g, h;
 		//	let f = 4;
 		fi;
 	else
-		let f = d + g;
+		let f = d + c;
         if (f > a) then
 			let c = 5;
 		else

@@ -29,7 +29,10 @@ public class BasicBlock implements Operand {
         this.BBName = "";
         transitionList = new ArrayList<Transitions>();
         this.BBNumber = BBNumber;
-        this.varMap = varMap;
+        this.varMap = new HashMap<Symbol, Symbol>();
+        for (Symbol key : varMap.keySet()){
+            this.varMap.put(key, varMap.get(key));
+        }
     }
 
     public BasicBlock(int BBNumber, HashMap<Symbol, Symbol> varMap, String name){
@@ -37,7 +40,10 @@ public class BasicBlock implements Operand {
         this.BBName = name;
         transitionList = new ArrayList<Transitions>();
         this.BBNumber = BBNumber;
-        this.varMap = varMap;
+        this.varMap = new HashMap<Symbol, Symbol>();
+        for (Symbol key : varMap.keySet()){
+            this.varMap.put(key, varMap.get(key));
+        }
     }
 
     public void addBasicBlockName(String name){

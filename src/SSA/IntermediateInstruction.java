@@ -63,12 +63,14 @@ public class IntermediateInstruction {
     private SSAOperator operator; 
     private Operand operand_one; 
     private Operand operand_two; 
+    private int insNum;
     private List<Operand> extraOperands;
 
-    public IntermediateInstruction(SSAOperator operator, Operand operand_one, Operand operand_two){
+    public IntermediateInstruction(SSAOperator operator, Operand operand_one, Operand operand_two, int insNum){
         this.operator = operator; 
         this.operand_one = operand_one; 
         this.operand_two = operand_two;
+        this.insNum = insNum;
     }
 
     @Override
@@ -137,5 +139,9 @@ public class IntermediateInstruction {
             }
         }
         return "";
+    }
+
+    public int insNum(){
+        return insNum;
     }
 }

@@ -3,6 +3,8 @@ package ast;
 import SSA.InstructionNumber;
 import SSA.Operand;
 import types.*;
+import java.util.HashMap;
+import pl434.Symbol;
 
 public class LogicalAnd extends Node implements Expression {
     private Expression leftRelExpr;
@@ -39,7 +41,7 @@ public class LogicalAnd extends Node implements Expression {
     }
 
     @Override
-    public Operand getOperand() {
+    public Operand getOperand(HashMap<Symbol, Symbol> varMa) {
         return insNumber;
     }
 

@@ -9,6 +9,8 @@ import SSA.Operand;
 import SSA.InstructionNumber;
 import pl434.Symbol;
 import types.Type;
+import java.util.HashMap;
+import pl434.Symbol;
 
 
 public class FunctionCall extends Node implements Statement, Expression{
@@ -61,7 +63,7 @@ public class FunctionCall extends Node implements Statement, Expression{
     }
 
     @Override
-    public Operand getOperand() {
+    public Operand getOperand(HashMap<Symbol, Symbol> varMa) {
         return insNumber;
     }
 
