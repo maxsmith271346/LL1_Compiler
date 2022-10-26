@@ -3,10 +3,9 @@ package pl434;
 import java.io.*;
 import java.util.*;
 import types.*;
+import ast.*;
 
 import org.apache.commons.cli.*;
-
-import ast.AST;
 
 public class CompilerTester {
 
@@ -18,12 +17,12 @@ public class CompilerTester {
         options.addOption("b", "asm", false, "Print DLX instructions");
         options.addOption("a", "astOut", false, "Print AST");
 
-        options.addOption("graphdir", "graph-dir", false, "Graph dir, default will be current dir");
+        options.addOption("gDir", "graphDir", false, "Graph dir, default will be current dir");
         options.addOption("ast", "ast", false, "Print AST.dot - requires graphs/");
 
         options.addOption("cfg", "cfg", false, "Print CFG.dot - requires graphs/");
         options.addOption("onefile", "onefile", false, "If true, 'ast.dot' and 'cfg.dot' are the names for files in graphs/");
-        options.addOption("allowversions", "allow-versions", false, "Allowing versioning for files in graphs/");
+        options.addOption("allowVersions", "allowVersions", false, "Allowing versioning for files in graphs/");
 
 
         options.addOption("o", "opt", true, "Order-sensitive optimization -allowed to have multiple");      
@@ -89,8 +88,8 @@ public class CompilerTester {
 
         // create graph dir if needed
         String graphDir = "";
-        if (cmd.hasOption("graphdir")) {
-            graphDir = cmd.getOptionValue("graph-dir"); 
+        if (cmd.hasOption("graphDir")) {
+            graphDir = cmd.getOptionValue("graphDir");
             File dir = new File(graphDir);
             if (!dir.exists()) {
                 dir.mkdirs();

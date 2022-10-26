@@ -36,8 +36,10 @@ public class SSA implements NodeVisitor{
                                 t.toBB = BB1.transitionList.get(0).toBB;
 
                                 // need to update the branch instructions - isn't updating by reference 
-                                if (BB2.getIntInsList().get(BB2.getIntInsList().size() - 1).isBranch()){
-                                    BB2.getIntInsList().get(BB2.getIntInsList().size() - 1).updateBranchIns(BB1.transitionList.get(0).toBB);
+                                if (BB2.getIntInsList().size() != 0){
+                                    if (BB2.getIntInsList().get(BB2.getIntInsList().size() - 1).isBranch()){
+                                        BB2.getIntInsList().get(BB2.getIntInsList().size() - 1).updateBranchIns(BB1.transitionList.get(0).toBB);
+                                    }
                                 }
                             }
                             else if (BB1.transitionList.size() == 0){
@@ -518,6 +520,8 @@ public class SSA implements NodeVisitor{
 
     @Override
     public void visit(FunctionDeclaration node) {
+        //System.out.println(node.name()); 
+        //System.out.println(BBNumber);
         currentBB = new BasicBlock(BBNumber, new HashMap<Symbol, Symbol>(), node.name());
         BBNumber++;
         BasicBlockList.add(currentBB);
