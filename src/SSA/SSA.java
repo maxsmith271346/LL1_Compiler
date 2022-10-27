@@ -54,7 +54,7 @@ public class SSA implements NodeVisitor{
 
             // Check if the Basic Block is empty
             if (BB1.size() == 0){
-                System.out.println("empty " + BB1);
+                //System.out.println("empty " + BB1);
                 // If it is, then look for the Basic Blocks that point to it
                 // Iterate through all the basic blocks again
                 for (BasicBlock BB2 : BasicBlockList){
