@@ -37,10 +37,11 @@ public class SSA implements NodeVisitor{
 
     public void insertPhi() {
         HashMap<BasicBlock, HashSet<BasicBlock>> dfMap = getDominanceFrontier(rootBB);
+        // 
         for (BasicBlock bb : BasicBlockList) {
             HashSet<BasicBlock> df = dfMap.get(bb);
             for (BasicBlock j : df) {
-                bb.addFront(new IntermediateInstruction(SSAOperator.PHI, null, null, -1));
+                j.addFront(new IntermediateInstruction(SSAOperator.PHI, null, null, -1));
             }
         }
     }
