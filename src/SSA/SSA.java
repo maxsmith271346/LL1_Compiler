@@ -18,11 +18,14 @@ public class SSA implements NodeVisitor{
     private Set<BasicBlock> BasicBlockList; 
     private BasicBlock currentBB;
     private int BBNumber = 1;
+
+    private BasicBlock rootBB;
     
     public SSA(AST ast){
         BasicBlockList = new HashSet<BasicBlock>();
         visit(ast.computation);
         pruneEmpty();
+        System.out.println(getDominanceFrontier(rootBB));
     }
     /**
      * Get the dominance frontier of a control flow graph
@@ -80,7 +83,7 @@ public class SSA implements NodeVisitor{
 
         BasicBlock v;
 
-        s.push(x);
+        s.push(root);
 
         // initialize all nodes except 
         for (BasicBlock bb : BasicBlockList) {
@@ -631,6 +634,7 @@ public class SSA implements NodeVisitor{
         node.functions().accept(this);
 
         currentBB = mainBB;
+        rootBB = mainBB;
         node.mainStatementSequence().accept(this);
     }
 
