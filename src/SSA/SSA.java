@@ -150,7 +150,7 @@ public class SSA implements NodeVisitor{
                             }
 
                             // need to update the branch instructions - isn't updating by reference 
-                            if (BB2.getIntInsList().size() != 0){
+                            if (BB2.getIntInsList().size() != 0 ){
                                 if (BB2.getIntInsList().get(BB2.getIntInsList().size() - 1).isBranch()){
                                     if (BB2.getIntInsList().size() >= 2 && BB2.getIntInsList().get(BB2.getIntInsList().size() - 2).getOperator().equals(SSAOperator.RET)){
                                         BB2.getIntInsList().remove(BB2.getIntInsList().size() - 1);
@@ -639,15 +639,31 @@ public class SSA implements NodeVisitor{
     public void visit(FunctionDeclaration node) {
         //System.out.println(node.name()); 
         //System.out.println(BBNumber);
-        currentBB = new BasicBlock(BBNumber, new HashMap<Symbol, Symbol>(), node.name());
+        /*currentBB = new BasicBlock(BBNumber, new HashMap<Symbol, Symbol>(), node.name());
         BBNumber++;
-        BasicBlockList.add(currentBB);
+        BasicBlockList.add(currentBB);*/
+
+        for (BasicBlock BB : BasicBlockList){
+            if(BB.name().equals(node.name())){
+                currentBB = BB;
+                break;
+            }
+        }
         node.body().accept(this);    
     }
 
     @Override
     public void visit(DeclarationList node) {
         if (node.empty()) return;
+
+        for (Declaration d : node.decList) {
+            if (d instanceof FunctionDeclaration){
+                currentBB = new BasicBlock(BBNumber, new HashMap<Symbol, Symbol>(), ((FunctionDeclaration) d).name());
+                BBNumber++;
+                BasicBlockList.add(currentBB);
+            }
+        }
+
         for (Declaration d : node.decList) {
             d.accept(this);
         }        
