@@ -5,7 +5,9 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
 import java.util.List;
+import java.util.Map;
 import java.util.Set;
+import java.util.Stack;
 
 import ast.*;
 import pl434.Symbol;
@@ -22,21 +24,91 @@ public class SSA implements NodeVisitor{
         visit(ast.computation);
         pruneEmpty();
     }
+    /**
+     * Get the dominance frontier of a control flow graph
+     * starting at root
+     * 
+     * @param root root node of control flow graph
+     * @return dominance frontier as mapping from basic block to set of basic blocks
+     */
 
+    public HashSet<BasicBlock> getChildren(BasicBlock x) {
+        HashSet<BasicBlock> children = new HashSet<BasicBlock>();
+        for (Transitions t : x.transitionList) {
+            children.add(t.toBB);
+        }
+        return children;
+    }
+
+    public HashMap<BasicBlock, HashSet<BasicBlock>> getDominanceFrontier(BasicBlock root) {
+        HashMap<BasicBlock, HashSet<BasicBlock>> dfMap = new HashMap<BasicBlock, HashSet<BasicBlock>>();
+
+        for (BasicBlock bb : BasicBlockList) {
+            // dominators.put(bb, getDominatedNodes(root, bb));
+            HashSet<BasicBlock> DominatorSet = getDominatedNodes(root, bb);
+            HashSet<BasicBlock> df = new HashSet<BasicBlock>();
+            // df = {successors of dominated nodes} - {dominatorSet}
+            for (BasicBlock d : DominatorSet) {
+                // add all nodes for which d is a successor
+                df.addAll(getChildren(d));
+            }
+            // make DominatorSet strictly dominated nodes only
+            DominatorSet.remove(bb);
+            // remove all strictly dominated nodes
+            df.removeAll(DominatorSet);
+
+            dfMap.put(bb, df);
+        }
+
+        
+
+        return dfMap;
+    }
 
     /**
-     * Returns set of nodes in a tree starting at the root
-     * argument that are dominated by x
+     * Gets set of nodes in a control flow graph starting at root
+     * that are dominated by x
      * 
      * @param root of the control flow graph
      * @param x node in the control flow graph
      * @return set of nodes dominated by x
     */
-    public Set<BasicBlock> getDominators(BasicBlock root, BasicBlock x) {
+    public HashSet<BasicBlock> getDominatedNodes(BasicBlock root, BasicBlock x) {
+        HashSet<BasicBlock> reachable = new HashSet<BasicBlock>();
+        HashMap<BasicBlock, Boolean> discovered = new HashMap<BasicBlock, Boolean>();
+        Stack<BasicBlock> s = new Stack<BasicBlock>();
 
+        BasicBlock v;
 
+        s.push(x);
 
-        return null;
+        // initialize all nodes except 
+        for (BasicBlock bb : BasicBlockList) {
+            if (bb == x) {
+                discovered.put(bb, true);
+            }
+            else {
+                discovered.put(bb, false);
+            }
+        }
+
+        while (!s.empty()) {
+            v = s.pop();
+            // if not discovered, visit node and add to reachable
+            if (!discovered.get(v)) {
+                // label v as discovered
+                discovered.put(v, true);
+                reachable.add(v);
+                for (Transitions t : v.transitionList) {
+                    s.push(t.toBB);
+                }
+            }
+        }
+        
+        HashSet<BasicBlock> DominatorSet = new HashSet<BasicBlock>(BasicBlockList);
+        DominatorSet.removeAll(reachable);
+
+        return DominatorSet;
     }
 
     public void pruneEmpty(){
