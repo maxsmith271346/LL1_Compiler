@@ -11,6 +11,8 @@ import pl434.Symbol;
 import types.Type;
 import java.util.HashMap;
 import pl434.Symbol;
+import java.util.HashSet;
+
 
 
 public class FunctionCall extends Node implements Statement, Expression{
@@ -63,7 +65,7 @@ public class FunctionCall extends Node implements Statement, Expression{
     }
 
     @Override
-    public Operand getOperand(HashMap<Symbol, Symbol> varMap) {
+    public Operand getOperand(HashMap<Symbol, HashSet<Symbol>>  varMap) {
         return insNumber;
     }
 

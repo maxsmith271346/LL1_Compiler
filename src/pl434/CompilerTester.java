@@ -108,6 +108,7 @@ public class CompilerTester {
             }
         }
 
+        System.out.println("calling type checker");
         TypeChecker tc = new TypeChecker();
 
         if (!tc.check(ast)) {

@@ -5,6 +5,7 @@ import SSA.InstructionNumber;
 import types.*;
 import java.util.HashMap;
 import pl434.Symbol;
+import java.util.HashSet;
 
 public class Subtraction extends Node implements Expression {
     private Expression leftRelExpr;
@@ -41,7 +42,7 @@ public class Subtraction extends Node implements Expression {
     }
 
     @Override
-    public Operand getOperand(HashMap<Symbol, Symbol> varMap) {
+    public Operand getOperand(HashMap<Symbol, HashSet<Symbol>>  varMap) {
         return insNumber;
     }
 

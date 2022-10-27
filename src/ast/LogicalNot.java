@@ -5,6 +5,8 @@ import SSA.Operand;
 import types.*;
 import java.util.HashMap;
 import pl434.Symbol;
+import java.util.HashSet;
+
 
 public class LogicalNot extends Node implements Expression {
     private Expression expr;
@@ -36,7 +38,7 @@ public class LogicalNot extends Node implements Expression {
     }
 
     @Override
-    public Operand getOperand(HashMap<Symbol, Symbol> varMap) {
+    public Operand getOperand(HashMap<Symbol, HashSet<Symbol>>  varMap) {
         return insNumber;
     }
 

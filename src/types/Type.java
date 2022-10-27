@@ -8,6 +8,14 @@ public abstract class Type {
 
     // arithmetic
     public Type mul (Type that) {
+        if (this instanceof ArrayType || that instanceof ArrayType){
+            if(!checkArrayDimensions(this, that)){
+                return new ErrorType("Cannot multiply " + this + " with " + that + ".");
+            }
+            else{ 
+                return this;
+            }
+        }
         if(!(((this instanceof FloatType) && (that instanceof FloatType)) || ((this instanceof IntType) && (that instanceof IntType)))){
             return new ErrorType("Cannot multiply " + this + " with " + that + ".");
         }
@@ -18,6 +26,14 @@ public abstract class Type {
     }
 
     public Type div (Type that) {
+        if (this instanceof ArrayType || that instanceof ArrayType){
+            if(!checkArrayDimensions(this, that)){
+                return new ErrorType("Cannot divide " + this + " by " + that + ".");
+            }
+            else{ 
+                return this;
+            }
+        }
         if(!(((this instanceof FloatType) && (that instanceof FloatType)) || ((this instanceof IntType) && (that instanceof IntType)))){
             return new ErrorType("Cannot divide " + this + " by " + that + ".");
         }
@@ -46,6 +62,14 @@ public abstract class Type {
     }
 
     public Type sub (Type that) {
+        if (this instanceof ArrayType || that instanceof ArrayType){
+            if(!checkArrayDimensions(this, that)){
+                return new ErrorType("Cannot subtact " + this + " from " + that + ".");
+            }
+            else{ 
+                return this;
+            }
+        }
         if(!(((this instanceof FloatType) && (that instanceof FloatType)) || ((this instanceof IntType) && (that instanceof IntType)))){
             return new ErrorType("Cannot subtract " + that + " from " + this + ".");
         }
@@ -56,6 +80,14 @@ public abstract class Type {
     }
 
     public Type pow (Type that) {
+        if (this instanceof ArrayType || that instanceof ArrayType){
+            if(!checkArrayDimensions(this, that)){
+                return new ErrorType("Cannot raise " + this + " to " + that + ".");
+            }
+            else{ 
+                return this;
+            }
+        }
         if(!(((this instanceof FloatType) && (that instanceof FloatType)) || ((this instanceof IntType) && (that instanceof IntType)))){
             return new ErrorType("Cannot raise " + this + " to " + that + ".");
         }
@@ -65,6 +97,14 @@ public abstract class Type {
     } 
 
     public Type mod (Type that) {
+        if (this instanceof ArrayType || that instanceof ArrayType){
+            if(!checkArrayDimensions(this, that)){
+                return new ErrorType("Cannot modulo " + this + " by " + that + ".");
+            }
+            else{ 
+                return this;
+            }
+        }
         if(!(((this instanceof FloatType) && (that instanceof FloatType)) || ((this instanceof IntType) && (that instanceof IntType)))){
             return new ErrorType("Cannot modulo " + this + " by " + that + ".");
         }
@@ -75,6 +115,14 @@ public abstract class Type {
 
     // boolean
     public Type and (Type that) {
+        if (this instanceof ArrayType || that instanceof ArrayType){
+            if(!checkArrayDimensions(this, that)){
+                return new ErrorType("Cannot compute " + this + " and " + that + ".");
+            }
+            else{ 
+                return this;
+            }
+        }
         if(!(that instanceof BoolType) || !(this instanceof BoolType)){
             return new ErrorType("Cannot compute " + this + " and " + that + ".");
         }
@@ -85,7 +133,15 @@ public abstract class Type {
     }
 
     public Type or (Type that) {
-        if(!(that instanceof BoolType) || !(this instanceof BoolType)){
+        if (this instanceof ArrayType || that instanceof ArrayType){
+            if(!checkArrayDimensions(this, that)){
+                return new ErrorType("Cannot compute " + this + " or " + that + ".");
+            }
+            else{ 
+                return this;
+            }
+        }
+        else if(!(that instanceof BoolType) || !(this instanceof BoolType)){
             return new ErrorType("Cannot compute " + this + " or " + that + ".");
         }
         else{ 
@@ -94,7 +150,11 @@ public abstract class Type {
     }
 
     public Type not () {
-        if(!(this instanceof BoolType)){
+        Type thisType = this; 
+        if (this instanceof ArrayType){
+            thisType = ((ArrayType) this).type();
+        }
+        if(!(thisType instanceof BoolType)){
             return new ErrorType("Cannot negate " + this + ".");
         }
         else{ 

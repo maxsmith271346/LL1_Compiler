@@ -14,6 +14,34 @@ import pl434.Symbol;
 import SSA.BasicBlock.Transitions;
 import SSA.IntermediateInstruction.SSAOperator;
 
+
+/*for (BasicBlock phiBlock : phiList){
+    // get all the parent nodes for the phi block
+    parentnodes = new list
+    for (BasicBlock bb : BasicBlockList){
+        for (Transitions t : bb.transitionLIst){
+            if (t.toBB == phiBlock){
+                parentnodes.append(bb);
+            }
+        }
+    }
+
+    // get the values of the variables from these parent nodes
+    varlist = new list
+    for (vardec : p.vardeclist){
+        for (p : parentnodes){
+            if (p.varMap.containskey(vardec)){
+                varlist.add(varMap.get(vardec))
+            }
+        }
+    }
+}*/
+
+
+// go through the dominance frontier, create a hash set of the phi nodes, go through all the phi
+// nodes, for each phi node, iterate through the declared variables, check the size of the varMap sets 
+// if its greater then one, then insert a phi with all the operands
+
 public class SSA implements NodeVisitor{
     private Set<BasicBlock> BasicBlockList; 
     private BasicBlock currentBB;
@@ -24,7 +52,7 @@ public class SSA implements NodeVisitor{
     public SSA(AST ast){
         BasicBlockList = new HashSet<BasicBlock>();
         visit(ast.computation);
-        pruneEmpty();
+        //pruneEmpty();
         //System.out.println(getDominanceFrontier(rootBB));
     }
     /**
@@ -138,8 +166,12 @@ public class SSA implements NodeVisitor{
                     // Iterate through each of the transitions and check if they point to the empty basic block
                     for (Transitions t : BB2.transitionList){
                         if (t.toBB.BBNumber == BB1.BBNumber){
+                            //System.out.println("BB1 " + BB1 + " BB2 " + BB2); 
                             // Update the transition with the BB that the empty block points to
                             if (BB1.transitionList.size() != 0 ){
+                                if (t.label.contains("call")){
+                                    BB1.transitionList.get(0).toBB.putName(t.toBB.name());
+                                }
                                 t.toBB = BB1.transitionList.get(0).toBB;
                             }
                             // If the empty block doesn't point to anything, then just remove the transition
@@ -154,8 +186,9 @@ public class SSA implements NodeVisitor{
                                         BB2.getIntInsList().remove(BB2.getIntInsList().size() - 1);
                                     }
                                     else{
-                                        BB2.getIntInsList().get(BB2.getIntInsList().size() - 1).updateBranchIns(BB1.transitionList.get(0).toBB);
-
+                                        if (!t.label.contains("call")){ // don't need to update branch ins in this case
+                                            BB2.getIntInsList().get(BB2.getIntInsList().size() - 1).updateBranchIns(t.toBB);
+                                        }
                                     }
                                 }
                             }
@@ -173,7 +206,7 @@ public class SSA implements NodeVisitor{
             BasicBlockList.remove(BB);
             for (BasicBlock BB1 : BasicBlockList){
                 if (BB1.BBNumber > BB.BBNumber){
-                    BB1.BBNumber--;
+                    //BB1.BBNumber--;
                 }
             }
         }
@@ -397,8 +430,10 @@ public class SSA implements NodeVisitor{
         }
         if (node.lhsDesignator() instanceof Symbol){
              // put new subscript in
-            Symbol lhs =  new Symbol(((Symbol) node.lhsDesignator()).name() + "_" + BasicBlock.insNumber, ((Symbol) node.lhsDesignator()).getType().toString(), "var");
-            currentBB.varMap.put((Symbol) node.lhsDesignator(), lhs);   
+            HashSet<Symbol> newHash = new HashSet<Symbol>();
+            Symbol lhs = new Symbol(((Symbol) node.lhsDesignator()).name() + "_" + BasicBlock.insNumber, ((Symbol) node.lhsDesignator()).getType().toString(), "var");
+            newHash.add(lhs);
+            currentBB.varMap.put((Symbol) node.lhsDesignator(), newHash);   
             currentBB.add(new IntermediateInstruction(SSAOperator.MOVE, node.rhsExpr().getOperand(currentBB.varMap), lhs, BasicBlock.insNumber));
 
         }
@@ -426,7 +461,7 @@ public class SSA implements NodeVisitor{
         // need to check if predefined function call
         Symbol function = node.getFunctionFromType();
 
-        System.out.println("function " + function.name() + " param type " + function.getParamTypes());
+        //System.out.println("function " + function.name() + " param type " + function.getParamTypes());
         Boolean paramsNotEqual = false;
         Symbol preFuncMatch = null; 
         for(Symbol prefunc : node.predefinedFunctions){
@@ -502,7 +537,8 @@ public class SSA implements NodeVisitor{
         BasicBlock elseBlock = new BasicBlock(BBNumber, currentBB.varMap);
         BasicBlockList.add(elseBlock);
         BBNumber++; 
-        BasicBlock joinBlock = new BasicBlock(BBNumber, currentBB.varMap);
+        
+        BasicBlock joinBlock = new BasicBlock(BBNumber, new HashMap<Symbol, HashSet<Symbol>>());
         BasicBlockList.add(joinBlock);
         BBNumber++;  
 
@@ -511,6 +547,9 @@ public class SSA implements NodeVisitor{
         node.condition().accept(this);
         if (node.condition() instanceof Relation){
             currentBB.add(new IntermediateInstruction(getBranchOperator((Relation) node.condition()), node.condition().getOperand(currentBB.varMap), elseBlock, BasicBlock.insNumber));
+        }
+        else{ 
+            currentBB.add(new IntermediateInstruction(SSAOperator.BEQ, node.condition().getOperand(currentBB.varMap), elseBlock, BasicBlock.insNumber));
         }
 
         currentBB = thenBlock; 
@@ -526,6 +565,21 @@ public class SSA implements NodeVisitor{
         }
         elseBlock = currentBB;
         elseBlock.transitionList.add(elseBlock.new Transitions(joinBlock, ""));
+
+        joinBlock.addMap(thenBlock.varMap);
+        // resolve any conflicts between the two branches
+        for (Symbol key : elseBlock.varMap.keySet()){
+            System.out.println("key  " + key + " vals " +  elseBlock.varMap.get(key));
+            if (joinBlock.varMap.containsKey(key)){
+                joinBlock.varMap.get(key).addAll(elseBlock.varMap.get(key));
+                if (joinBlock.varMap.get(key).size() > 1){
+                    System.out.println("key " + key + " vals " + joinBlock.varMap.get(key));  
+                }
+            }
+            else{ 
+                System.out.println("ERROR ");
+            }
+        }
 
         currentBB = joinBlock;
     }
@@ -562,6 +616,9 @@ public class SSA implements NodeVisitor{
         if (node.condition() instanceof Relation){
             currentBB.add(new IntermediateInstruction(getBranchOperator((Relation) node.condition()), node.condition().getOperand(currentBB.varMap), elseBlock, BasicBlock.insNumber));
         }
+        else{ 
+            currentBB.add(new IntermediateInstruction(SSAOperator.BEQ, node.condition().getOperand(currentBB.varMap), elseBlock, BasicBlock.insNumber));
+        }
 
         currentBB.transitionList.add(currentBB.new Transitions(thenBlock, "then"));
         currentBB = thenBlock;
@@ -573,16 +630,27 @@ public class SSA implements NodeVisitor{
 
         //currentBB.transitionList.add(currentBB.new Transitions(elseBlock, "else"));
         whileBlock.transitionList.add(whileBlock.new Transitions(elseBlock, "else"));
+
+        for (Symbol key : thenBlock.varMap.keySet()){
+            if (whileBlock.varMap.containsKey(key)){
+                whileBlock.varMap.get(key).addAll(thenBlock.varMap.get(key));
+            }
+            else{ 
+                System.out.println("ERROR ");
+            }
+        }
+
         currentBB = elseBlock;
     }
 
     @Override
     public void visit(RepeatStatement node) { 
+        BasicBlock parentBB = currentBB;
         BasicBlock repeatBB = new BasicBlock(BBNumber, currentBB.varMap);
         BBNumber++;
         BasicBlockList.add(repeatBB);
 
-        BasicBlock conditionBB = new BasicBlock(BBNumber, currentBB.varMap);
+        BasicBlock conditionBB = new BasicBlock(BBNumber, new HashMap<Symbol, HashSet<Symbol>>());
         BBNumber++;
         BasicBlockList.add(conditionBB);
 
@@ -594,6 +662,9 @@ public class SSA implements NodeVisitor{
         currentBB = repeatBB; 
         node.statementSeq().accept(this);
 
+        // add varMap from 
+        conditionBB.addMap(repeatBB.varMap);
+
         currentBB.transitionList.add(currentBB.new Transitions(conditionBB, ""));
 
         currentBB = conditionBB;
@@ -604,8 +675,20 @@ public class SSA implements NodeVisitor{
         if (node.condition() instanceof Relation){
             currentBB.add(new IntermediateInstruction(getBranchOperator((Relation) node.condition()), node.condition().getOperand(currentBB.varMap), repeatBB, BasicBlock.insNumber));
         }
+        else{
+            currentBB.add(new IntermediateInstruction(SSAOperator.BEQ, node.condition().getOperand(currentBB.varMap), repeatBB, BasicBlock.insNumber));
+        }
     
         currentBB.transitionList.add(currentBB.new Transitions(elseBB, "then"));
+
+        for (Symbol key : parentBB.varMap.keySet()){
+            if (repeatBB.varMap.containsKey(key)){
+                repeatBB.varMap.get(key).addAll(parentBB.varMap.get(key));
+            }
+            else{ 
+                System.out.println("ERROR ");
+            }
+        }
 
         currentBB = elseBB;
 
@@ -631,11 +714,16 @@ public class SSA implements NodeVisitor{
     public void visit(VariableDeclaration node) {
         // Global var
         if (currentBB.name().equals("main")){
-            currentBB.varMap.put(node.symbol(), new Symbol(node.symbol().name() + "_-1", node.symbol().type().toString(), "var"));
+            HashSet<Symbol> newHash = new HashSet<Symbol>();
+            newHash.add(new Symbol(node.symbol().name() + "_-1", node.symbol().type().toString(), "var"));
+            currentBB.varMap.put(node.symbol(), newHash);
+            //currentBB.varMap.put(node.symbol(), new Symbol(node.symbol().name() + "_-1", node.symbol().type().toString(), "var"));
         }
         // Local var
         else{ 
-            currentBB.varMap.put(node.symbol(), new Symbol(node.symbol().name() + "_-2", node.symbol().type().toString(), "var"));
+            HashSet<Symbol> newHash = new HashSet<Symbol>();
+            newHash.add(new Symbol(node.symbol().name() + "_-2", node.symbol().type().toString(), "var"));
+            currentBB.varMap.put(node.symbol(), newHash);
         }
         node.symbol().accept(this);
     }
@@ -655,10 +743,7 @@ public class SSA implements NodeVisitor{
         BasicBlockList.add(currentBB);*/
 
         //System.out.println(node.function().par)
-        System.out.println(node.name());
-        for(Symbol k : currentBB.varMap.keySet()){
-            System.out.println(currentBB.varMap.get(k));
-        }
+        //System.out.println(node.name());
         for (BasicBlock BB : BasicBlockList){
             if(BB.name().equals(node.name())){
                 BB.addMap(currentBB.varMap);
@@ -688,7 +773,7 @@ public class SSA implements NodeVisitor{
 
     @Override
     public void visit(Computation node) {
-        BasicBlock mainBB = new BasicBlock(BBNumber, new HashMap<Symbol, Symbol>(), "main");
+        BasicBlock mainBB = new BasicBlock(BBNumber, new HashMap<Symbol, HashSet<Symbol>>(), "main");
         BBNumber++;
         BasicBlockList.add(mainBB);
         currentBB = mainBB;

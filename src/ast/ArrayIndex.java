@@ -7,6 +7,7 @@ import SSA.Operand;
 import pl434.Symbol;
 import types.Type;
 import java.util.HashMap;
+import java.util.HashSet;
 import pl434.Symbol;
 
 public class ArrayIndex extends Node implements Expression {
@@ -76,7 +77,7 @@ public class ArrayIndex extends Node implements Expression {
     }
 
     @Override
-    public Operand getOperand(HashMap<Symbol, Symbol> varMap) {
+    public Operand getOperand(HashMap<Symbol, HashSet<Symbol>>  varMap) {
         return insNumber;
     }
 

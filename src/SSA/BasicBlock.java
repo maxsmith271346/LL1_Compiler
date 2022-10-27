@@ -2,6 +2,8 @@ package SSA;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 
 import pl434.Symbol;
@@ -11,7 +13,7 @@ public class BasicBlock implements Operand {
     private String BBName;
     public List<Transitions> transitionList;    // Contains all the 'children' of the Basic Block
     public int BBNumber = 0;                    // Keeps a running count of the number of Basic Blocks (used for identifying the BBs)
-    public HashMap<Symbol, Symbol> varMap;      // Contains a map for each symbol where the value is a new symbol with subscript
+    public HashMap<Symbol, HashSet<Symbol>> varMap;      // Contains a map for each symbol where the value is a new symbol with subscript
     public static int insNumber = 0;            // Contains a running count of the instruction number
 
     // This class is used to represent the children of a BB and their "relationship" to the parent BB (call, else, if, etc)
@@ -25,20 +27,23 @@ public class BasicBlock implements Operand {
         }
     }
 
-    public BasicBlock(int BBNumber, HashMap<Symbol, Symbol> varMap){
+    public BasicBlock(int BBNumber, HashMap<Symbol, HashSet<Symbol>> varMap){
         IntermediateInstructionList = new ArrayList<IntermediateInstruction>();
         transitionList = new ArrayList<Transitions>();
         this.BBNumber = BBNumber;
-        this.varMap = new HashMap<Symbol, Symbol>();
+        this.varMap = new HashMap<Symbol, HashSet<Symbol>>();
         for (Symbol key : varMap.keySet()){
-            if (!varMap.get(key).name().contains("-2")){
-                this.varMap.put(key, varMap.get(key));
+            HashSet<Symbol> varSet = new HashSet<Symbol>(varMap.get(key));
+            for (Symbol s : varSet){
+                if (s.name().contains("-2")){
+                    varSet.remove(s);
+                }
             }
         }
         this.BBName = "";
     }
 
-    public BasicBlock(int BBNumber, HashMap<Symbol, Symbol> varMap, String name){
+    public BasicBlock(int BBNumber, HashMap<Symbol, HashSet<Symbol>> varMap, String name){
         this(BBNumber, varMap);
         this.BBName = name;
     }
@@ -47,11 +52,13 @@ public class BasicBlock implements Operand {
         this.BBName = name;
     }
 
-    public void addMap(HashMap<Symbol, Symbol> varMap){
+    public void addMap(HashMap<Symbol, HashSet<Symbol>> varMap){
         for (Symbol key : varMap.keySet()){
-            if (!varMap.get(key).name().contains("-2")){
-                System.out.println("putting " + key + " " + varMap.get(key));
-                this.varMap.put(key, varMap.get(key));
+            HashSet<Symbol> varSet = new HashSet<Symbol>(varMap.get(key));
+            for (Symbol s : varSet){
+                if (s.name().contains("-2")){
+                    varSet.remove(s);
+                }
             }
         }
     }
@@ -80,6 +87,10 @@ public class BasicBlock implements Operand {
             return BBName;
         }
         return "";
+    }
+
+    public void putName(String name){
+        this.BBName = name;
     }
 
     @Override 

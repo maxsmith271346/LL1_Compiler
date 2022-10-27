@@ -4,6 +4,7 @@ import SSA.Operand;
 import types.*;
 import java.util.HashMap;
 import pl434.Symbol;
+import java.util.HashSet;
 
 public class BoolLiteral extends Node implements Expression, Operand{
     private String value; 
@@ -29,7 +30,7 @@ public class BoolLiteral extends Node implements Expression, Operand{
     }
 
     @Override
-    public Operand getOperand(HashMap<Symbol, Symbol> varMap) {
+    public Operand getOperand(HashMap<Symbol, HashSet<Symbol>>  varMap) {
         return this;
     }
 

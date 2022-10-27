@@ -4,6 +4,7 @@ import ast.*;
 import types.*;
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import SSA.BasicBlock;
@@ -187,14 +188,16 @@ public class Symbol implements Expression, Operand {
     }
 
     @Override
-    public Operand getOperand(HashMap<Symbol, Symbol> varMap) {
+    public Operand getOperand(HashMap<Symbol, HashSet<Symbol>> varMap) {
         if (varMap != null){
             if (varMap.containsKey(this)){
-                return varMap.get(this);
+                return varMap.get(this).iterator().next();
            }
            else{ 
-                varMap.put(this, new Symbol(this.name + "_-3" , this.returnType.toString(), this.symbolType));
-                return varMap.get(this);
+                HashSet<Symbol> newHash = new HashSet<Symbol>();
+                newHash.add(new Symbol(this.name + "_-3" , this.returnType.toString(), this.symbolType));
+                varMap.put(this, newHash);
+                return varMap.get(this).iterator().next();
            }
         }
         return this;
