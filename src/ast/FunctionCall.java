@@ -63,7 +63,7 @@ public class FunctionCall extends Node implements Statement, Expression{
     }
 
     @Override
-    public Operand getOperand(HashMap<Symbol, Symbol> varMa) {
+    public Operand getOperand(HashMap<Symbol, Symbol> varMap) {
         return insNumber;
     }
 

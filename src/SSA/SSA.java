@@ -39,29 +39,52 @@ public class SSA implements NodeVisitor{
         return null;
     }
 
+
+    /**
+     * Removes the empty Basic Blocks from the SSA
+     * 
+     * @return void
+    */
     public void pruneEmpty(){
         List<BasicBlock> toRemove = new ArrayList<BasicBlock>();
         List<Transitions> transitionsToRemove; 
+
+        // Iterate through all of the BasicBlocks
         for (BasicBlock BB1 : BasicBlockList){
+
+            // Check if the Basic Block is empty
             if (BB1.size() == 0){
-                //System.out.println("empty block "  + BB1.BBNumber);
+                System.out.println("empty " + BB1);
+                // If it is, then look for the Basic Blocks that point to it
+                // Iterate through all the basic blocks again
                 for (BasicBlock BB2 : BasicBlockList){
                     transitionsToRemove = new ArrayList<Transitions>();
+
+                    // Iterate through each of the transitions and check if they point to the empty basic block
                     for (Transitions t : BB2.transitionList){
                         if (t.toBB.BBNumber == BB1.BBNumber){
-                            //System.out.println("from BB " + t.fromBB);
+                            // Update the transition with the BB that the empty block points to
                             if (BB1.transitionList.size() != 0 ){
                                 t.toBB = BB1.transitionList.get(0).toBB;
-
-                                // need to update the branch instructions - isn't updating by reference 
-                                if (BB2.getIntInsList().size() != 0){
-                                    if (BB2.getIntInsList().get(BB2.getIntInsList().size() - 1).isBranch()){
-                                        BB2.getIntInsList().get(BB2.getIntInsList().size() - 1).updateBranchIns(BB1.transitionList.get(0).toBB);
-                                    }
-                                }
                             }
+                            // If the empty block doesn't point to anything, then just remove the transition
                             else if (BB1.transitionList.size() == 0){
                                 transitionsToRemove.add(t);
+                                System.out.println(BB2);
+                                System.out.println(t.toBB + " + " + t.label);
+                            }
+
+                            // need to update the branch instructions - isn't updating by reference 
+                            if (BB2.getIntInsList().size() != 0){
+                                if (BB2.getIntInsList().get(BB2.getIntInsList().size() - 1).isBranch()){
+                                    if (BB2.getIntInsList().size() >= 2 && BB2.getIntInsList().get(BB2.getIntInsList().size() - 2).getOperator().equals(SSAOperator.RET)){
+                                        BB2.getIntInsList().remove(BB2.getIntInsList().size() - 1);
+                                    }
+                                    else{
+                                        BB2.getIntInsList().get(BB2.getIntInsList().size() - 1).updateBranchIns(BB1.transitionList.get(0).toBB);
+
+                                    }
+                                }
                             }
                         }
                     }
@@ -72,7 +95,7 @@ public class SSA implements NodeVisitor{
                 toRemove.add(BB1);
             }
         }
-        // remove & rename:
+        // remove & rename the empty basic blocks
         for (BasicBlock BB : toRemove){
             BasicBlockList.remove(BB);
             for (BasicBlock BB1 : BasicBlockList){
@@ -108,10 +131,17 @@ public class SSA implements NodeVisitor{
         
     }
 
+
+    /**
+     * generates the instructions for accessing the indices of multi & single dimensional arrays
+     * 
+     * @param node of the AST for this array
+    */
     @Override
     public void visit(ArrayIndex node) {
         int mulInsNum = 0;
         int addInsNum = 0;
+        // First: the case where there is only one index for the array
         if (node.dimList().size() == 1){
             node.indices().get(0).accept(this);
             mulInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.MUL, node.indices().get(0).getOperand(currentBB.varMap), new IntegerLiteral(0, 0, "4"), BasicBlock.insNumber));
@@ -147,12 +177,6 @@ public class SSA implements NodeVisitor{
             addInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.ADD, new GDB(), node.arrayIdent(), BasicBlock.insNumber));
             node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.ADDA, new InstructionNumber(addInsNum), new InstructionNumber(mulInsNum), BasicBlock.insNumber)));
         }
-        /*for (Expression e : node.indices()){
-            e.accept(this);
-            mulInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.MUL, e.getOperand(currentBB.varMap), new IntegerLiteral(0, 0, "4"), BasicBlock.insNumber));
-            addInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.ADD, new GDB(), node.arrayIdent(), BasicBlock.insNumber));
-            node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.ADDA, new InstructionNumber(addInsNum), new InstructionNumber(mulInsNum), BasicBlock.insNumber)));
-        }*/
     }
 
     @Override
@@ -302,7 +326,7 @@ public class SSA implements NodeVisitor{
              // put new subscript in
             Symbol lhs =  new Symbol(((Symbol) node.lhsDesignator()).name() + "_" + BasicBlock.insNumber, ((Symbol) node.lhsDesignator()).getType().toString(), "var");
             currentBB.varMap.put((Symbol) node.lhsDesignator(), lhs);   
-            currentBB.add(new IntermediateInstruction(SSAOperator.MOVE, node.rhsExpr().getOperand(currentBB.varMap), lhs.getOperand(currentBB.varMap), BasicBlock.insNumber));
+            currentBB.add(new IntermediateInstruction(SSAOperator.MOVE, node.rhsExpr().getOperand(currentBB.varMap), lhs, BasicBlock.insNumber));
 
         }
         else{
@@ -564,6 +588,7 @@ public class SSA implements NodeVisitor{
 
         currentBB = mainBB;
         node.mainStatementSequence().accept(this);
+        currentBB.add(new IntermediateInstruction(SSAOperator.END, null, null, BasicBlock.insNumber));
     }
 
     @Override

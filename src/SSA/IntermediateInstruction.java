@@ -5,6 +5,8 @@ import java.util.List;
 import pl434.Symbol;
 
 public class IntermediateInstruction {
+
+    // Possible Operators for the TACs
     public enum SSAOperator {
         NEG("NEG"),
         ADD("ADD"),
@@ -64,7 +66,7 @@ public class IntermediateInstruction {
     private Operand operand_one; 
     private Operand operand_two; 
     private int insNum;
-    private List<Operand> extraOperands;
+    private List<Operand> extraOperands; // In the case of function calls there can be more than two operands, so this will keep track of the extras
 
     public IntermediateInstruction(SSAOperator operator, Operand operand_one, Operand operand_two, int insNum){
         this.operator = operator; 
@@ -75,14 +77,15 @@ public class IntermediateInstruction {
 
     @Override
     public String toString(){
-        if (operand_one == null){
-            return operator + " " + operand_two.toString() + " ";
-        }
-        if (operand_two == null){
-            return operator + " " + operand_one.toString() + " ";
-        }
+        // The operands can be null (sometimes there are less than 2 operands)
         if (operand_two == null && operand_one == null){ 
             return operator + " " ;
+        }
+        else if (operand_one == null){
+            return operator + " " + operand_two.toString() + " ";
+        }
+        else if (operand_two == null){
+            return operator + " " + operand_one.toString() + " ";
         }
 
         if (extraOperands == null){
@@ -106,6 +109,8 @@ public class IntermediateInstruction {
     public SSAOperator getOperator(){
         return operator;
     }
+
+    // These branch-related methods are used in the pruning portion of the SSA construction to "repair" any branch instructions 
     public void updateBranchIns(BasicBlock BB){
         if (operand_two == null){
             operand_one = BB;
@@ -122,6 +127,8 @@ public class IntermediateInstruction {
         return false;
     }
 
+    // This wll get the function name from a "call" instruction
+    // Complicated because the function name is at the end of the TAC 
     public String getFuncName(){
         if (extraOperands == null){
             if (operand_two == null){
