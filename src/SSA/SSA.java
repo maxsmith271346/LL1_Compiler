@@ -52,7 +52,8 @@ public class SSA implements NodeVisitor{
     public SSA(AST ast){
         BasicBlockList = new HashSet<BasicBlock>();
         visit(ast.computation);
-        //pruneEmpty();
+        pruneEmpty();
+        insertPhi();
         //System.out.println(getDominanceFrontier(rootBB));
     }
     /**
@@ -62,6 +63,17 @@ public class SSA implements NodeVisitor{
      * @param root root node of control flow graph
      * @return dominance frontier as mapping from basic block to set of basic blocks
      */
+
+    public void insertPhi() {
+        HashMap<BasicBlock, HashSet<BasicBlock>> dfMap = getDominanceFrontier(rootBB);
+        // 
+        for (BasicBlock bb : BasicBlockList) {
+            HashSet<BasicBlock> df = dfMap.get(bb);
+            for (BasicBlock j : df) {
+                j.addFront(new IntermediateInstruction(SSAOperator.PHI, null, null, -1));
+            }
+        }
+    }
 
     public HashSet<BasicBlock> getChildren(BasicBlock x) {
         HashSet<BasicBlock> children = new HashSet<BasicBlock>();
@@ -90,8 +102,6 @@ public class SSA implements NodeVisitor{
 
             dfMap.put(bb, df);
         }
-
-        
 
         return dfMap;
     }

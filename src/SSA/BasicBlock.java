@@ -73,6 +73,10 @@ public class BasicBlock implements Operand {
         this.IntermediateInstructionList.add(intIns);
         return insNumber++;
     }
+    
+    public void addFront(IntermediateInstruction intIns) {
+        this.IntermediateInstructionList.add(0, intIns);
+    }
 
     public List<IntermediateInstruction> getIntInsList(){
         return IntermediateInstructionList;
