@@ -629,6 +629,14 @@ public class SSA implements NodeVisitor{
 
     @Override
     public void visit(VariableDeclaration node) {
+        // Global var
+        if (currentBB.name().equals("main")){
+            currentBB.varMap.put(node.symbol(), new Symbol(node.symbol().name() + "_-1", node.symbol().type().toString(), "var"));
+        }
+        // Local var
+        else{ 
+            currentBB.varMap.put(node.symbol(), new Symbol(node.symbol().name() + "_-2", node.symbol().type().toString(), "var"));
+        }
         node.symbol().accept(this);
     }
 
@@ -646,8 +654,14 @@ public class SSA implements NodeVisitor{
         BBNumber++;
         BasicBlockList.add(currentBB);*/
 
+        //System.out.println(node.function().par)
+        System.out.println(node.name());
+        for(Symbol k : currentBB.varMap.keySet()){
+            System.out.println(currentBB.varMap.get(k));
+        }
         for (BasicBlock BB : BasicBlockList){
             if(BB.name().equals(node.name())){
+                BB.addMap(currentBB.varMap);
                 currentBB = BB;
                 break;
             }
@@ -661,7 +675,7 @@ public class SSA implements NodeVisitor{
 
         for (Declaration d : node.decList) {
             if (d instanceof FunctionDeclaration){
-                currentBB = new BasicBlock(BBNumber, new HashMap<Symbol, Symbol>(), ((FunctionDeclaration) d).name());
+                currentBB = new BasicBlock(BBNumber, currentBB.varMap, ((FunctionDeclaration) d).name());
                 BBNumber++;
                 BasicBlockList.add(currentBB);
             }
@@ -677,6 +691,7 @@ public class SSA implements NodeVisitor{
         BasicBlock mainBB = new BasicBlock(BBNumber, new HashMap<Symbol, Symbol>(), "main");
         BBNumber++;
         BasicBlockList.add(mainBB);
+        currentBB = mainBB;
         node.variables().accept(this);
         node.functions().accept(this);
 

@@ -31,7 +31,9 @@ public class BasicBlock implements Operand {
         this.BBNumber = BBNumber;
         this.varMap = new HashMap<Symbol, Symbol>();
         for (Symbol key : varMap.keySet()){
-            this.varMap.put(key, varMap.get(key));
+            if (!varMap.get(key).name().contains("-2")){
+                this.varMap.put(key, varMap.get(key));
+            }
         }
         this.BBName = "";
     }
@@ -43,6 +45,15 @@ public class BasicBlock implements Operand {
 
     public void addBasicBlockName(String name){
         this.BBName = name;
+    }
+
+    public void addMap(HashMap<Symbol, Symbol> varMap){
+        for (Symbol key : varMap.keySet()){
+            if (!varMap.get(key).name().contains("-2")){
+                System.out.println("putting " + key + " " + varMap.get(key));
+                this.varMap.put(key, varMap.get(key));
+            }
+        }
     }
     
     /**

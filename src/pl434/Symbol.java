@@ -193,7 +193,7 @@ public class Symbol implements Expression, Operand {
                 return varMap.get(this);
            }
            else{ 
-                varMap.put(this, new Symbol(this.name + "_-1" , this.returnType.toString(), this.symbolType));
+                varMap.put(this, new Symbol(this.name + "_-3" , this.returnType.toString(), this.symbolType));
                 return varMap.get(this);
            }
         }
