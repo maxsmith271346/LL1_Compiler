@@ -25,7 +25,7 @@ public class SSA implements NodeVisitor{
         BasicBlockList = new HashSet<BasicBlock>();
         visit(ast.computation);
         pruneEmpty();
-        System.out.println(getDominanceFrontier(rootBB));
+        //System.out.println(getDominanceFrontier(rootBB));
     }
     /**
      * Get the dominance frontier of a control flow graph
@@ -145,8 +145,6 @@ public class SSA implements NodeVisitor{
                             // If the empty block doesn't point to anything, then just remove the transition
                             else if (BB1.transitionList.size() == 0){
                                 transitionsToRemove.add(t);
-                                System.out.println(BB2);
-                                System.out.println(t.toBB + " + " + t.label);
                             }
 
                             // need to update the branch instructions - isn't updating by reference 
@@ -427,6 +425,8 @@ public class SSA implements NodeVisitor{
         node.argList.accept(this);
         // need to check if predefined function call
         Symbol function = node.getFunctionFromType();
+
+        System.out.println("function " + function.name() + " param type " + function.getParamTypes());
         Boolean paramsNotEqual = false;
         Symbol preFuncMatch = null; 
         for(Symbol prefunc : node.predefinedFunctions){
@@ -435,10 +435,13 @@ public class SSA implements NodeVisitor{
                     // if they are, iterate through and check that they are the same 
                     for (int i = 0; i < function.getParamTypes().size(); i++){
                        if (!function.getParamTypes().get(i).toString().equals(prefunc.getParamTypes().get(i).toString())){
-                        paramsNotEqual = true;
-                        break;
+                            paramsNotEqual = true;
+                            break;
                         }
                     }
+                }
+                else{ 
+                    paramsNotEqual = true;
                 }
                 if (!paramsNotEqual){
                     preFuncMatch = prefunc; 
@@ -533,8 +536,8 @@ public class SSA implements NodeVisitor{
         else if(node.relOp().equals(">=")){op = SSAOperator.BLT;}
         else if(node.relOp().equals("<")){op = SSAOperator.BGE;}
         else if(node.relOp().equals("<=")){op = SSAOperator.BGT;}
-        else if (node.relOp().equals("==")){op = SSAOperator.BEQ;}
-        else {op = SSAOperator.BNE;}
+        else if (node.relOp().equals("==")){op = SSAOperator.BNE;}
+        else {op = SSAOperator.BEQ;}
 
         return op;
     }
@@ -594,7 +597,7 @@ public class SSA implements NodeVisitor{
         currentBB.transitionList.add(currentBB.new Transitions(conditionBB, ""));
 
         currentBB = conditionBB;
-        currentBB.transitionList.add(currentBB.new Transitions(repeatBB, "then"));
+        currentBB.transitionList.add(currentBB.new Transitions(repeatBB, "else"));
 
         node.condition().accept(this);
 
@@ -602,7 +605,7 @@ public class SSA implements NodeVisitor{
             currentBB.add(new IntermediateInstruction(getBranchOperator((Relation) node.condition()), node.condition().getOperand(currentBB.varMap), repeatBB, BasicBlock.insNumber));
         }
     
-        currentBB.transitionList.add(currentBB.new Transitions(elseBB, "else"));
+        currentBB.transitionList.add(currentBB.new Transitions(elseBB, "then"));
 
         currentBB = elseBB;
 
