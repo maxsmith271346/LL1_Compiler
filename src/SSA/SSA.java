@@ -26,6 +26,7 @@ public class SSA implements NodeVisitor{
         visit(ast.computation);
         pruneEmpty();
         insertPhi();
+        //System.out.println(getDominanceFrontier(rootBB));
     }
     /**
      * Get the dominance frontier of a control flow graph
@@ -123,27 +124,50 @@ public class SSA implements NodeVisitor{
         return DominatorSet;
     }
 
+
+    /**
+     * Removes the empty Basic Blocks from the SSA
+     * 
+     * @return void
+    */
     public void pruneEmpty(){
         List<BasicBlock> toRemove = new ArrayList<BasicBlock>();
         List<Transitions> transitionsToRemove; 
+
+        // Iterate through all of the BasicBlocks
         for (BasicBlock BB1 : BasicBlockList){
+
+            // Check if the Basic Block is empty
             if (BB1.size() == 0){
-                //System.out.println("empty block "  + BB1.BBNumber);
+                //System.out.println("empty " + BB1);
+                // If it is, then look for the Basic Blocks that point to it
+                // Iterate through all the basic blocks again
                 for (BasicBlock BB2 : BasicBlockList){
                     transitionsToRemove = new ArrayList<Transitions>();
+
+                    // Iterate through each of the transitions and check if they point to the empty basic block
                     for (Transitions t : BB2.transitionList){
                         if (t.toBB.BBNumber == BB1.BBNumber){
-                            //System.out.println("from BB " + t.fromBB);
+                            // Update the transition with the BB that the empty block points to
                             if (BB1.transitionList.size() != 0 ){
                                 t.toBB = BB1.transitionList.get(0).toBB;
-
-                                // need to update the branch instructions - isn't updating by reference 
-                                if (BB2.getIntInsList().get(BB2.getIntInsList().size() - 1).isBranch()){
-                                    BB2.getIntInsList().get(BB2.getIntInsList().size() - 1).updateBranchIns(BB1.transitionList.get(0).toBB);
-                                }
                             }
+                            // If the empty block doesn't point to anything, then just remove the transition
                             else if (BB1.transitionList.size() == 0){
                                 transitionsToRemove.add(t);
+                            }
+
+                            // need to update the branch instructions - isn't updating by reference 
+                            if (BB2.getIntInsList().size() != 0 ){
+                                if (BB2.getIntInsList().get(BB2.getIntInsList().size() - 1).isBranch()){
+                                    if (BB2.getIntInsList().size() >= 2 && BB2.getIntInsList().get(BB2.getIntInsList().size() - 2).getOperator().equals(SSAOperator.RET)){
+                                        BB2.getIntInsList().remove(BB2.getIntInsList().size() - 1);
+                                    }
+                                    else{
+                                        BB2.getIntInsList().get(BB2.getIntInsList().size() - 1).updateBranchIns(BB1.transitionList.get(0).toBB);
+
+                                    }
+                                }
                             }
                         }
                     }
@@ -154,7 +178,7 @@ public class SSA implements NodeVisitor{
                 toRemove.add(BB1);
             }
         }
-        // remove & rename:
+        // remove & rename the empty basic blocks
         for (BasicBlock BB : toRemove){
             BasicBlockList.remove(BB);
             for (BasicBlock BB1 : BasicBlockList){
@@ -190,10 +214,17 @@ public class SSA implements NodeVisitor{
         
     }
 
+
+    /**
+     * generates the instructions for accessing the indices of multi & single dimensional arrays
+     * 
+     * @param node of the AST for this array
+    */
     @Override
     public void visit(ArrayIndex node) {
         int mulInsNum = 0;
         int addInsNum = 0;
+        // First: the case where there is only one index for the array
         if (node.dimList().size() == 1){
             node.indices().get(0).accept(this);
             mulInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.MUL, node.indices().get(0).getOperand(currentBB.varMap), new IntegerLiteral(0, 0, "4"), BasicBlock.insNumber));
@@ -229,12 +260,6 @@ public class SSA implements NodeVisitor{
             addInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.ADD, new GDB(), node.arrayIdent(), BasicBlock.insNumber));
             node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.ADDA, new InstructionNumber(addInsNum), new InstructionNumber(mulInsNum), BasicBlock.insNumber)));
         }
-        /*for (Expression e : node.indices()){
-            e.accept(this);
-            mulInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.MUL, e.getOperand(currentBB.varMap), new IntegerLiteral(0, 0, "4"), BasicBlock.insNumber));
-            addInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.ADD, new GDB(), node.arrayIdent(), BasicBlock.insNumber));
-            node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.ADDA, new InstructionNumber(addInsNum), new InstructionNumber(mulInsNum), BasicBlock.insNumber)));
-        }*/
     }
 
     @Override
@@ -384,7 +409,7 @@ public class SSA implements NodeVisitor{
              // put new subscript in
             Symbol lhs =  new Symbol(((Symbol) node.lhsDesignator()).name() + "_" + BasicBlock.insNumber, ((Symbol) node.lhsDesignator()).getType().toString(), "var");
             currentBB.varMap.put((Symbol) node.lhsDesignator(), lhs);   
-            currentBB.add(new IntermediateInstruction(SSAOperator.MOVE, node.rhsExpr().getOperand(currentBB.varMap), lhs.getOperand(currentBB.varMap), BasicBlock.insNumber));
+            currentBB.add(new IntermediateInstruction(SSAOperator.MOVE, node.rhsExpr().getOperand(currentBB.varMap), lhs, BasicBlock.insNumber));
 
         }
         else{
@@ -410,6 +435,8 @@ public class SSA implements NodeVisitor{
         node.argList.accept(this);
         // need to check if predefined function call
         Symbol function = node.getFunctionFromType();
+
+        System.out.println("function " + function.name() + " param type " + function.getParamTypes());
         Boolean paramsNotEqual = false;
         Symbol preFuncMatch = null; 
         for(Symbol prefunc : node.predefinedFunctions){
@@ -418,10 +445,13 @@ public class SSA implements NodeVisitor{
                     // if they are, iterate through and check that they are the same 
                     for (int i = 0; i < function.getParamTypes().size(); i++){
                        if (!function.getParamTypes().get(i).toString().equals(prefunc.getParamTypes().get(i).toString())){
-                        paramsNotEqual = true;
-                        break;
+                            paramsNotEqual = true;
+                            break;
                         }
                     }
+                }
+                else{ 
+                    paramsNotEqual = true;
                 }
                 if (!paramsNotEqual){
                     preFuncMatch = prefunc; 
@@ -516,8 +546,8 @@ public class SSA implements NodeVisitor{
         else if(node.relOp().equals(">=")){op = SSAOperator.BLT;}
         else if(node.relOp().equals("<")){op = SSAOperator.BGE;}
         else if(node.relOp().equals("<=")){op = SSAOperator.BGT;}
-        else if (node.relOp().equals("==")){op = SSAOperator.BEQ;}
-        else {op = SSAOperator.BNE;}
+        else if (node.relOp().equals("==")){op = SSAOperator.BNE;}
+        else {op = SSAOperator.BEQ;}
 
         return op;
     }
@@ -577,7 +607,7 @@ public class SSA implements NodeVisitor{
         currentBB.transitionList.add(currentBB.new Transitions(conditionBB, ""));
 
         currentBB = conditionBB;
-        currentBB.transitionList.add(currentBB.new Transitions(repeatBB, "then"));
+        currentBB.transitionList.add(currentBB.new Transitions(repeatBB, "else"));
 
         node.condition().accept(this);
 
@@ -585,7 +615,7 @@ public class SSA implements NodeVisitor{
             currentBB.add(new IntermediateInstruction(getBranchOperator((Relation) node.condition()), node.condition().getOperand(currentBB.varMap), repeatBB, BasicBlock.insNumber));
         }
     
-        currentBB.transitionList.add(currentBB.new Transitions(elseBB, "else"));
+        currentBB.transitionList.add(currentBB.new Transitions(elseBB, "then"));
 
         currentBB = elseBB;
 
@@ -609,6 +639,14 @@ public class SSA implements NodeVisitor{
 
     @Override
     public void visit(VariableDeclaration node) {
+        // Global var
+        if (currentBB.name().equals("main")){
+            currentBB.varMap.put(node.symbol(), new Symbol(node.symbol().name() + "_-1", node.symbol().type().toString(), "var"));
+        }
+        // Local var
+        else{ 
+            currentBB.varMap.put(node.symbol(), new Symbol(node.symbol().name() + "_-2", node.symbol().type().toString(), "var"));
+        }
         node.symbol().accept(this);
     }
 
@@ -620,15 +658,39 @@ public class SSA implements NodeVisitor{
 
     @Override
     public void visit(FunctionDeclaration node) {
-        currentBB = new BasicBlock(BBNumber, new HashMap<Symbol, Symbol>(), node.name());
+        //System.out.println(node.name()); 
+        //System.out.println(BBNumber);
+        /*currentBB = new BasicBlock(BBNumber, new HashMap<Symbol, Symbol>(), node.name());
         BBNumber++;
-        BasicBlockList.add(currentBB);
+        BasicBlockList.add(currentBB);*/
+
+        //System.out.println(node.function().par)
+        System.out.println(node.name());
+        for(Symbol k : currentBB.varMap.keySet()){
+            System.out.println(currentBB.varMap.get(k));
+        }
+        for (BasicBlock BB : BasicBlockList){
+            if(BB.name().equals(node.name())){
+                BB.addMap(currentBB.varMap);
+                currentBB = BB;
+                break;
+            }
+        }
         node.body().accept(this);    
     }
 
     @Override
     public void visit(DeclarationList node) {
         if (node.empty()) return;
+
+        for (Declaration d : node.decList) {
+            if (d instanceof FunctionDeclaration){
+                currentBB = new BasicBlock(BBNumber, currentBB.varMap, ((FunctionDeclaration) d).name());
+                BBNumber++;
+                BasicBlockList.add(currentBB);
+            }
+        }
+
         for (Declaration d : node.decList) {
             d.accept(this);
         }        
@@ -639,12 +701,14 @@ public class SSA implements NodeVisitor{
         BasicBlock mainBB = new BasicBlock(BBNumber, new HashMap<Symbol, Symbol>(), "main");
         BBNumber++;
         BasicBlockList.add(mainBB);
+        currentBB = mainBB;
         node.variables().accept(this);
         node.functions().accept(this);
 
         currentBB = mainBB;
         rootBB = mainBB;
         node.mainStatementSequence().accept(this);
+        currentBB.add(new IntermediateInstruction(SSAOperator.END, null, null, BasicBlock.insNumber));
     }
 
     @Override

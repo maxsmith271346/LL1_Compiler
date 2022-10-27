@@ -6,6 +6,7 @@ import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.List;
 
+import SSA.BasicBlock;
 import SSA.Operand;
 
 public class Symbol implements Expression, Operand {
@@ -189,9 +190,11 @@ public class Symbol implements Expression, Operand {
     public Operand getOperand(HashMap<Symbol, Symbol> varMap) {
         if (varMap != null){
             if (varMap.containsKey(this)){
-                //System.out.println("before " + this.name);
                 return varMap.get(this);
-                //System.out.println("after " + this.name);
+           }
+           else{ 
+                varMap.put(this, new Symbol(this.name + "_-3" , this.returnType.toString(), this.symbolType));
+                return varMap.get(this);
            }
         }
         return this;

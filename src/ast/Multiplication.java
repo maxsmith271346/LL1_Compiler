@@ -41,7 +41,7 @@ public class Multiplication extends Node implements Expression {
     }
 
     @Override
-    public Operand getOperand(HashMap<Symbol, Symbol> varMa) {
+    public Operand getOperand(HashMap<Symbol, Symbol> varMap) {
         return insNumber;
     }
 

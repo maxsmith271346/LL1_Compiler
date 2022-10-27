@@ -21,9 +21,13 @@ public class IRVisualizer {
 
     public String generateDotGraph(){
         dotGraph.append("digraph G { \n");
+
+        // Iterate through the BasicBlock List
         for (BasicBlock BB : ssa.getBasicBlockList()){
+            
             enterBasicBlock(BB);
             for (IntermediateInstruction intIns: BB.getIntInsList()){
+                // "Call" instructions need a "tag"
                 if (intIns.getOperator().equals(SSAOperator.CALL)){
                     dotGraph.append("<c" + intIns.getFuncName() + intIns.insNum() +  ">");
                 }
@@ -32,6 +36,7 @@ public class IRVisualizer {
             }
             exitBasicBlock();
 
+            // Iterate through the transitions for each basic block 
             for (Transitions transition : BB.transitionList){
                 addTransition(transition, BB);
             }
@@ -45,7 +50,7 @@ public class IRVisualizer {
     public void enterBasicBlock(BasicBlock BB){
         String BBLabel = "BB" + BB.BBNumber + "|{";
         if (!BB.name().equals("")){
-            BBLabel = BB.name() + "\\nBB1|{";
+            BBLabel = BB.name() + "\\nBB" + BB.BBNumber + "|{";
         }
         dotGraph.append("BB" + BB.BBNumber + "[shape=record, label=\"<b>" + BBLabel); 
     }

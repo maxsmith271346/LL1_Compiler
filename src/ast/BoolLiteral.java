@@ -29,7 +29,7 @@ public class BoolLiteral extends Node implements Expression, Operand{
     }
 
     @Override
-    public Operand getOperand(HashMap<Symbol, Symbol> varMa) {
+    public Operand getOperand(HashMap<Symbol, Symbol> varMap) {
         return this;
     }
 
