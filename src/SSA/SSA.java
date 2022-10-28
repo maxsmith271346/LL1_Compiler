@@ -4,8 +4,10 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.LinkedList;
 import java.util.List;
 import java.util.Map;
+import java.util.Queue;
 import java.util.Set;
 import java.util.Stack;
 
@@ -24,9 +26,7 @@ public class SSA implements NodeVisitor{
     public SSA(AST ast){
         BasicBlockList = new HashSet<BasicBlock>();
         visit(ast.computation);
-        pruneEmpty();
-        insertPhi();
-        //System.out.println(getDominanceFrontier(rootBB));
+        insertPhi(rootBB);        
     }
     /**
      * Get the dominance frontier of a control flow graph
@@ -36,17 +36,81 @@ public class SSA implements NodeVisitor{
      * @return dominance frontier as mapping from basic block to set of basic blocks
      */
 
-    public void insertPhi() {
+    public void insertPhi(BasicBlock root) {
         HashMap<BasicBlock, HashSet<BasicBlock>> dfMap = getDominanceFrontier(rootBB);
-        // 
+        HashMap<BasicBlock, Boolean> discovered = new HashMap<BasicBlock, Boolean>();
+        
+        System.out.println(dfMap);
+
+
         for (BasicBlock bb : BasicBlockList) {
-            HashSet<BasicBlock> df = dfMap.get(bb);
-            for (BasicBlock j : df) {
-                j.addFront(new IntermediateInstruction(SSAOperator.PHI, null, null, -1));
+            discovered.put(bb, false);
+        }
+
+        Queue<BasicBlock> q = new LinkedList<>();
+        q.add(root);
+        discovered.put(root, true);
+
+        BasicBlock v;
+        HashSet<BasicBlock> df;
+        // List<Symbol> phiOperands;
+        while (!q.isEmpty()) {
+            v = q.remove();
+            df = dfMap.get(v);
+            for (Symbol s : v.definedVars) {
+                for (BasicBlock bb : df) {
+                    if (bb.phiOperands.get(s) == null) {
+                        bb.phiOperands.put(s, new HashSet<Operand>());
+                    }
+                    if (bb.size() == 0) {
+                        bb.propagatePhis = true;
+                        bb.definedVars.add(s);
+                    }
+                    if (bb.transitionList.size() != 0 && bb.propagatePhis) {
+                        // System.out.println(BB1 + " " + BB1.phiOperands);
+                        if (bb.transitionList.get(0).toBB.phiOperands.get(s) != null) {
+                            bb.transitionList.get(0).toBB.phiOperands.get(s).add(v.varMap.get(s));
+                            System.out.println(v.varMap.get(s));
+                        }
+                    }
+                    // bb.addFront(new IntermediateInstruction(SSAOperator.PHI, bb.varMap.get(s), v.varMap.get(s), BasicBlock.insNumber++));
+                
+                    bb.phiOperands.get(s).add(v.varMap.get(s));
+                }
+            }
+
+            for (BasicBlock bb : getChildren(v)) {
+                if (!discovered.get(bb)) {
+                    q.add(bb);
+                    discovered.put(bb, true);
+                }
             }
         }
+
+        // insert phis
+        // pruneEmpty();
+        
+        for (BasicBlock bb : BasicBlockList) {
+            BasicBlock.insNumber += bb.phiOperands.size()-1;
+            for (Symbol s : bb.phiOperands.keySet()) {
+                ArrayList<Operand> phiOpnds = new ArrayList<Operand>(bb.phiOperands.get(s));
+                if (phiOpnds.size() == 1) {
+                    bb.addFront(new IntermediateInstruction(SSAOperator.PHI, bb.varMap.get(s), phiOpnds.get(0), BasicBlock.insNumber--));
+                }
+                else if (phiOpnds.size() == 2) {
+                    bb.addFront(new IntermediateInstruction(SSAOperator.PHI, phiOpnds.get(0), phiOpnds.get(1), BasicBlock.insNumber--));
+                }
+                else if (phiOpnds.size() != 0) {
+                    IntermediateInstruction instr = new IntermediateInstruction(SSAOperator.PHI, phiOpnds.get(0), phiOpnds.get(1), BasicBlock.insNumber--);
+                    bb.addFront(instr);
+                    instr.addExtraOperands(phiOpnds.subList(2, phiOpnds.size()-1));
+                }
+            }
+        }
+        // bb.addFront(new IntermediateInstruction(SSAOperator.PHI, bb.varMap.get(s), v.varMap.get(s), BasicBlock.insNumber++));
     }
 
+    // TODO: make this method a member of BasicBlock
     public HashSet<BasicBlock> getChildren(BasicBlock x) {
         HashSet<BasicBlock> children = new HashSet<BasicBlock>();
         for (Transitions t : x.transitionList) {
@@ -150,7 +214,14 @@ public class SSA implements NodeVisitor{
                         if (t.toBB.BBNumber == BB1.BBNumber){
                             // Update the transition with the BB that the empty block points to
                             if (BB1.transitionList.size() != 0 ){
-                                t.toBB = BB1.transitionList.get(0).toBB;
+                                BasicBlock propagateTo = BB1.transitionList.get(0).toBB;
+                                t.toBB = propagateTo;
+                                // if (BB1.propagatePhis) {
+                                //     // System.out.println(BB1 + " " + BB1.phiOperands);
+                                //     for (Symbol s : BB1.phiOperands.keySet()) {
+                                //         propagateTo.phiOperands.get(s).addAll(BB1.phiOperands.get(s));
+                                //     }
+                                // }
                             }
                             // If the empty block doesn't point to anything, then just remove the transition
                             else if (BB1.transitionList.size() == 0){
@@ -410,7 +481,8 @@ public class SSA implements NodeVisitor{
             Symbol lhs =  new Symbol(((Symbol) node.lhsDesignator()).name() + "_" + BasicBlock.insNumber, ((Symbol) node.lhsDesignator()).getType().toString(), "var");
             currentBB.varMap.put((Symbol) node.lhsDesignator(), lhs);   
             currentBB.add(new IntermediateInstruction(SSAOperator.MOVE, node.rhsExpr().getOperand(currentBB.varMap), lhs, BasicBlock.insNumber));
-
+            // add lhs to list of vars defined in block
+            currentBB.definedVars.add((Symbol) node.lhsDesignator());
         }
         else{
             currentBB.add(new IntermediateInstruction(SSAOperator.STORE, node.rhsExpr().getOperand(currentBB.varMap), node.lhsDesignator().getOperand(currentBB.varMap), BasicBlock.insNumber));

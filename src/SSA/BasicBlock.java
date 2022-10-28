@@ -2,6 +2,7 @@ package SSA;
 
 import java.util.ArrayList;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
 
 import pl434.Symbol;
@@ -13,6 +14,9 @@ public class BasicBlock implements Operand {
     public int BBNumber = 0;                    // Keeps a running count of the number of Basic Blocks (used for identifying the BBs)
     public HashMap<Symbol, Symbol> varMap;      // Contains a map for each symbol where the value is a new symbol with subscript
     public static int insNumber = 0;            // Contains a running count of the instruction number
+    public List<Symbol> definedVars;            // List of variables defined wihin the Basic Block
+    public HashMap<Symbol, HashSet<Operand>> phiOperands;
+    public boolean propagatePhis = false;
 
     // This class is used to represent the children of a BB and their "relationship" to the parent BB (call, else, if, etc)
     public class Transitions{ 
@@ -36,6 +40,8 @@ public class BasicBlock implements Operand {
             }
         }
         this.BBName = "";
+        definedVars = new ArrayList<>();
+        phiOperands = new HashMap<>();
     }
 
     public BasicBlock(int BBNumber, HashMap<Symbol, Symbol> varMap, String name){

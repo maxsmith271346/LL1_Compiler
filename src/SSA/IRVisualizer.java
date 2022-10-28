@@ -24,7 +24,7 @@ public class IRVisualizer {
 
         // Iterate through the BasicBlock List
         for (BasicBlock BB : ssa.getBasicBlockList()){
-            
+            System.out.println(BB + " " + BB.phiOperands);
             enterBasicBlock(BB);
             for (IntermediateInstruction intIns: BB.getIntInsList()){
                 // "Call" instructions need a "tag"
