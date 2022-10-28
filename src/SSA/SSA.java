@@ -542,10 +542,12 @@ public class SSA implements NodeVisitor{
     public void visit(IfStatement node) {
         //HashMap<Symbol, Symbol> parentMap = currentBBv;
         BasicBlock thenBlock = new BasicBlock(BBNumber, currentBB.varMap);
+        thenBlock.addFullMap(currentBB.varMap);
         BasicBlockList.add(thenBlock);
         BBNumber++;
 
         BasicBlock elseBlock = new BasicBlock(BBNumber, currentBB.varMap);
+        elseBlock.addFullMap(currentBB.varMap);
         BasicBlockList.add(elseBlock);
         BBNumber++; 
         
@@ -612,7 +614,8 @@ public class SSA implements NodeVisitor{
     }
     @Override
     public void visit(WhileStatement node) {
-        BasicBlock whileBlock = new BasicBlock(BBNumber, currentBB.varMap);
+        BasicBlock whileBlock = new BasicBlock(BBNumber, new HashMap<Symbol, HashSet<Symbol>>());
+        whileBlock.addFullMap(currentBB.varMap);
         BBNumber++;
         BasicBlockList.add(whileBlock);
         currentBB.transitionList.add(currentBB.new Transitions(whileBlock, ""));
@@ -621,6 +624,7 @@ public class SSA implements NodeVisitor{
         BasicBlock thenBlock = new BasicBlock(BBNumber, currentBB.varMap);
         BBNumber++;
         BasicBlockList.add(thenBlock);
+        thenBlock.addFullMap(currentBB.varMap);
 
         BasicBlock elseBlock = new BasicBlock(BBNumber, new HashMap<Symbol, HashSet<Symbol>>());
         BBNumber++;
@@ -674,6 +678,7 @@ public class SSA implements NodeVisitor{
     public void visit(RepeatStatement node) { 
         BasicBlock parentBB = currentBB;
         BasicBlock repeatBB = new BasicBlock(BBNumber, currentBB.varMap);
+        repeatBB.addFullMap(currentBB.varMap);
         BBNumber++;
         BasicBlockList.add(repeatBB);
 
@@ -682,6 +687,7 @@ public class SSA implements NodeVisitor{
         BasicBlockList.add(conditionBB);
 
         BasicBlock elseBB = new BasicBlock(BBNumber, currentBB.varMap);
+        elseBB.addFullMap(currentBB.varMap);
         BBNumber++;
         BasicBlockList.add(elseBB);
 
