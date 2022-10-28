@@ -151,4 +151,20 @@ public class IntermediateInstruction {
     public int insNum(){
         return insNum;
     }
+
+    public Operand getOperandOne(){
+        return operand_one;
+    }
+
+    public Operand getOperandTwo(){
+        return operand_two;
+    }
+
+    public void putOperandOne(Operand operand_one){
+        this.operand_one = operand_one;
+    }
+
+    public void putOperandTwo(Operand operand_two){
+        this.operand_two = operand_two ;
+    }
 }

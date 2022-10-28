@@ -6,6 +6,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 
+import SSA.IntermediateInstruction.SSAOperator;
 import pl434.Symbol;
 
 public class BasicBlock implements Operand {
@@ -39,6 +40,7 @@ public class BasicBlock implements Operand {
                     varSet.remove(s);
                 }
             }
+            this.varMap.put(key, varSet);
         }
         this.BBName = "";
     }
@@ -60,6 +62,7 @@ public class BasicBlock implements Operand {
                     varSet.remove(s);
                 }
             }
+            this.varMap.put(key, varSet);
         }
     }
     
@@ -74,9 +77,14 @@ public class BasicBlock implements Operand {
         return insNumber++;
     }
     
-    public void addFront(IntermediateInstruction intIns) {
+    public int addFront(IntermediateInstruction intIns){
         this.IntermediateInstructionList.add(0, intIns);
+        return insNumber++;
     }
+
+    /*public void addFront(IntermediateInstruction intIns) {
+        this.IntermediateInstructionList.add(0, intIns);
+    }*/
 
     public List<IntermediateInstruction> getIntInsList(){
         return IntermediateInstructionList;
@@ -100,6 +108,26 @@ public class BasicBlock implements Operand {
     @Override 
     public String toString(){
         return "[" + (BBNumber) + "]";
+    }
+
+    public void resolveVars(HashMap<Symbol, HashSet<Symbol>> varMap){
+        for (Symbol var : varMap.keySet()){
+            for (IntermediateInstruction ii : IntermediateInstructionList){
+                if (ii.getOperator() != SSAOperator.MOVE && ii.getOperator() != SSAOperator.PHI){
+                    if (ii.getOperandOne() != null){
+                        if (ii.getOperandOne().toString().contains(var.name())){
+                            ii.putOperandOne(varMap.get(var).iterator().next());
+                        }
+                    }
+                    if (ii.getOperandTwo() != null){
+                        if (ii.getOperandTwo().toString().contains(var.name())){
+                            ii.putOperandTwo(varMap.get(var).iterator().next());
+                        }
+                    }
+                }
+            }
+        }
+        
     }
 
 }

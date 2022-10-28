@@ -4,6 +4,7 @@ import java.util.ArrayDeque;
 import java.util.ArrayList;
 import java.util.HashMap;
 import java.util.HashSet;
+import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
 import java.util.Set;
@@ -53,7 +54,7 @@ public class SSA implements NodeVisitor{
         BasicBlockList = new HashSet<BasicBlock>();
         visit(ast.computation);
         pruneEmpty();
-        insertPhi();
+        //insertPhi();
         //System.out.println(getDominanceFrontier(rootBB));
     }
     /**
@@ -578,16 +579,20 @@ public class SSA implements NodeVisitor{
 
         joinBlock.addMap(thenBlock.varMap);
         // resolve any conflicts between the two branches
+        int insNum = 0;
         for (Symbol key : elseBlock.varMap.keySet()){
-            System.out.println("key  " + key + " vals " +  elseBlock.varMap.get(key));
             if (joinBlock.varMap.containsKey(key)){
                 joinBlock.varMap.get(key).addAll(elseBlock.varMap.get(key));
+
                 if (joinBlock.varMap.get(key).size() > 1){
-                    System.out.println("key " + key + " vals " + joinBlock.varMap.get(key));  
+                    Iterator<Symbol> it = joinBlock.varMap.get(key).iterator();
+                    insNum = joinBlock.add(new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber));
+                    HashSet<Symbol> newHash = new HashSet<Symbol>();
+                    newHash.add(new Symbol(key.name() + "_" + insNum, key.type().toString(), "var"));
+                    joinBlock.varMap.put(key, newHash);
+
+                    //System.out.println()
                 }
-            }
-            else{ 
-                System.out.println("ERROR ");
             }
         }
 
@@ -641,14 +646,26 @@ public class SSA implements NodeVisitor{
         //currentBB.transitionList.add(currentBB.new Transitions(elseBlock, "else"));
         whileBlock.transitionList.add(whileBlock.new Transitions(elseBlock, "else"));
 
+        int insNum = 0;
         for (Symbol key : thenBlock.varMap.keySet()){
             if (whileBlock.varMap.containsKey(key)){
                 whileBlock.varMap.get(key).addAll(thenBlock.varMap.get(key));
-            }
-            else{ 
-                System.out.println("ERROR ");
+
+                if (whileBlock.varMap.get(key).size() > 1){
+                    Iterator<Symbol> it = whileBlock.varMap.get(key).iterator();
+                    insNum = whileBlock.addFront(new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber));
+                    HashSet<Symbol> newHash = new HashSet<Symbol>();
+                    newHash.add(new Symbol(key.name() + "_" + insNum, key.type().toString(), "var"));
+                    whileBlock.varMap.put(key, newHash);
+
+                    //System.out.println()
+                }
             }
         }
+
+        whileBlock.resolveVars(whileBlock.varMap);
+        thenBlock.resolveVars(whileBlock.varMap);
+        elseBlock.resolveVars(whileBlock.varMap);
 
         currentBB = elseBlock;
     }
@@ -692,11 +709,17 @@ public class SSA implements NodeVisitor{
         currentBB.transitionList.add(currentBB.new Transitions(elseBB, "then"));
 
         for (Symbol key : parentBB.varMap.keySet()){
+            int insNum = 0;
             if (repeatBB.varMap.containsKey(key)){
                 repeatBB.varMap.get(key).addAll(parentBB.varMap.get(key));
-            }
-            else{ 
-                System.out.println("ERROR ");
+
+                if (repeatBB.varMap.get(key).size() > 1){
+                    Iterator<Symbol> it = repeatBB.varMap.get(key).iterator();
+                    insNum = repeatBB.addFront(new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber));
+                    HashSet<Symbol> newHash = new HashSet<Symbol>();
+                    newHash.add(new Symbol(key.name() + "_" + insNum, key.type().toString(), "var"));
+                    repeatBB.varMap.put(key, newHash);
+                }
             }
         }
 
