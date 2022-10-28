@@ -678,6 +678,7 @@ public class SSA implements NodeVisitor{
     public void visit(RepeatStatement node) { 
         BasicBlock parentBB = currentBB;
         BasicBlock repeatBB = new BasicBlock(BBNumber, currentBB.varMap);
+        BasicBlock afterRepeatBB;
         repeatBB.addFullMap(currentBB.varMap);
         BBNumber++;
         BasicBlockList.add(repeatBB);
@@ -694,6 +695,7 @@ public class SSA implements NodeVisitor{
         currentBB.transitionList.add(currentBB.new Transitions(repeatBB, ""));
         currentBB = repeatBB; 
         node.statementSeq().accept(this);
+        repeatBB.addFullMap(currentBB.varMap);
 
         // add varMap from 
         conditionBB.addFullMap(repeatBB.varMap);
@@ -720,6 +722,7 @@ public class SSA implements NodeVisitor{
                 repeatBB.varMap.get(key).addAll(parentBB.varMap.get(key));
 
                 if (repeatBB.varMap.get(key).size() > 1){
+                    //System.out.println("here");
                     Iterator<Symbol> it = repeatBB.varMap.get(key).iterator();
                     insNum = repeatBB.addFront(new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber));
                     HashSet<Symbol> newHash = new HashSet<Symbol>();
@@ -731,6 +734,9 @@ public class SSA implements NodeVisitor{
 
         repeatBB.resolveVars(repeatBB.varMap);
         conditionBB.resolveVars(repeatBB.varMap);
+
+        elseBB.addFullMap(repeatBB.varMap);
+
 
         currentBB = elseBB;
 

@@ -133,7 +133,26 @@ public class BasicBlock implements Operand {
                     }
                 }
             }
-        }   
+        }
+        
+        for (Transitions t : transitionList){
+           // System.out.println(t.toBB);
+            for (Symbol var : varMap.keySet()){
+                for (IntermediateInstruction ii : t.toBB.IntermediateInstructionList){
+                    if (ii.getOperator() != SSAOperator.MOVE && ii.getOperator() != SSAOperator.PHI){
+                        if (ii.getOperandOne() != null){
+                            if (ii.getOperandOne().toString().contains(var.name())){
+                                ii.putOperandOne(varMap.get(var).iterator().next());
+                            }
+                        }
+                        if (ii.getOperandTwo() != null){
+                            if (ii.getOperandTwo().toString().contains(var.name())){
+                                ii.putOperandTwo(varMap.get(var).iterator().next());
+                            }
+                        }
+                    }
+                }
+            }
+        }
     }
-
 }
