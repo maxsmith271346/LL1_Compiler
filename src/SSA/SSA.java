@@ -217,7 +217,7 @@ public class SSA implements NodeVisitor{
             BasicBlockList.remove(BB);
             for (BasicBlock BB1 : BasicBlockList){
                 if (BB1.BBNumber > BB.BBNumber){
-                    //BB1.BBNumber--;
+                    BB1.BBNumber--;
                 }
             }
         }
@@ -577,7 +577,7 @@ public class SSA implements NodeVisitor{
         elseBlock = currentBB;
         elseBlock.transitionList.add(elseBlock.new Transitions(joinBlock, ""));
 
-        joinBlock.addMap(thenBlock.varMap);
+        joinBlock.addFullMap(thenBlock.varMap);
         // resolve any conflicts between the two branches
         int insNum = 0;
         for (Symbol key : elseBlock.varMap.keySet()){
@@ -622,7 +622,7 @@ public class SSA implements NodeVisitor{
         BBNumber++;
         BasicBlockList.add(thenBlock);
 
-        BasicBlock elseBlock = new BasicBlock(BBNumber, currentBB.varMap);
+        BasicBlock elseBlock = new BasicBlock(BBNumber, new HashMap<Symbol, HashSet<Symbol>>());
         BBNumber++;
         BasicBlockList.add(elseBlock);
 
@@ -665,8 +665,8 @@ public class SSA implements NodeVisitor{
 
         whileBlock.resolveVars(whileBlock.varMap);
         thenBlock.resolveVars(whileBlock.varMap);
-        elseBlock.resolveVars(whileBlock.varMap);
 
+        elseBlock.addFullMap(whileBlock.varMap);
         currentBB = elseBlock;
     }
 
@@ -690,7 +690,7 @@ public class SSA implements NodeVisitor{
         node.statementSeq().accept(this);
 
         // add varMap from 
-        conditionBB.addMap(repeatBB.varMap);
+        conditionBB.addFullMap(repeatBB.varMap);
 
         currentBB.transitionList.add(currentBB.new Transitions(conditionBB, ""));
 
@@ -722,6 +722,9 @@ public class SSA implements NodeVisitor{
                 }
             }
         }
+
+        repeatBB.resolveVars(repeatBB.varMap);
+        conditionBB.resolveVars(repeatBB.varMap);
 
         currentBB = elseBB;
 

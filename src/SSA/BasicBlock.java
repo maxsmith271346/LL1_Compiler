@@ -65,6 +65,13 @@ public class BasicBlock implements Operand {
             this.varMap.put(key, varSet);
         }
     }
+
+    public void addFullMap(HashMap<Symbol, HashSet<Symbol>> varMap){
+        for (Symbol key : varMap.keySet()){
+            HashSet<Symbol> varSet = new HashSet<Symbol>(varMap.get(key));
+            this.varMap.put(key, varSet);
+        }
+    }
     
     /**
      * Adds an IntermediateInstruction to the list and returns the current instruction number
@@ -126,8 +133,7 @@ public class BasicBlock implements Operand {
                     }
                 }
             }
-        }
-        
+        }   
     }
 
 }
