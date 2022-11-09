@@ -11,6 +11,9 @@ import SSA.SSA;
 import ast.*;
 import pl434.Token.Kind;
 
+import org.apache.commons.cli.*;
+
+
 public class Compiler {
 
     // Error Reporting ============================================================
@@ -66,6 +69,8 @@ public class Compiler {
 
     private HashMap<String, FunctionCall> functionResolution;
 
+    private SSA ssa; 
+
     // Need to map from IDENT to memory offset
 
     public Compiler(Scanner scanner, int numRegs) {
@@ -87,7 +92,38 @@ public class Compiler {
     }
 
     public SSA genSSA(AST ast){
-        return new SSA(ast);
+        ssa = new SSA(ast);
+        return ssa;
+    }
+
+    public String optimization(List<String> optArguments, Options options){
+        System.out.println("optArguments " + optArguments); 
+        Optimization optimization = new Optimization(ssa);
+        for (String opt : optArguments){
+            System.out.println(opt);
+            switch(opt){
+                case "cp": 
+                    optimization.constantPropagation();
+                    break;
+                case "cf": 
+                    optimization.constantFolding();
+                    break;
+                case "cpp": 
+                    optimization.copyPropagation();
+                    break;
+                case "cse": 
+                    optimization.commonSubexpressionElimination();
+                    break;
+                case "dce":
+                    optimization.deadCodeElimination(); 
+                    break;
+                case "ofe": 
+                    optimization.orphanFunctionElimination();
+                    break; 
+            }
+        }
+        //Optimizer.copyPropagation(ssa);
+        return ssa.asDotGraph();
     }
     public int[] compile() {
         initSymbolTable();

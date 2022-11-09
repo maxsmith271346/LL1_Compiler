@@ -5,8 +5,10 @@ import java.util.*;
 import types.*;
 import ast.*;
 
+
 import org.apache.commons.cli.*;
 
+//PA 7 generates 2 digraphs, one un-optimized, one optimized.
 public class CompilerTester {
 
     public static void main(String[] args) {
@@ -24,8 +26,7 @@ public class CompilerTester {
         options.addOption("onefile", "onefile", false, "If true, 'ast.dot' and 'cfg.dot' are the names for files in graphs/");
         options.addOption("allowVersions", "allowVersions", false, "Allowing versioning for files in graphs/");
 
-
-        options.addOption("o", "opt", true, "Order-sensitive optimization -allowed to have multiple");      
+        options.addOption("o", "opt", true, "Order-sensitive optimization -allowed to have multiple");
         options.addOption("max", "maxOpt", false, "Run all available optimizations till convergence");
 
         HelpFormatter formatter = new HelpFormatter();
@@ -77,7 +78,7 @@ public class CompilerTester {
             numRegs = 24;
         }
 
-        
+
         Compiler c = new Compiler(s, numRegs);
         AST ast = c.genAST();
 
@@ -99,7 +100,7 @@ public class CompilerTester {
 
         if (cmd.hasOption("ast")) {
             String filename = cmd.hasOption("onefile") ? "ast.dot" : sourceFile.substring(0, sourceFile.lastIndexOf('.')) + "_ast.dot";
-            try (PrintStream out = new PrintStream(graphDir+File.pathSeparator+filename)) {               
+            try (PrintStream out = new PrintStream(graphDir+File.pathSeparator+filename)) {
                 out.print(ast);
             } catch (IOException e) {
                 e.printStackTrace();
@@ -138,12 +139,22 @@ public class CompilerTester {
         }
 
         // Comment these out for PA 7 - 8 - 9
-        // String[] optArgs = cmd.getOptionValues("opt");
-        // List<String> optArguments = (optArgs!=null && optArgs.length != 0) ? Arrays.asList(optArgs) : new ArrayList<String>();
+        String[] optArgs = cmd.getOptionValues("opt");
+        for (String opt : optArgs){
+            System.out.println(opt);
+        }
+        List<String> optArguments = (optArgs!=null && optArgs.length != 0) ? Arrays.asList(optArgs) : new ArrayList<String>();
 
-        // //PA 7
-        // c.optimization(optArguments,options);
-        
+        //PA 7
+        try {
+            dotgraph_text = c.optimization(optArguments, options);
+            System.out.println(dotgraph_text);
+        } catch (Exception e) {
+            e.printStackTrace();
+            System.out.println("Error caught - see stderr for stack trace " + e.getMessage());
+            System.exit(-6);
+        }
+
         // //PA 8
         // c.regAlloc(numRegs);
 
