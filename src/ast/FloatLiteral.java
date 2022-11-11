@@ -30,6 +30,14 @@ public class FloatLiteral extends Node implements Expression, Operand{
         return type;
     }
 
+    public void setFloatValue(Float floatVal) {
+        value = Float.toString(floatVal);
+    }
+
+    public Float valueAsFloat() {
+        return Float.valueOf(value);
+    }
+
     @Override
     public Operand getOperand(HashMap<Symbol, HashSet<Symbol>>  varMap) {
         return this;

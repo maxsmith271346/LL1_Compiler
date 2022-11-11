@@ -43,7 +43,9 @@ public class IntermediateInstruction {
 
         MOVE("MOVE"),
         CALL("CALL"), 
-        RET("RET");
+        RET("RET"),
+
+        NONE("");
 
     
         private String opString;
@@ -158,6 +160,10 @@ public class IntermediateInstruction {
 
     public Operand getOperandTwo(){
         return operand_two;
+    }
+
+    public void putOperator(SSAOperator operator){
+        this.operator = operator;
     }
 
     public void putOperandOne(Operand operand_one){

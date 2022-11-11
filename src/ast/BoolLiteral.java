@@ -29,6 +29,14 @@ public class BoolLiteral extends Node implements Expression, Operand{
         return type;
     }
 
+    public void setBoolValue(Boolean boolVal) {
+        value = Boolean.toString(boolVal);
+    }
+
+    public Boolean valueAsBool() {
+        return Boolean.valueOf(value);
+    }
+
     @Override
     public Operand getOperand(HashMap<Symbol, HashSet<Symbol>>  varMap) {
         return this;

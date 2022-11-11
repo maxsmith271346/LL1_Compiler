@@ -30,6 +30,14 @@ public class IntegerLiteral extends Node implements Expression, Operand{
         return type;
     }
 
+    public void setIntValue(Integer intVal) {
+        value = Integer.toString(intVal);
+    }
+
+    public Integer valueAsInt() {
+        return Integer.valueOf(value);
+    }
+
     @Override
     public Operand getOperand(HashMap<Symbol, HashSet<Symbol>>  varMap) {
         return this;

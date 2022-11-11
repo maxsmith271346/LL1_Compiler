@@ -49,6 +49,7 @@ public class SSA implements NodeVisitor{
     private int BBNumber = 1;
 
     private BasicBlock rootBB;
+    private BasicBlock endBB;
     
     public SSA(AST ast){
         BasicBlockList = new HashSet<BasicBlock>();
@@ -832,6 +833,8 @@ public class SSA implements NodeVisitor{
         rootBB = mainBB;
         node.mainStatementSequence().accept(this);
         currentBB.add(new IntermediateInstruction(SSAOperator.END, null, null, BasicBlock.insNumber));
+        
+        endBB = currentBB;
     }
 
     @Override
