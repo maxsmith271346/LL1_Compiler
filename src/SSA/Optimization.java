@@ -143,26 +143,12 @@ public class Optimization {
                         }
                         break;
                     case MOD:
+                        // TODO: ?
                         break;
                     case POW:
-                        
+                        // TODO:
                         break;
-                    
-                    case BEQ:
-                        break;
-                    case BGE:
-                        break;
-                    case BGT:
-                        break;
-                    case BLE:
-                        break;
-                    case BLT:
-                        break;
-                    case BNE:
-                        break;
-                    default:
-                        break;
-                    
+                    default:                    
                 }
             }
         }
@@ -187,6 +173,128 @@ public class Optimization {
         // fold constant expression 
         // for folding relations: 
         // remove unreachable code here
+
+        for (BasicBlock bb : ssa.getBasicBlockList()) {
+            for (IntermediateInstruction i : bb.getIntInsList()) {
+                Operand opnd1 = i.getOperandOne();
+                Operand opnd2 = i.getOperandTwo();
+                // continue if either operands is non-constant
+                if (!(isConst(opnd1) && opnd2 != null && isConst(opnd2))) { continue; }
+                switch (i.getOperator()) {
+                    // case NOT:
+                        // TODO: move to const folding
+                        // Operand opnd = i.getOperandOne();
+                        // if (isConst(opnd)) {
+                        //     ((BoolLiteral) opnd).setBoolValue(!(((BoolLiteral) opnd).valueAsBool()));
+                        // }
+                        // break;
+                    case AND:
+                        break;
+                    case OR:
+                        break;
+
+                    case ADD:
+                        if (isIntLit(opnd1)) {
+                            Integer sum = ((IntegerLiteral) opnd1).valueAsInt() + ((IntegerLiteral) opnd2).valueAsInt();
+                            IntegerLiteral intLit = new IntegerLiteral(-1, -1, Integer.toString(sum));
+                            i.putOperandOne(intLit);
+                        }
+                        else if (isFloatLit(opnd1)) {
+                            Float sum = ((FloatLiteral) opnd1).valueAsFloat() + ((FloatLiteral) opnd2).valueAsFloat();
+                            FloatLiteral intLit = new FloatLiteral(-1, -1, Float.toString(sum));
+                            i.putOperandOne(intLit);
+                        }
+                        i.putOperator(SSAOperator.NONE);
+                        i.putOperandTwo(null);
+                        break;
+                    case SUB:
+                        if (isIntLit(opnd1)) {
+                            Integer sum = ((IntegerLiteral) opnd1).valueAsInt() - ((IntegerLiteral) opnd2).valueAsInt();
+                            IntegerLiteral intLit = new IntegerLiteral(-1, -1, Integer.toString(sum));
+                            i.putOperandOne(intLit);
+                        }
+                        else if (isFloatLit(opnd1)) {
+                            Float sum = ((FloatLiteral) opnd1).valueAsFloat() - ((FloatLiteral) opnd2).valueAsFloat();
+                            FloatLiteral intLit = new FloatLiteral(-1, -1, Float.toString(sum));
+                            i.putOperandOne(intLit);
+                        }
+                        i.putOperator(SSAOperator.NONE);
+                        i.putOperandTwo(null);
+                        break;
+                    case MUL:
+                        if (isIntLit(opnd1)) {
+                            Integer sum = ((IntegerLiteral) opnd1).valueAsInt() * ((IntegerLiteral) opnd2).valueAsInt();
+                            IntegerLiteral intLit = new IntegerLiteral(-1, -1, Integer.toString(sum));
+                            i.putOperandOne(intLit);
+                        }
+                        else if (isFloatLit(opnd1)) {
+                            Float sum = ((FloatLiteral) opnd1).valueAsFloat() * ((FloatLiteral) opnd2).valueAsFloat();
+                            FloatLiteral intLit = new FloatLiteral(-1, -1, Float.toString(sum));
+                            i.putOperandOne(intLit);
+                        }
+                        i.putOperator(SSAOperator.NONE);
+                        i.putOperandTwo(null);
+                        break;
+                    case DIV:
+                        if (isIntLit(opnd1)) {
+                            Integer sum = ((IntegerLiteral) opnd1).valueAsInt() / ((IntegerLiteral) opnd2).valueAsInt();
+                            IntegerLiteral intLit = new IntegerLiteral(-1, -1, Integer.toString(sum));
+                            i.putOperandOne(intLit);
+                        }
+                        else if (isFloatLit(opnd1)) {
+                            Float sum = ((FloatLiteral) opnd1).valueAsFloat() / ((FloatLiteral) opnd2).valueAsFloat();
+                            FloatLiteral intLit = new FloatLiteral(-1, -1, Float.toString(sum));
+                            i.putOperandOne(intLit);
+                        }
+                        i.putOperator(SSAOperator.NONE);
+                        i.putOperandTwo(null);
+                        break;
+                    case MOD:
+                        if (isIntLit(opnd1)) {
+                            Integer sum = ((IntegerLiteral) opnd1).valueAsInt() % ((IntegerLiteral) opnd2).valueAsInt();
+                            IntegerLiteral intLit = new IntegerLiteral(-1, -1, Integer.toString(sum));
+                            i.putOperandOne(intLit);
+                        }
+                        else if (isFloatLit(opnd1)) {
+                            Float sum = ((FloatLiteral) opnd1).valueAsFloat() % ((FloatLiteral) opnd2).valueAsFloat();
+                            FloatLiteral intLit = new FloatLiteral(-1, -1, Float.toString(sum));
+                            i.putOperandOne(intLit);
+                        }
+                        i.putOperator(SSAOperator.NONE);
+                        i.putOperandTwo(null);
+                        break;
+                    case POW:
+                        Integer sum = (int) Math.pow(((IntegerLiteral) opnd1).valueAsInt(), ((IntegerLiteral) opnd2).valueAsInt());
+                        IntegerLiteral intLit = new IntegerLiteral(-1, -1, Integer.toString(sum));
+                        i.putOperandOne(intLit);
+                        i.putOperator(SSAOperator.NONE);
+                        i.putOperandTwo(null);
+                        break;
+                    // TODO: 
+                    case BEQ:
+                        break;
+                    case BGE:
+                        break;
+                    case BGT:
+                        break;
+                    case BLE:
+                        break;
+                    case BLT:
+                        break;
+                    case BNE:
+                        if (((BoolLiteral) opnd1).valueAsBool()) {
+                            // Branch taken
+                        }
+                        else {
+                            // Branch untakens
+                        }
+                        break;
+                    default:
+                        break;
+                    
+                }
+            }
+        }
     }
 
     // Emory 
