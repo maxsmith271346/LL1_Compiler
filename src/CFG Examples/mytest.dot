@@ -1,18 +1,5 @@
-{[5]=[[7]], [7]=[[2]], [1]=[], [6]=[[7]], [3]=[[2]], [4]=[], [2]=[[2]]}
-digraph G { 
-BB5[shape=record, label="<b>BB5|{10 : MUL -1 a_1 |11 : ADD (10) 5 |12 : MOVE (11) a_12 |13 : MUL -3 b_3 |14 : SUB (13) 4 |15 : MOVE (14) b_15 |16 : BRA [7] }"];
-BB5:s -> BB7:n [label=""];
-BB7[shape=record, label="<b>BB7|{23 : SUB c_5 a_1 |24 : MUL (23) b_3 |25 : MOVE (24) c_25 |26 : SUB n_6 1 |27 : MOVE (26) n_27 }"];
-BB7:s -> BB3:n [label=""];
-BB1[shape=record, label="<b>main\nBB1|{0 : READ |1 : MOVE (0) a_1 |2 : READ |3 : MOVE (2) b_3 |4 : MUL a_1 b_3 |5 : MOVE (4) c_5 |6 : MOVE 10 n_6 }"];
-BB1:s -> BB2:n [label=""];
-BB6[shape=record, label="<b>BB6|{17 : POW a_1 2 |18 : MUL 2 a_1 |19 : SUB (17) (18) |20 : MOVE (19) a_20 |21 : MUL -1 b_3 |22 : MOVE (21) b_22 }"];
-BB6:s -> BB7:n [label=""];
-BB3[shape=record, label="<b>BB3|{28 : CMP n_6 0 |29 : BLT (28) [2] }"];
-BB3:s -> BB2:n [label="else"];
-BB3:s -> BB4:n [label="then"];
-BB4[shape=record, label="<b>BB4|{30 : WRITE c_5 |31 : END }"];
-BB2[shape=record, label="<b>BB2|{7 : CMP a_1 0 |8 : CMP b_3 0 |9 : OR (7) (8) }"];
-BB2:s -> BB5:n [label="then"];
-BB2:s -> BB6:n [label="else"];
+digraph G {
+BB1[shape=record, label="<b>main\nBB1|{8 : MOVE 1 x_8 |<cfoo9>9 : CALL foo |10 : END }"];
+BB1:cfoo9 -> BB2:b [];
+BB2[shape=record, label="<b>foo\nBB2|{0 : MOVE 1 a_0 |1 : MOVE 2 b_1 |2 : MOVE 2 y_2 |3 : WRITE 1 |4 : WRITE 2 |5 : MOVE 0 x_5 |6 : WRITE 0 |7 : WRITE 2 }"];       
 }
