@@ -19,11 +19,13 @@ public class Symbol implements Expression, Operand {
     private List<Type> paramTypes;
     public ArrayIndex arrayIndex;
     public List<String> dimList; // for var[2][3], will store [2, 3]
+    public int scope;
 
     // TODO: Will need to assign addresses for symbols
     // private int address;
 
-    public Symbol (String name, String returnType, String symbolType) {
+    public Symbol (String name, String returnType, String symbolType, int scope) {
+        this.scope = scope;
         this.name = name;
         this.symbolType = symbolType; 
         this.paramTypes = new ArrayList<Type>();
@@ -45,7 +47,8 @@ public class Symbol implements Expression, Operand {
             };
     }
 
-    public Symbol (String name, String returnType, String symbolType, List<String> paramTypes) {
+    public Symbol (String name, String returnType, String symbolType, List<String> paramTypes, int scope) {
+        this.scope = scope;
         this.name = name;
         this.symbolType = symbolType; 
 
@@ -85,6 +88,7 @@ public class Symbol implements Expression, Operand {
     }
     
     public String name () {
+        //System.out.println("name: " + name + " scope: " + scope);
         return name;
     }
     //public String type (){
@@ -195,7 +199,7 @@ public class Symbol implements Expression, Operand {
            }
            else{ 
                 HashSet<Symbol> newHash = new HashSet<Symbol>();
-                newHash.add(new Symbol(this.name + "_-3" , this.returnType.toString(), this.symbolType));
+                newHash.add(new Symbol(this.name + "_-3" , this.returnType.toString(), this.symbolType, 3));
                 varMap.put(this, newHash);
                 return varMap.get(this).iterator().next();
            }

@@ -25,13 +25,13 @@ public class FunctionCall extends Node implements Statement, Expression{
     public FunctionCall(int lineNum, int charPos) {
         super(lineNum, charPos);
         predefinedFunctions = new ArrayList<Symbol>();
-        predefinedFunctions.add(new Symbol("readInt", "int", "func"));
-        predefinedFunctions.add(new Symbol("readFloat", "float", "func"));
-        predefinedFunctions.add(new Symbol("readBool", "bool", "func"));
-        predefinedFunctions.add(new Symbol("printInt", "void", "func", new ArrayList<String>(Arrays.asList("int"))));
-        predefinedFunctions.add(new Symbol("printFloat", "void", "func", new ArrayList<String>(Arrays.asList("float"))));
-        predefinedFunctions.add(new Symbol("printBool", "void", "func", new ArrayList<String>(Arrays.asList("bool"))));
-        predefinedFunctions.add(new Symbol("println", "void", "func"));
+        predefinedFunctions.add(new Symbol("readInt", "int", "func", 1));
+        predefinedFunctions.add(new Symbol("readFloat", "float", "func", 1));
+        predefinedFunctions.add(new Symbol("readBool", "bool", "func", 1));
+        predefinedFunctions.add(new Symbol("printInt", "void", "func", new ArrayList<String>(Arrays.asList("int")), 1));
+        predefinedFunctions.add(new Symbol("printFloat", "void", "func", new ArrayList<String>(Arrays.asList("float")), 1));
+        predefinedFunctions.add(new Symbol("printBool", "void", "func", new ArrayList<String>(Arrays.asList("bool")), 1));
+        predefinedFunctions.add(new Symbol("println", "void", "func", 1));
     }
 
     @Override

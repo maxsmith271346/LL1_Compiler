@@ -15,4 +15,16 @@ public class InstructionNumber implements Operand{
     public String toString(){
         return "(" + Integer.toString(instructionNumber) + ")";
     }
+
+    public boolean matches(Operand op){
+        if (!(op instanceof InstructionNumber)){
+            return false; 
+        }
+        else{ 
+            if (((InstructionNumber) op).getInstructionNumber() != instructionNumber){ 
+                return false; 
+            }
+        }
+        return true;
+    }
 }

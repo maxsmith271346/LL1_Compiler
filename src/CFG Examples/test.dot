@@ -1,25 +1,10 @@
-digraph G { 
-BB2[shape=record, label="<b>printInt\nBB2|{0 : WRITE k_-3 |1 : WRITE j_-3 |2 : WRITE i_-3 |3 : WRITE }"];
-BB3[shape=record, label="<b>BB3|{9 : POW 10 2 |10 : CMP k_8 (9) |11 : BGE (10) [5] }"];
-BB3:s -> BB4:n [label="then"];
-BB3:s -> BB5:n [label="else"];
-BB5[shape=record, label="<b>BB5|{<cprintInt32>32 : CALL i_5 j_6 k_8 printInt|33 : END }"];
-BB5:cprintInt32 -> BB2:b [];
-BB8[shape=record, label="<b>BB8|{24 : PHI j_15 j_19 |25 : PHI k_21 k_17 |26 : PHI i_23 i_5 |27 : MOD k_25 10 |28 : CMP (27) 0 |29 : BNE (28) [10] }"];
-BB8:s -> BB9:n [label="then"];
-BB8:s -> BB10:n [label="else"];
-BB10[shape=record, label="<b>BB10|{31 : BRA [3] }"];
-BB10:s -> BB3:n [label=""];
-BB4[shape=record, label="<b>BB4|{12 : MUL 10 i_5 |13 : CMP j_6 (12) |14 : BGE (13) [7] }"];
-BB4:s -> BB6:n [label="then"];
-BB4:s -> BB7:n [label="else"];
-BB6[shape=record, label="<b>BB6|{15 : MOVE i_5 j_15 |16 : ADD k_8 2 |17 : MOVE (16) k_17 |18 : BRA [8] }"];
-BB6:s -> BB8:n [label=""];
-BB1[shape=record, label="<b>main\nBB1|{4 : POW 1 100 |5 : MOVE (4) i_5 |6 : MOVE i_5 j_6 |7 : SUB i_5 1 |8 : MOVE (7) k_8 }"];
-BB1:s -> BB3:n [label=""];
-BB9[shape=record, label="<b>BB9|{<cprintInt30>30 : CALL i_26 j_24 k_25 printInt}"];
-BB9:cprintInt30 -> BB2:b [];
-BB9:s -> BB10:n [label=""];
-BB7[shape=record, label="<b>BB7|{19 : MOVE k_8 j_19 |20 : ADD k_8 2 |21 : MOVE (20) k_21 |22 : ADD i_5 1 |23 : MOVE (22) i_23 }"];
-BB7:s -> BB8:n [label=""];
+digraph G {
+BB2[shape=record, label="<b>BB2|{12 : [MOVE (6) f_7 , CMP 10 6 , MOVE (4) af_5 , ADD 2 6 , ADD 2 2 , MOVE f_7 q_8 ] PHI q_1 q_8 |11 : [MOVE (6) f_7 , CMP 10 6 , MOVE (4) af_5 , ADD 2 6 , ADD 2 2 , MOVE f_7 q_8 ] PHI f_0 f_7 |10 : [MOVE (6) f_7 , CMP 10 6 , MOVE (4) af_5 , ADD 2 6 , ADD 2 2 , MOVE f_7 q_8 ] PHI af_5 af_-1 |2 : [MOVE (6) f_7 , CMP 10 6 , MOVE (4) af_5 , ADD 2 6 , ADD 2 2 , MOVE f_7 q_8 ] CMP 10 6 |3 : [MOVE (6) f_7 , CMP 10 6 , MOVE (4) af_5 , ADD 2 6 , ADD 2 2 , MOVE f_7 q_8 ] BLE (2) [4] }"];
+BB2:s -> BB3:n [label="then"];
+BB2:s -> BB4:n [label="else"];
+BB3[shape=record, label="<b>BB3|{4 : [CMP 10 6 , MOVE 2 q_1 , MOVE 2 f_0 ] ADD 2 6 |5 : [CMP 10 6 , ADD 2 6 , MOVE 2 q_1 , MOVE 2 f_0 ] MOVE (4) af_5 |6 : [CMP 10 6 , MOVE (4) af_5 , ADD 2 6 , MOVE 2 q_1 , MOVE 2 f_0 ] ADD 2 2 |7 : [CMP 10 6 , MOVE (4) af_5 , ADD 2 6 , MOVE 2 q_1 , ADD 2 2 , MOVE 2 f_0 ] MOVE (6) f_7 |8 : [MOVE (6) f_7 , CMP 10 6 , MOVE (4) af_5 , ADD 2 6 , MOVE 2 q_1 , ADD 2 2 ] MOVE f_7 q_8 |9 : [MOVE (6) f_7 , CMP 10 6 , MOVE (4) af_5 , ADD 2 6 , ADD 2 2 , MOVE f_7 q_8 ] BRA [2] }"];
+BB3:s -> BB2:n [label=""];
+BB4[shape=record, label="<b>BB4|{13 : [CMP 10 6 , MOVE 2 q_1 , MOVE 2 f_0 ] ADD 2 5 |14 : [CMP 10 6 , MOVE 2 q_1 , MOVE 2 f_0 , ADD 2 5 ] MOVE (13) t_14 |15 : [CMP 10 6 , MOVE 2 q_1 , MOVE 2 f_0 , MOVE (13) t_14 , ADD 2 5 ] ADD t_14 2 |16 : [CMP 10 6 , MOVE 2 q_1 , ADD t_14 2 , MOVE 2 f_0 , MOVE (13) t_14 , ADD 2 5 ] ADD (15) 2 |17 : [ADD (15) 2 , CMP 10 6 , MOVE 2 q_1 , ADD t_14 2 , MOVE 2 f_0 , MOVE (13) t_14 , ADD 2 5 ] MOVE (16) af_17 |18 : [ADD (15) 2 , CMP 10 6 , MOVE 2 q_1 , ADD t_14 2 , MOVE 2 f_0 , MOVE (13) t_14 , ADD 2 5 , MOVE (16) af_17 ] WRITE af_17 |19 : [ADD (15) 2 , CMP 10 6 , MOVE 2 q_1 , ADD t_14 2 , MOVE 2 f_0 , MOVE (13) t_14 , ADD 2 5 , MOVE (16) af_17 ] END }"];
+BB1[shape=record, label="<b>main\nBB1|{0 : [] MOVE 2 f_0 |1 : [MOVE 2 f_0 ] MOVE 2 q_1 }"];
+BB1:s -> BB2:n [label=""];
 }

@@ -1,7 +1,12 @@
 package SSA;
 
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
+import ast.BoolLiteral;
+import ast.FloatLiteral;
+import ast.IntegerLiteral;
 import pl434.Symbol;
 
 public class IntermediateInstruction {
@@ -69,12 +74,14 @@ public class IntermediateInstruction {
     private Operand operand_two; 
     private int insNum;
     private List<Operand> extraOperands; // In the case of function calls there can be more than two operands, so this will keep track of the extras
+    public Set<IntermediateInstruction> availableExpressions;
 
     public IntermediateInstruction(SSAOperator operator, Operand operand_one, Operand operand_two, int insNum){
         this.operator = operator; 
         this.operand_one = operand_one; 
         this.operand_two = operand_two;
         this.insNum = insNum;
+        this.availableExpressions = new HashSet<IntermediateInstruction>();
     }
 
     @Override
@@ -150,12 +157,19 @@ public class IntermediateInstruction {
         return "";
     }
 
+    public void setInsNum(int insNum){
+        this.insNum = insNum;
+    }
     public int insNum(){
         return insNum;
     }
 
     public Operand getOperandOne(){
         return operand_one;
+    }
+
+    public void setOperandOne(Operand newOp){
+        this.operand_one = newOp;
     }
 
     public Operand getOperandTwo(){
@@ -172,5 +186,162 @@ public class IntermediateInstruction {
 
     public void putOperandTwo(Operand operand_two){
         this.operand_two = operand_two ;
+    }
+
+    public boolean containsOperand(Operand operand){
+        if (operand_one != null){
+            if (operand_one instanceof Symbol){
+                String operandOneName = ((Symbol) operand_one).name();
+                operandOneName = operandOneName.substring(0, operandOneName.indexOf("_"));
+
+                String operandName = ((Symbol) operand).name();
+                operandName = operandName.substring(0, operandName.indexOf("_"));
+
+                if(operandOneName.equals(operandName)){
+                    return true;
+                }
+            }   
+        }
+        if (operand_two != null){
+            if (operand_two instanceof Symbol){
+                String operandTwoName = ((Symbol) operand_two).name();
+                operandTwoName = operandTwoName.substring(0, operandTwoName.indexOf("_"));
+
+                String operandName = ((Symbol) operand).name();
+                operandName = operandName.substring(0, operandName.indexOf("_"));
+                
+                if(operandTwoName.equals(operandName)){
+                    return true;
+                }
+            }   
+        }
+        if (extraOperands != null){
+            for (Operand e : extraOperands){
+                if (e.equals(operand)){
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public boolean setMatchingOperand(Operand matchingOperand, Operand settingOperand){
+        if (operand_one != null){
+            if (operand_one instanceof Symbol){
+                String operandOneName = ((Symbol) operand_one).name();
+                if (operandOneName.contains("_")){
+                    operandOneName = operandOneName.substring(0, operandOneName.indexOf("_"));
+                }
+
+                String operandName = ((Symbol) matchingOperand).name();
+                if (operandName.contains("_")){
+                    operandName = operandName.substring(0, operandName.indexOf("_"));
+                }
+
+                if(operandOneName.equals(operandName)){
+                    operand_one = settingOperand;
+                    return true;
+                }
+            }   
+        }
+        if (operand_two != null){
+            if (operand_two instanceof Symbol){
+                String operandTwoName = ((Symbol) operand_two).name();
+                operandTwoName = operandTwoName.substring(0, operandTwoName.indexOf("_"));
+
+                String operandName = ((Symbol) matchingOperand).name();
+                operandName = operandName.substring(0, operandName.indexOf("_"));
+                
+                if(operandTwoName.equals(operandName)){
+                    operand_two = settingOperand;
+                    return true;
+                }
+            }   
+        }
+        if (extraOperands != null){
+            for (Operand e : extraOperands){
+                if (e.equals(matchingOperand)){
+                    return true;
+                }
+            }
+        }
+
+        return false;
+    }
+
+    public boolean checkOperand(Operand opOne, Operand opTwo){
+        if (!opOne.getClass().toString().equals(opTwo.getClass().toString())){
+            return true;
+        }
+        if (opTwo instanceof Symbol && opOne instanceof Symbol){
+            String operandOneName = ((Symbol) opOne).name();
+            operandOneName = operandOneName.substring(0, operandOneName.indexOf("_"));
+
+            String operandName = ((Symbol) opTwo).name();
+            operandName = operandName.substring(0, operandName.indexOf("_"));
+
+            if(!operandOneName.equals(operandName)){
+                return true;
+            }
+        }
+        else if (opTwo instanceof BoolLiteral && opOne instanceof BoolLiteral){
+            if (!((BoolLiteral) opTwo).value().equals(((BoolLiteral) opOne).value())){
+                return true;
+            }
+        }
+        else if (opTwo instanceof IntegerLiteral && opOne instanceof IntegerLiteral){
+            if (!((IntegerLiteral ) opTwo).value().equals(((IntegerLiteral) opOne).value())){
+                return true;
+            }
+        }
+        else if (opTwo instanceof FloatLiteral && opOne instanceof FloatLiteral){
+            if (!((FloatLiteral) opTwo).value().equals(((FloatLiteral) opOne).value())){
+                return true;
+            }
+        }
+        else if (opTwo instanceof InstructionNumber && opOne instanceof InstructionNumber){
+            //System.out.println(opTwo); 
+            //System.out.println(opOne);
+            if (((InstructionNumber) opTwo).getInstructionNumber() != ((InstructionNumber) opOne).getInstructionNumber()){
+                return true;
+            }
+        }
+        return false;
+    }
+
+
+    public boolean conflicts(IntermediateInstruction intIns){
+        if (intIns.getOperator() == operator && intIns.numberOperators() == this.numberOperators()){
+            //System.out.println("one " + intIns);
+            //System.out.println("two " + this);
+            if (operand_one != null && intIns.getOperandOne() != null){
+                if (checkOperand(operand_one, intIns.getOperandOne())){
+                    return true;
+                }
+                
+            }
+            if (operand_two != null && intIns.getOperandTwo() != null){
+                if (checkOperand(operand_two, intIns.getOperandTwo())){
+                    return true;
+                }
+            }
+            return false; 
+        }
+        return true; 
+    }
+
+    public int numberOperators(){
+        int number = 0;
+        if (operand_one != null){
+            number++;
+        }
+        if (operand_two != null){
+            number++; 
+        }
+        if (extraOperands != null){
+            number += extraOperands.size();
+        }
+        return number;
     }
 }
