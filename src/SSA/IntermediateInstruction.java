@@ -75,6 +75,8 @@ public class IntermediateInstruction {
     private int insNum;
     private List<Operand> extraOperands; // In the case of function calls there can be more than two operands, so this will keep track of the extras
     public Set<IntermediateInstruction> availableExpressions;
+    public boolean branchHandled;
+    public boolean elim;
 
     public IntermediateInstruction(SSAOperator operator, Operand operand_one, Operand operand_two, int insNum){
         this.operator = operator; 
@@ -82,6 +84,11 @@ public class IntermediateInstruction {
         this.operand_two = operand_two;
         this.insNum = insNum;
         this.availableExpressions = new HashSet<IntermediateInstruction>();
+        if (this.isBranch()){
+            branchHandled = false;
+        }
+        this.elim = false;
+        
     }
 
     @Override

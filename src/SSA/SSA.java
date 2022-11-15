@@ -90,7 +90,10 @@ public class SSA implements NodeVisitor{
     }
 
     public void removeBB(BasicBlock BB){
-        BasicBlockList.remove(BB);
+        if (BB.name().contains("elim")){
+            return;
+        }
+        BB.putName(BB.name() + " elim");
     }
 
     /**
@@ -782,7 +785,10 @@ public class SSA implements NodeVisitor{
             node.returnValue().accept(this);
             currentBB.add(new IntermediateInstruction(SSAOperator.RET, node.returnValue().getOperand(currentBB.varMap), null, BasicBlock.insNumber));
         }
-        currentBB.add(new IntermediateInstruction(SSAOperator.RET, null, null, BasicBlock.insNumber));
+        else{
+            currentBB.add(new IntermediateInstruction(SSAOperator.RET, null, null, BasicBlock.insNumber));
+
+        }
 
     }
 
@@ -799,7 +805,6 @@ public class SSA implements NodeVisitor{
         if (currentBB.name().equals("main")){
             HashSet<Symbol> newHash = new HashSet<Symbol>();
             if (node.symbol().getSymbolType().equals("arr")){
-                System.out.println("here");
                 newHash.add(new Symbol(node.symbol().name(), node.symbol().type().toString(), node.symbol().getSymbolType(), 1));
             }
             else{ 

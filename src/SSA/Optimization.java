@@ -29,11 +29,11 @@ public class Optimization {
                 // run all of them
                 // maybe have each of them return a boolean value that indicates whether or not there were code changes? 
                 change |= constantPropagation();
-                //change = constantFolding();
+                change |= constantFolding();
                 change |= copyPropagation();
                 change |= commonSubexpressionElimination();
                 //change = deadCodeElimination(); 
-                //change = orphanFunctionElimination();
+                change |= orphanFunctionElimination();
             }
 
         }
@@ -47,8 +47,8 @@ public class Optimization {
                         case "cp": 
                             change |= constantPropagation();
                             break;
-                        case "cf": 
-                            //change |= constantFolding();
+                        case "cf":
+                            change |= constantFolding();
                             break;
                         case "cpp": 
                             change |= copyPropagation();
@@ -61,6 +61,9 @@ public class Optimization {
                             break;
                         case "ofe": 
                             change |= orphanFunctionElimination();
+                            break; 
+                        case "as": 
+                            change |= arithmeticSimplification();
                             break; 
                         case "max":
                             break;
@@ -93,7 +96,7 @@ public class Optimization {
             isFloatLit(opnd) && ((FloatLiteral) opnd).valueAsFloat() == num;
     }
 
-    public void arithmeticSimplification(){
+    public boolean arithmeticSimplification(){
         // replace mul by add 
         // remove arithmetic identity
         // resolve self-subtraction, self-division
@@ -101,13 +104,15 @@ public class Optimization {
 
         // switch case on different expression types 
         // ex: if multiplication and either of the operands are 0, then replace with 0
-
+        boolean change = false;
         for (BasicBlock bb : ssa.getBasicBlockList()) {
+            if (bb.name().contains("elim")){continue;}
             for (IntermediateInstruction i : bb.getIntInsList()) {
+                if (i.elim){continue;}
                 Operand opnd1 = i.getOperandOne();
                 Operand opnd2 = i.getOperandTwo();
                 // continue if both operands are constants (should be taken care of in const. folding)
-                if (isConst(opnd1) && opnd2 != null && isConst(opnd2)) { continue; }
+                //if (isConst(opnd1) && opnd2 != null && isConst(opnd2)) { continue; }
                 switch (i.getOperator()) {
                     // case NOT:
                         // TODO: move to const folding
@@ -126,10 +131,12 @@ public class Optimization {
                             i.putOperator(SSAOperator.NONE);
                             i.putOperandOne(i.getOperandTwo());
                             i.putOperandTwo(null);
+                            change = true;
                         }
                         else if (numericOpndEquals(opnd2, 0)) {
                             i.putOperator(SSAOperator.NONE);
                             i.putOperandTwo(null);
+                            change = true;
                         }
                         // else if (isFloatLit(opnd1) && ((FloatLiteral) opnd1).valueAsFloat() == 0) {
                         //     i.putOperator(SSAOperator.NONE);
@@ -145,6 +152,7 @@ public class Optimization {
                         if (numericOpndEquals(opnd2, 0)) {
                             i.putOperator(SSAOperator.NONE);
                             i.putOperandTwo(null);
+                            change = true;
                         }
                         // else if (isFloatLit(opnd2) && ((FloatLiteral) opnd2).valueAsFloat() == 0) {
                         //     i.putOperator(SSAOperator.NONE);
@@ -155,6 +163,7 @@ public class Optimization {
                             Operand newOpnd = isIntLit(opnd1) ? (new IntegerLiteral(-1, -1, "0")) : (new FloatLiteral(-1, -1, "0.0"));
                             i.putOperandOne(newOpnd);
                             i.putOperandTwo(null);
+                            change = true;
                         }
                         break;
                     case MUL:
@@ -163,23 +172,28 @@ public class Optimization {
                             Operand newOpnd = isIntLit(opnd1) ? (new IntegerLiteral(-1, -1, "0")) : (new FloatLiteral(-1, -1, "0.0"));
                             i.putOperandOne(newOpnd);
                             i.putOperandTwo(null);
+                            change = true;
                         }
                         else if (numericOpndEquals(opnd1, 1)) {
                             i.putOperator(SSAOperator.NONE);
                             i.putOperandOne(i.getOperandTwo());
                             i.putOperandTwo(null);
+                            change = true;
                         }
                         else if (numericOpndEquals(opnd2, 1)) {
                             i.putOperator(SSAOperator.NONE);
                             i.putOperandTwo(null);
+                            change = true; 
                         }
                         else if (numericOpndEquals(opnd1, 2)) {
                             i.putOperator(SSAOperator.ADD);
                             i.putOperandOne(i.getOperandTwo());
+                            change = true;
                         }
                         else if (numericOpndEquals(opnd2, 2)) {
                             i.putOperator(SSAOperator.ADD);
                             i.putOperandTwo(i.getOperandOne());
+                            change = true;
                         }
                     break;
                     case DIV:
@@ -188,16 +202,19 @@ public class Optimization {
                             Operand newOpnd = isIntLit(opnd1) ? (new IntegerLiteral(-1, -1, "0")) : (new FloatLiteral(-1, -1, "0.0"));
                             i.putOperandOne(newOpnd);
                             i.putOperandTwo(null);
+                            change = true; 
                         }
                         else if (numericOpndEquals(opnd2, 1)) {
                             i.putOperator(SSAOperator.NONE);
                             i.putOperandTwo(null);
+                            change = true;
                         }
                         else if (!isConst(opnd1) && !isConst(opnd2) && opnd1 == opnd2) {
                             i.putOperator(SSAOperator.NONE);
                             Operand newOpnd = isIntLit(opnd1) ? (new IntegerLiteral(-1, -1, "1")) : (new FloatLiteral(-1, -1, "1.0"));
                             i.putOperandOne(newOpnd);
                             i.putOperandTwo(null);
+                            change = true;
                         }
                         break;
                     case MOD:
@@ -210,6 +227,8 @@ public class Optimization {
                 }
             }
         }
+
+        return change;
 
     }
 
@@ -232,8 +251,11 @@ public class Optimization {
             generateAvailableExpresssion(ssa);
             change = false;
             for (BasicBlock bb : ssa.getBasicBlockList()){
+                if (bb.name().contains("elim")){continue;}
                 for (IntermediateInstruction ii : bb.getIntInsList()){
+                    if (ii.elim){continue;}
                     for (IntermediateInstruction iiAvail : ii.availableExpressions){
+                        if (iiAvail.elim){continue;}
                         if (iiAvail.getOperator() == SSAOperator.MOVE){
                             if (iiAvail.getOperandOne() instanceof FloatLiteral || iiAvail.getOperandOne() instanceof BoolLiteral || iiAvail.getOperandOne() instanceof IntegerLiteral){
                                 // only replace the RHS of a MOVE!
@@ -269,6 +291,22 @@ public class Optimization {
                                         }
                                     }
                                 }
+                                else{ 
+                                    if (ii.getOperator() != SSAOperator.PHI){
+                                        if (ii.getOperandOne() instanceof InstructionNumber){
+                                            if (((InstructionNumber) ii.getOperandOne()).getInstructionNumber() == iiAvail.insNum()){
+                                                ii.setOperandOne(iiAvail.getOperandOne());
+                                                change = true;
+                                            }
+                                        }
+                                        if (ii.getOperandTwo() instanceof InstructionNumber){
+                                            if (((InstructionNumber) ii.getOperandTwo()).getInstructionNumber() == iiAvail.insNum()){
+                                                ii.putOperandTwo(iiAvail.getOperandOne());
+                                                change = true;
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -282,16 +320,277 @@ public class Optimization {
         return false; // If there was just one loop, then there was no code change
     }
 
+
+    public boolean isParent(BasicBlock parentBB, BasicBlock childBB){
+        List<BasicBlock> checked = new ArrayList<BasicBlock>();
+        List<BasicBlock> toCheck = new ArrayList<BasicBlock>();
+        BasicBlock bb;
+        toCheck.add(parentBB);
+
+        while (toCheck.size() != 0 ){
+            bb = toCheck.get(0);
+            toCheck.remove(bb);
+
+            for (Transitions t : bb.transitionList){
+                if (t.label.contains("elim")){continue;}
+                if (t.toBB.equals(childBB)){
+                    return true;
+                }
+                if (!checked.contains(t.toBB)){
+                    toCheck.add(t.toBB);
+                }
+            }
+            checked.add(bb);
+        }
+
+        return false;
+    }
+    public boolean checkIfElseBlock(BasicBlock parentBB){
+        BasicBlock thenBlock = null;
+        BasicBlock elseBlock = null;
+        // if the then is a parent of parentbb + 2, then there is no else
+        for (Transitions t : parentBB.transitionList){
+            if (t.label.contains("elim")){continue;}
+            if (t.label.equals("then")){
+                thenBlock = t.toBB;  
+            }
+            if (t.label.equals("else")){
+                elseBlock = t.toBB;
+            }
+        }
+        
+
+        if (isParent(thenBlock, elseBlock)){
+            return false;
+        }
+        return true;
+    }
+    public void eliminateElse(BasicBlock elsebb, BasicBlock parentbb){
+        
+        List<BasicBlock> toCheck = new ArrayList<BasicBlock>();
+        BasicBlock check;
+
+        if (checkIfElseBlock(parentbb)){
+            toCheck.add(elsebb);
+            while(toCheck.size() != 0){
+                check = toCheck.get(0);
+                for (Transitions t : check.transitionList){
+                    if (t.label.contains("elim")){continue;}
+                    if (t.toBB.BBNumber != elsebb.BBNumber + 1){
+                        toCheck.add(t.toBB);
+                    }
+                }
+                ssa.removeBB(check);
+                toCheck.remove(check);
+            }
+        }
+
+        for (Transitions t : parentbb.transitionList){
+                if (t.label.contains("elim")){continue;}
+                if (t.label.equals("else")){
+                    t.label = "elim else";
+                }
+            }
+    }
+
+    public void eliminateThen(BasicBlock bb){
+        List<BasicBlock> toCheck = new ArrayList<BasicBlock>();
+        BasicBlock check;
+        int joinBlockNumber = 2; 
+
+        if (!checkIfElseBlock(bb)){
+            joinBlockNumber = 1;
+        }
+
+        BasicBlock thenBlock = null;
+        for (Transitions t : bb.transitionList){
+            if (t.label.contains("elim")){continue;}
+            if (t.label.equals("then")){
+                thenBlock = t.toBB;
+            }
+        }
+
+        if (thenBlock != null){
+            toCheck.add(thenBlock);
+            while(toCheck.size() != 0){
+                check = toCheck.get(0);
+                for (Transitions t : check.transitionList){
+                    if (t.label.contains("elim")){continue;}
+                    if (t.toBB.BBNumber > thenBlock.BBNumber + joinBlockNumber){
+                        toCheck.add(t.toBB);
+                    }
+                }
+                ssa.removeBB(check);
+                toCheck.remove(check);
+            }
+        }
+
+        for (Transitions t : bb.transitionList){
+            if (t.label.contains("elim")){continue;}
+            if (t.label.equals("then")){
+                t.label = "elim then";
+            }
+        }
+
+    }
     // Max
-    public void constantFolding(){
+    public boolean constantFolding(){
         // fold constant expression 
         // for folding relations: 
         // remove unreachable code here
-
+        boolean change = false;
         for (BasicBlock bb : ssa.getBasicBlockList()) {
+            if (bb.name().contains("elim")){continue;}
             for (IntermediateInstruction i : bb.getIntInsList()) {
+                if (i.elim){continue;}
                 Operand opnd1 = i.getOperandOne();
                 Operand opnd2 = i.getOperandTwo();
+                // branches can have just one constant operator & still need to be folded:
+                if (i.isBranch() && isConst(opnd1) && i.branchHandled == false){
+                    switch (i.getOperator()){
+                        case BEQ:
+                            if (isIntLit(opnd1)){
+                                if (((IntegerLiteral) opnd1).valueAsInt() != 0){
+                                    change = true;
+                                    eliminateElse(((BasicBlock) opnd2), bb);
+                                }
+                                else{
+                                    change = true; 
+                                    eliminateThen(bb);
+                                }
+                            }
+                            else if (isFloatLit(opnd1)){
+                                if (((FloatLiteral) opnd1).valueAsFloat() != 0){
+                                    change = true;
+                                    eliminateElse(((BasicBlock) opnd2), bb);
+                                }
+                                else{ 
+                                    change = true;
+                                    eliminateThen(bb);
+                                }
+                            }
+                            i.branchHandled = true;
+                            break;
+                        case BGE:
+                            if (isIntLit(opnd1)){
+                                if (((IntegerLiteral) opnd1).valueAsInt() < 0){
+                                    change = true;
+                                    eliminateElse(((BasicBlock) opnd2), bb);
+                                }
+                                else{ 
+                                    change = true;
+                                    eliminateThen(bb);
+                                }
+                            }
+                            else if (isFloatLit(opnd1)){
+                                if (((FloatLiteral) opnd1).valueAsFloat() < 0){
+                                    change = true;
+                                    eliminateElse(((BasicBlock) opnd2), bb);
+                                }
+                                else{
+                                    change = true; 
+                                    eliminateThen(bb);
+                                }
+                            }
+                            i.branchHandled = true;
+                            break;
+                        case BGT:
+                            if (isIntLit(opnd1)){
+                                if (((IntegerLiteral) opnd1).valueAsInt() <= 0){
+                                    change = true;
+                                    eliminateElse(((BasicBlock) opnd2), bb);
+                                }
+                                else{
+                                    change = true; 
+                                    eliminateThen(bb);
+                                }
+                            }
+                            else if (isFloatLit(opnd1)){
+                                if (((FloatLiteral) opnd1).valueAsFloat() <= 0){
+                                    change = true;
+                                    eliminateElse(((BasicBlock) opnd2), bb);
+                                }
+                                else{ 
+                                    change = true;
+                                    eliminateThen(bb);
+                                }
+                            }
+                            i.branchHandled = true;
+                            break;
+                        case BLE:
+                            if (isIntLit(opnd1)){
+                                if (((IntegerLiteral) opnd1).valueAsInt() > 0){
+                                    change = true;
+                                    eliminateElse(((BasicBlock) opnd2), bb);
+                                }
+                                else{ 
+                                    change = true;
+                                    eliminateThen(bb);
+                                }
+                            }
+                            else if (isFloatLit(opnd1)){
+                                if (((FloatLiteral) opnd1).valueAsFloat() > 0){
+                                    change = true;
+                                    eliminateElse(((BasicBlock) opnd2), bb);
+                                }
+                                else{ 
+                                    change = true;
+                                    eliminateThen(bb);
+                                }
+                            }
+                            i.branchHandled = true;
+                            break;
+                        case BLT:
+                            if (isIntLit(opnd1)){
+                                if (((IntegerLiteral) opnd1).valueAsInt() >= 0){
+                                    change = true;
+                                    eliminateElse(((BasicBlock) opnd2), bb);
+                                }
+                                else{ 
+                                    change = true;
+                                    eliminateThen(bb);
+                                }
+                            }
+                            else if (isFloatLit(opnd1)){
+                                if (((FloatLiteral) opnd1).valueAsFloat() >= 0){
+                                    change = true;
+                                    eliminateElse(((BasicBlock) opnd2), bb);
+                                }
+                                else{ 
+                                    change = true;
+                                    eliminateThen(bb);
+                                }
+                            }
+                            i.branchHandled = true;
+                            break;
+                        case BNE:
+                            if (isIntLit(opnd1)){
+                                if (((IntegerLiteral) opnd1).valueAsInt() == 0){
+                                    change = true;
+                                    eliminateElse(((BasicBlock) opnd2), bb);
+                                }
+                                else{ 
+                                    change = true;
+                                    eliminateThen(bb);
+                                }
+                            }
+                            else if (isFloatLit(opnd1)){
+                                if (((FloatLiteral) opnd1).valueAsFloat() == 0){
+                                    change = true;
+                                    eliminateElse(((BasicBlock) opnd2), bb);
+                                }
+                                else{ 
+                                    change = true;
+                                    eliminateThen(bb);
+                                }
+                            }
+                            i.branchHandled = true;
+                            break;
+                        default: 
+                            break;
+                        }
+                }
+
                 // continue if either operands is non-constant
                 if (!(isConst(opnd1) && opnd2 != null && isConst(opnd2))) { continue; }
                 switch (i.getOperator()) {
@@ -299,6 +598,7 @@ public class Optimization {
                         if (isBoolLit(opnd1)){
                             Boolean not = !((BoolLiteral) opnd1).valueAsBool();
                             BoolLiteral boolLit = new BoolLiteral(-1, -1, not.toString());
+                            change = true;
                             i.putOperandOne(boolLit);
                         }
                         i.putOperator(SSAOperator.NONE);
@@ -314,6 +614,7 @@ public class Optimization {
                         if (isBoolLit(opnd1)){
                             Boolean and = ((BoolLiteral) opnd1).valueAsBool() && ((BoolLiteral) opnd2).valueAsBool();
                             BoolLiteral boolLit = new BoolLiteral(-1, -1, and.toString());
+                            change = true;
                             i.putOperandOne(boolLit);
                         }
                         break;
@@ -321,6 +622,7 @@ public class Optimization {
                         if (isBoolLit(opnd1)){
                             Boolean or = ((BoolLiteral) opnd1).valueAsBool() && ((BoolLiteral) opnd2).valueAsBool();
                             BoolLiteral boolLit = new BoolLiteral(-1, -1, or.toString());
+                            change = true;
                             i.putOperandOne(boolLit);
                         }
                         break;
@@ -329,11 +631,13 @@ public class Optimization {
                         if (isIntLit(opnd1)) {
                             Integer sum = ((IntegerLiteral) opnd1).valueAsInt() + ((IntegerLiteral) opnd2).valueAsInt();
                             IntegerLiteral intLit = new IntegerLiteral(-1, -1, Integer.toString(sum));
+                            change = true;
                             i.putOperandOne(intLit);
                         }
                         else if (isFloatLit(opnd1)) {
                             Float sum = ((FloatLiteral) opnd1).valueAsFloat() + ((FloatLiteral) opnd2).valueAsFloat();
                             FloatLiteral intLit = new FloatLiteral(-1, -1, Float.toString(sum));
+                            change = true;
                             i.putOperandOne(intLit);
                         }
                         i.putOperator(SSAOperator.NONE);
@@ -343,11 +647,13 @@ public class Optimization {
                         if (isIntLit(opnd1)) {
                             Integer sum = ((IntegerLiteral) opnd1).valueAsInt() - ((IntegerLiteral) opnd2).valueAsInt();
                             IntegerLiteral intLit = new IntegerLiteral(-1, -1, Integer.toString(sum));
+                            change = true;
                             i.putOperandOne(intLit);
                         }
                         else if (isFloatLit(opnd1)) {
                             Float sum = ((FloatLiteral) opnd1).valueAsFloat() - ((FloatLiteral) opnd2).valueAsFloat();
                             FloatLiteral intLit = new FloatLiteral(-1, -1, Float.toString(sum));
+                            change = true;
                             i.putOperandOne(intLit);
                         }
                         i.putOperator(SSAOperator.NONE);
@@ -357,11 +663,13 @@ public class Optimization {
                         if (isIntLit(opnd1)) {
                             Integer sum = ((IntegerLiteral) opnd1).valueAsInt() * ((IntegerLiteral) opnd2).valueAsInt();
                             IntegerLiteral intLit = new IntegerLiteral(-1, -1, Integer.toString(sum));
+                            change = true;
                             i.putOperandOne(intLit);
                         }
                         else if (isFloatLit(opnd1)) {
                             Float sum = ((FloatLiteral) opnd1).valueAsFloat() * ((FloatLiteral) opnd2).valueAsFloat();
                             FloatLiteral intLit = new FloatLiteral(-1, -1, Float.toString(sum));
+                            change = true;
                             i.putOperandOne(intLit);
                         }
                         i.putOperator(SSAOperator.NONE);
@@ -371,11 +679,13 @@ public class Optimization {
                         if (isIntLit(opnd1)) {
                             Integer sum = ((IntegerLiteral) opnd1).valueAsInt() / ((IntegerLiteral) opnd2).valueAsInt();
                             IntegerLiteral intLit = new IntegerLiteral(-1, -1, Integer.toString(sum));
+                            change = true;
                             i.putOperandOne(intLit);
                         }
                         else if (isFloatLit(opnd1)) {
                             Float sum = ((FloatLiteral) opnd1).valueAsFloat() / ((FloatLiteral) opnd2).valueAsFloat();
                             FloatLiteral intLit = new FloatLiteral(-1, -1, Float.toString(sum));
+                            change = true;
                             i.putOperandOne(intLit);
                         }
                         i.putOperator(SSAOperator.NONE);
@@ -385,11 +695,13 @@ public class Optimization {
                         if (isIntLit(opnd1)) {
                             Integer sum = ((IntegerLiteral) opnd1).valueAsInt() % ((IntegerLiteral) opnd2).valueAsInt();
                             IntegerLiteral intLit = new IntegerLiteral(-1, -1, Integer.toString(sum));
+                            change = true;
                             i.putOperandOne(intLit);
                         }
                         else if (isFloatLit(opnd1)) {
                             Float sum = ((FloatLiteral) opnd1).valueAsFloat() % ((FloatLiteral) opnd2).valueAsFloat();
                             FloatLiteral intLit = new FloatLiteral(-1, -1, Float.toString(sum));
+                            change = true;
                             i.putOperandOne(intLit);
                         }
                         i.putOperator(SSAOperator.NONE);
@@ -398,28 +710,26 @@ public class Optimization {
                     case POW:
                         Integer sum = (int) Math.pow(((IntegerLiteral) opnd1).valueAsInt(), ((IntegerLiteral) opnd2).valueAsInt());
                         IntegerLiteral intLit = new IntegerLiteral(-1, -1, Integer.toString(sum));
+                        change = true;
                         i.putOperandOne(intLit);
                         i.putOperator(SSAOperator.NONE);
                         i.putOperandTwo(null);
                         break;
-                    // TODO: 
-                    case BEQ:
-                        break;
-                    case BGE:
-                        break;
-                    case BGT:
-                        break;
-                    case BLE:
-                        break;
-                    case BLT:
-                        break;
-                    case BNE:
-                        if (((BoolLiteral) opnd1).valueAsBool()) {
-                            // Branch taken
+                    case CMP: 
+                        if (isIntLit(opnd1)) {
+                            Integer cmp = ((IntegerLiteral) opnd1).valueAsInt() - ((IntegerLiteral) opnd2).valueAsInt();
+                            IntegerLiteral intLiteral = new IntegerLiteral(-1, -1, Integer.toString(cmp));
+                            change = true;
+                            i.putOperandOne(intLiteral);
                         }
-                        else {
-                            // Branch untakens
+                        else if (isFloatLit(opnd1)) {
+                            Float cmp = ((FloatLiteral) opnd1).valueAsFloat() - ((FloatLiteral) opnd2).valueAsFloat();
+                            FloatLiteral floatLit = new FloatLiteral(-1, -1, Float.toString(cmp));
+                            change = true;
+                            i.putOperandOne(floatLit);
                         }
+                        i.putOperator(SSAOperator.NONE);
+                        i.putOperandTwo(null);
                         break;
                     default:
                         break;
@@ -427,6 +737,7 @@ public class Optimization {
                 }
             }
         }
+        return change;
     }
 
     // Emory 
@@ -439,8 +750,11 @@ public class Optimization {
             generateAvailableExpresssion(ssa);
             change = false;
             for (BasicBlock bb : ssa.getBasicBlockList()){
+                if (bb.name().contains("elim")){continue;}
                 for (IntermediateInstruction ii : bb.getIntInsList()){
+                    if (ii.elim){continue;}
                     for (IntermediateInstruction iiAvail : ii.availableExpressions){
+                        if (iiAvail.elim){continue;}
                         if (iiAvail.getOperator() == SSAOperator.MOVE){
                             if (iiAvail.getOperandOne() instanceof Symbol){
                                 // only replace the RHS of a MOVE!
@@ -476,6 +790,20 @@ public class Optimization {
                                         }
                                     }
                                 }
+                                else{ 
+                                    if (ii.getOperator() != SSAOperator.PHI){
+                                        if (ii.getOperandOne() instanceof InstructionNumber){
+                                            if (((InstructionNumber) ii.getOperandOne()).getInstructionNumber() == iiAvail.insNum()){
+                                                ii.setOperandOne(iiAvail.getOperandOne());
+                                                change = true;
+                                            }
+                                            else if (((InstructionNumber) ii.getOperandTwo()).getInstructionNumber() == iiAvail.insNum()){
+                                                ii.putOperandTwo(iiAvail.getOperandOne());
+                                                change = true;
+                                            }
+                                        }
+                                    }
+                                }
                             }
                         }
                     }
@@ -500,7 +828,9 @@ public class Optimization {
             generateAvailableExpresssion(ssa);
             change = false;
             for (BasicBlock bb : ssa.getBasicBlockList()){
+                if (bb.name().contains("elim")){continue;}
                 for (IntermediateInstruction ii : bb.getIntInsList()){
+                    if (ii.elim){continue;}
                     // check the toReplace Hash Set for each instruction: 
                     for (int op : toReplace.keySet()){
                         if (ii.getOperandOne() instanceof InstructionNumber){
@@ -517,6 +847,7 @@ public class Optimization {
                         }
                     }
                     for (IntermediateInstruction iiAvail : ii.availableExpressions){
+                        if (iiAvail.elim){continue;}
                         if (!iiAvail.conflicts(ii)){
                             if (iiAvail.getOperator() != SSAOperator.MOVE){
                                 if (ii.insNum() > iiAvail.insNum()){
@@ -559,40 +890,48 @@ public class Optimization {
     // Emory
     public boolean orphanFunctionElimination(){
         // need to add functionality to skip over eliminated lines
+        boolean change = false;
         List<String> calledFunctions = new ArrayList<String>();
         calledFunctions.add("main");
         List<BasicBlock> toRemove = new ArrayList<BasicBlock>();
         List<BasicBlock> toCheck = new ArrayList<BasicBlock>();
 
         for(BasicBlock bb : ssa.getBasicBlockList()){
+            if (bb.name().contains("elim")){continue;}
             for (IntermediateInstruction ii : bb.getIntInsList()){
+                if (ii.elim){continue;}
                 if (ii.getOperator() == SSAOperator.CALL){
                     calledFunctions.add(ii.getFuncName());
                 }
             }
         }
         for (BasicBlock bb : ssa.getBasicBlockList()){
-            if (!calledFunctions.contains(bb.name())){
+            if (bb.name().contains("elim")){continue;}
+            if (!(bb.name().equals("") || bb.name().equals("elim")) && !calledFunctions.contains(bb.name())){
                 // now we need to remove the orphan function 
                 toRemove.add(bb);
+                toCheck.add(bb);
 
                 while(toCheck.size() != 0){
                     BasicBlock checkBB = toCheck.get(0);
                     for (Transitions t : checkBB.transitionList){
+                        if (t.label.contains("elim")){continue;}
                         if (!t.label.contains("call") && !toRemove.contains(t.toBB)){
                             toRemove.add(t.toBB);
                             toCheck.add(t.toBB);
                         }
                     }
+                    toCheck.remove(checkBB);
                 } 
             }
         }
         while(toRemove.size() != 0){
+            change = true;
             ssa.removeBB(toRemove.get(0));
             toRemove.remove(0);
         }
 
-        return false;
+        return change;
     }
 
     public void generateAvailableExpressionForBB(Set<IntermediateInstruction> entrySet, BasicBlock bb){
@@ -620,12 +959,14 @@ public class Optimization {
         List<IntermediateInstruction> toRemove = new ArrayList<IntermediateInstruction>();
 
         for (IntermediateInstruction ii : bb.getIntInsList()){
+            if (ii.elim){continue;}
             ii.availableExpressions.clear();
             ii.availableExpressions.addAll(availableExpressions);
             // If there is a move instruction, then we need to remove elements from the set
             if (ii.getOperator() == SSAOperator.MOVE){
                 toRemove.clear();
                 for (IntermediateInstruction iiAvail : availableExpressions){
+                    if (iiAvail.elim){continue;}
                     if (iiAvail.containsOperand(ii.getOperandTwo())){
                         toRemove.add(iiAvail);
                     }
@@ -669,10 +1010,7 @@ public class Optimization {
             }
             
             visited.remove(bb);
-            //System.out.println("bb " + bb);
-            //System.out.println("bbList " + bbList);
-            //System.out.println("visited " + visited);
-
+    
             if (bb.getIntInsList().size() != 0){
                 if (bb.getIntInsList().get(bb.getIntInsList().size() - 1).availableExpressions.size() == 0){
                     change = true;
@@ -681,14 +1019,19 @@ public class Optimization {
             }
 
             for (Transitions t : bb.transitionList){
+                if (t.label.contains("elim") || t.toBB.name().contains("elim")){
+                    //bbList.add(bb);
+                    bbList.add(t.toBB);
+                    bbList.add(bb);
+                    visited.remove(t.toBB);
+                    continue;
+                }
                 if (t.label.contains("call")){
-                    //System.out.println("call " + t.label);
                     generateAvailableExpressionForBB(new HashSet<IntermediateInstruction>(), t.toBB);
                     bbList.add(t.toBB);
                     visited.remove(t.toBB);
                     continue;
                 }
-                //bbList.add(t.toBB);
 
                 if (t.toBB.getIntInsList().get(0).availableExpressions.size() == 0){
                     // If not, then just instantiate it with the avail expression set of the parent's last instruction 
@@ -699,7 +1042,9 @@ public class Optimization {
                 else{ //Need to do an intersection - complexity increased by subscripts of variables
                     Set<IntermediateInstruction> intersection = new HashSet<IntermediateInstruction>();
                     for (IntermediateInstruction iiParent : bb.exitAvailableExpression){
+                        if (iiParent.elim){continue;}
                         for (IntermediateInstruction iiChild : t.toBB.getIntInsList().get(0).availableExpressions){
+                            if (iiChild.elim){continue;}
                             if (!iiChild.conflicts(iiParent)){
                                 intersection.add(iiChild);
                             }
@@ -707,9 +1052,8 @@ public class Optimization {
                     }
 
                     if (!t.toBB.getIntInsList().get(0).availableExpressions.equals(intersection)){
-                        bbList.remove(t.toBB);
-                        //bbList.add(1, t.toBB);
-                        bbList.add(0, t.toBB);
+                        bbList.remove(bb);
+                        bbList.add(0, bb);
                         change = true;
                     }
                     t.toBB.getIntInsList().get(0).availableExpressions.clear();
@@ -722,6 +1066,5 @@ public class Optimization {
             }
         }
     }
-
 }
 
