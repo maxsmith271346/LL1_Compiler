@@ -147,6 +147,7 @@ public class BasicBlock implements Operand {
     /*public void addFront(IntermediateInstruction intIns) {
         this.IntermediateInstructionList.add(0, intIns);
     }*/
+    
 
     public List<IntermediateInstruction> getIntInsList(){
         return IntermediateInstructionList;

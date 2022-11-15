@@ -31,7 +31,7 @@ public class IRVisualizer {
                 if (intIns.getOperator().equals(SSAOperator.CALL)){
                     dotGraph.append("<c" + intIns.getFuncName() + intIns.insNum() +  ">");
                 }
-                dotGraph.append(intIns.insNum() + " : " + intIns.availableExpressions + " " + intIns.toString() + "|");
+                dotGraph.append(intIns.insNum() + " : " + intIns.toString() + "|");
                 currentLineNum++;
             }
             exitBasicBlock();
