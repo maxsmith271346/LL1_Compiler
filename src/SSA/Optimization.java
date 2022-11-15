@@ -22,17 +22,18 @@ public class Optimization {
     }
 
     public void runUntilConvergence(List<String> optArguments){
-        if (optArguments.size() == 1){
+        if (optArguments.size() == 0){
             boolean change = true; 
             while(change){
+                change = false; 
                 // run all of them
                 // maybe have each of them return a boolean value that indicates whether or not there were code changes? 
-                /*change = constantPropagation();
-                change = constantFolding();
-                change = copyPropagation();
-                change = commonSubexpressionElimination();
-                change = deadCodeElimination(); 
-                change = orphanFunctionElimination();*/
+                change |= constantPropagation();
+                //change = constantFolding();
+                change |= copyPropagation();
+                change |= commonSubexpressionElimination();
+                //change = deadCodeElimination(); 
+                //change = orphanFunctionElimination();
             }
 
         }
@@ -40,25 +41,26 @@ public class Optimization {
             // only iterate through the requested optimizations
             boolean change = true;
             while(change){
+                change = false;
                 for (String opt : optArguments){
                     switch(opt){
                         case "cp": 
-                            //change = constantPropagation();
+                            change |= constantPropagation();
                             break;
                         case "cf": 
-                            //change = constantFolding();
+                            //change |= constantFolding();
                             break;
                         case "cpp": 
-                            //change = copyPropagation();
+                            change |= copyPropagation();
                             break;
                         case "cse": 
-                            //change = commonSubexpressionElimination();
+                            change |= commonSubexpressionElimination();
                             break;
                         case "dce":
-                            //change = deadCodeElimination(); 
+                            //change |= deadCodeElimination(); 
                             break;
                         case "ofe": 
-                            //change = orphanFunctionElimination();
+                            change |= orphanFunctionElimination();
                             break; 
                         case "max":
                             break;
@@ -220,11 +222,13 @@ public class Optimization {
     }
 
     // Emory
-    public void constantPropagation(){
+    public boolean constantPropagation(){
         // available expression analysis
         //generateAvailableExpresssion(ssa);
         boolean change = true;
+        int loops = 0;
         while(change){
+            loops++;
             generateAvailableExpresssion(ssa);
             change = false;
             for (BasicBlock bb : ssa.getBasicBlockList()){
@@ -255,13 +259,27 @@ public class Optimization {
                                 }
                             }
                         }
+                        else if(iiAvail.getOperator() == SSAOperator.NONE){
+                            if (isConst(iiAvail.getOperandOne())){
+                                if (ii.getOperator() == SSAOperator.MOVE){
+                                    if (ii.getOperandOne() instanceof InstructionNumber){
+                                        if (((InstructionNumber) ii.getOperandOne()).getInstructionNumber() == iiAvail.insNum()){
+                                            ii.setOperandOne(iiAvail.getOperandOne());
+                                            change = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
 
-        
-
+        if (loops > 1){ // If there was more than one loop, then there was a code change
+            return true;
+        }
+        return false; // If there was just one loop, then there was no code change
     }
 
     // Max
@@ -277,7 +295,15 @@ public class Optimization {
                 // continue if either operands is non-constant
                 if (!(isConst(opnd1) && opnd2 != null && isConst(opnd2))) { continue; }
                 switch (i.getOperator()) {
-                    // case NOT:
+                    case NOT:
+                        if (isBoolLit(opnd1)){
+                            Boolean not = !((BoolLiteral) opnd1).valueAsBool();
+                            BoolLiteral boolLit = new BoolLiteral(-1, -1, not.toString());
+                            i.putOperandOne(boolLit);
+                        }
+                        i.putOperator(SSAOperator.NONE);
+                        i.putOperandTwo(null);
+                        break;
                         // TODO: move to const folding
                         // Operand opnd = i.getOperandOne();
                         // if (isConst(opnd)) {
@@ -285,8 +311,18 @@ public class Optimization {
                         // }
                         // break;
                     case AND:
+                        if (isBoolLit(opnd1)){
+                            Boolean and = ((BoolLiteral) opnd1).valueAsBool() && ((BoolLiteral) opnd2).valueAsBool();
+                            BoolLiteral boolLit = new BoolLiteral(-1, -1, and.toString());
+                            i.putOperandOne(boolLit);
+                        }
                         break;
                     case OR:
+                        if (isBoolLit(opnd1)){
+                            Boolean or = ((BoolLiteral) opnd1).valueAsBool() && ((BoolLiteral) opnd2).valueAsBool();
+                            BoolLiteral boolLit = new BoolLiteral(-1, -1, or.toString());
+                            i.putOperandOne(boolLit);
+                        }
                         break;
 
                     case ADD:
@@ -394,10 +430,12 @@ public class Optimization {
     }
 
     // Emory 
-    public void copyPropagation(){
+    public boolean copyPropagation(){
         // available expression analysis
         boolean change = true;
+        int loops = 0;
         while(change){
+            loops++;
             generateAvailableExpresssion(ssa);
             change = false;
             for (BasicBlock bb : ssa.getBasicBlockList()){
@@ -428,17 +466,36 @@ public class Optimization {
                                 }
                             }
                         }
+                        else if(iiAvail.getOperator() == SSAOperator.NONE){
+                            if (iiAvail.getOperandOne() instanceof Symbol){
+                                if (ii.getOperator() == SSAOperator.MOVE){
+                                    if (ii.getOperandOne() instanceof InstructionNumber){
+                                        if (((InstructionNumber) ii.getOperandOne()).getInstructionNumber() == iiAvail.insNum()){
+                                            ii.setOperandOne(iiAvail.getOperandOne());
+                                            change = true;
+                                        }
+                                    }
+                                }
+                            }
+                        }
                     }
                 }
             }
         }
+
+        if (loops > 1){ // If there was more than one loop, then there was a code change
+            return true;
+        }
+        return false; // If there was just one loop, then there was no code change
     }
        
     // Emory 
-    public void commonSubexpressionElimination(){
+    public boolean commonSubexpressionElimination(){
         // available expression analysis
         boolean change = true;
+        int loops = 0;
         while(change){
+            loops++;
             HashMap<Integer, Integer> toReplace = new HashMap<Integer, Integer>();
             generateAvailableExpresssion(ssa);
             change = false;
@@ -448,11 +505,13 @@ public class Optimization {
                     for (int op : toReplace.keySet()){
                         if (ii.getOperandOne() instanceof InstructionNumber){
                             if (((InstructionNumber) ii.getOperandOne()).getInstructionNumber() == op){
+                                change = true;
                                 ii.putOperandOne(new InstructionNumber(toReplace.get(op)));
                          }
                         }
                         if (ii.getOperandTwo() instanceof InstructionNumber){
                             if (((InstructionNumber) ii.getOperandTwo()).getInstructionNumber() == op){
+                                change = true;
                                 ii.putOperandTwo(new InstructionNumber(toReplace.get(op)));
                             }
                         }
@@ -475,7 +534,10 @@ public class Optimization {
                         if (iiAvail.getOperator() == SSAOperator.MOVE && ii.getOperator() == SSAOperator.MOVE){
                             if (iiAvail.getOperandOne() instanceof InstructionNumber && ii.getOperandOne() instanceof InstructionNumber){
                                 if(((InstructionNumber) iiAvail.getOperandOne()).getInstructionNumber() == ((InstructionNumber) ii.getOperandOne()).getInstructionNumber()){
-                                    ii.putOperandOne(iiAvail.getOperandTwo());
+                                    if (!ii.getOperandTwo().toString().equals(iiAvail.getOperandTwo().toString())){
+                                        change = true;
+                                        ii.putOperandOne(iiAvail.getOperandTwo());
+                                    }   
                                 }
                             }
                         }
@@ -483,6 +545,10 @@ public class Optimization {
                 }
             }
         }
+        if (loops > 1){ // If there was more than one loop, then there was a code change
+            return true;
+        }
+        return false; // If there was just one loop, then there was no code change
     }
 
     // Max
@@ -490,10 +556,43 @@ public class Optimization {
         // liveness analysis
     }
 
-    // Max
-    public void orphanFunctionElimination(){
-        // global map of whether it was used 
-        // generate this map during ssa gen 
+    // Emory
+    public boolean orphanFunctionElimination(){
+        // need to add functionality to skip over eliminated lines
+        List<String> calledFunctions = new ArrayList<String>();
+        calledFunctions.add("main");
+        List<BasicBlock> toRemove = new ArrayList<BasicBlock>();
+        List<BasicBlock> toCheck = new ArrayList<BasicBlock>();
+
+        for(BasicBlock bb : ssa.getBasicBlockList()){
+            for (IntermediateInstruction ii : bb.getIntInsList()){
+                if (ii.getOperator() == SSAOperator.CALL){
+                    calledFunctions.add(ii.getFuncName());
+                }
+            }
+        }
+        for (BasicBlock bb : ssa.getBasicBlockList()){
+            if (!calledFunctions.contains(bb.name())){
+                // now we need to remove the orphan function 
+                toRemove.add(bb);
+
+                while(toCheck.size() != 0){
+                    BasicBlock checkBB = toCheck.get(0);
+                    for (Transitions t : checkBB.transitionList){
+                        if (!t.label.contains("call") && !toRemove.contains(t.toBB)){
+                            toRemove.add(t.toBB);
+                            toCheck.add(t.toBB);
+                        }
+                    }
+                } 
+            }
+        }
+        while(toRemove.size() != 0){
+            ssa.removeBB(toRemove.get(0));
+            toRemove.remove(0);
+        }
+
+        return false;
     }
 
     public void generateAvailableExpressionForBB(Set<IntermediateInstruction> entrySet, BasicBlock bb){
@@ -513,6 +612,7 @@ public class Optimization {
         opsToAdd.add(SSAOperator.LOAD);
         opsToAdd.add(SSAOperator.STORE);
         opsToAdd.add(SSAOperator.READ);
+        opsToAdd.add(SSAOperator.NONE);
 
         Set<IntermediateInstruction> availableExpressions = new HashSet<IntermediateInstruction>();
         availableExpressions.addAll(entrySet);
@@ -569,7 +669,10 @@ public class Optimization {
             }
             
             visited.remove(bb);
-        
+            //System.out.println("bb " + bb);
+            //System.out.println("bbList " + bbList);
+            //System.out.println("visited " + visited);
+
             if (bb.getIntInsList().size() != 0){
                 if (bb.getIntInsList().get(bb.getIntInsList().size() - 1).availableExpressions.size() == 0){
                     change = true;
@@ -579,16 +682,19 @@ public class Optimization {
 
             for (Transitions t : bb.transitionList){
                 if (t.label.contains("call")){
-                    generateAvailableExpressionForBB(t.toBB.exitAvailableExpression, t.toBB);
+                    //System.out.println("call " + t.label);
+                    generateAvailableExpressionForBB(new HashSet<IntermediateInstruction>(), t.toBB);
+                    bbList.add(t.toBB);
                     visited.remove(t.toBB);
                     continue;
                 }
-                bbList.add(t.toBB);
+                //bbList.add(t.toBB);
 
                 if (t.toBB.getIntInsList().get(0).availableExpressions.size() == 0){
                     // If not, then just instantiate it with the avail expression set of the parent's last instruction 
                     change = true;
                     generateAvailableExpressionForBB(bb.exitAvailableExpression, t.toBB);
+                    bbList.add(t.toBB);
                 }
                 else{ //Need to do an intersection - complexity increased by subscripts of variables
                     Set<IntermediateInstruction> intersection = new HashSet<IntermediateInstruction>();
@@ -602,7 +708,8 @@ public class Optimization {
 
                     if (!t.toBB.getIntInsList().get(0).availableExpressions.equals(intersection)){
                         bbList.remove(t.toBB);
-                        bbList.add(1, t.toBB);
+                        //bbList.add(1, t.toBB);
+                        bbList.add(0, t.toBB);
                         change = true;
                     }
                     t.toBB.getIntInsList().get(0).availableExpressions.clear();
@@ -611,7 +718,7 @@ public class Optimization {
                 }
             }
             if (bbList.size() != 0){
-                bbList.remove(0);
+                bbList.remove(bb);
             }
         }
     }

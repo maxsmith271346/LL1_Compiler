@@ -90,7 +90,7 @@ public class BasicBlock implements Operand {
                 if (intIns.getOperandOne() instanceof Symbol){
                     Symbol operandOneSymbol = (Symbol) intIns.getOperandOne();
                     String opOneName = (operandOneSymbol).name();
-                    if (opOneName.contains("-")){
+                    if (opOneName.contains("-1") || opOneName.contains("-2")){
                         System.out.println("warning: variable " + opOneName.substring(0, opOneName.indexOf("_")) + " has not been initialized!");
                         Symbol newSymbol = new Symbol(operandOneSymbol.name().substring(0, opOneName.indexOf("_")) + "_" + insNumber, operandOneSymbol.type().toString(), "var", operandOneSymbol.scope);
                         intIns.putOperandOne(newSymbol);
@@ -113,7 +113,7 @@ public class BasicBlock implements Operand {
                     if (intIns.getOperandTwo() instanceof Symbol){
                         Symbol operandTwoSymbol = (Symbol) intIns.getOperandTwo();
                         String opTwoName = (operandTwoSymbol).name();
-                        if (opTwoName.contains("-")){
+                        if (opTwoName.contains("-1") || opTwoName.contains("-2")){
                             System.out.println("warning: variable " + opTwoName.substring(0, opTwoName.indexOf("_")) + " has not been initialized!");
                             Symbol newSymbol = new Symbol(operandTwoSymbol.name().substring(0, opTwoName.indexOf("_")) + "_" + insNumber, operandTwoSymbol.type().toString(), "var", operandTwoSymbol.scope);
                             intIns.putOperandTwo(newSymbol);

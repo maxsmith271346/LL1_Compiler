@@ -97,10 +97,14 @@ public class Compiler {
         return ssa;
     }
 
-    public String optimization(List<String> optArguments, Options options){
+    public String optimization(List<String> optArguments, CommandLine cmd){
         System.out.println("optArguments " + optArguments); 
         Optimization optimization = new Optimization(ssa);
 
+        if (cmd.hasOption("max")){
+            optimization.runUntilConvergence(optArguments);
+            return ssa.asDotGraph();
+        }
         for (String opt : optArguments){
             switch(opt){
                 case "cp": 
@@ -121,8 +125,8 @@ public class Compiler {
                 case "ofe": 
                     optimization.orphanFunctionElimination();
                     break; 
-                case "max":
-                    optimization.runUntilConvergence(optArguments);
+                case "as":
+                    optimization.arithmeticSimplification();
                     break;
             }
         }
@@ -746,6 +750,7 @@ public class Compiler {
     private DeclarationList varDecl() {
         int lineNum = lineNumber();
         int charPos = charPosition();
+        String symbolType = "var";
 
         // create a new Declaration List node and fill it with Variable Declarations
         DeclarationList vars = new DeclarationList(lineNum, charPos);
@@ -757,6 +762,7 @@ public class Compiler {
         // moved this from typeDecl since it only returns a Token & this is the only method that calls typeDecl
         while (accept(Kind.OPEN_BRACKET)) {
             dimList.add(expectRetrieve(Kind.INT_VAL).lexeme());
+            symbolType = "arr";
             expect(Kind.CLOSE_BRACKET);
         }
 
@@ -765,7 +771,7 @@ public class Compiler {
             charPos = charPosition();
 
             Token identTok = expectRetrieve(Kind.IDENT);
-            varDec = new VariableDeclaration(lineNum, charPos, typeTok.lexeme(), identTok.lexeme(), 1);
+            varDec = new VariableDeclaration(lineNum, charPos, typeTok.lexeme(), identTok.lexeme(), 1, symbolType);
 
             lineNum = lineNumber();
             charPos = charPosition();

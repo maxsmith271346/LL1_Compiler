@@ -88,6 +88,11 @@ public class SSA implements NodeVisitor{
             }
         }
     }
+
+    public void removeBB(BasicBlock BB){
+        BasicBlockList.remove(BB);
+    }
+
     /**
      * Get the dominance frontier of a control flow graph
      * starting at root
@@ -793,14 +798,20 @@ public class SSA implements NodeVisitor{
         // Global var
         if (currentBB.name().equals("main")){
             HashSet<Symbol> newHash = new HashSet<Symbol>();
-            newHash.add(new Symbol(node.symbol().name() + "_-1", node.symbol().type().toString(), "var", 1));
+            if (node.symbol().getSymbolType().equals("arr")){
+                System.out.println("here");
+                newHash.add(new Symbol(node.symbol().name(), node.symbol().type().toString(), node.symbol().getSymbolType(), 1));
+            }
+            else{ 
+                newHash.add(new Symbol(node.symbol().name() + "_-1", node.symbol().type().toString(), node.symbol().getSymbolType(), 1));
+            }
             currentBB.varMap.put(node.symbol(), newHash);
             //currentBB.varMap.put(node.symbol(), new Symbol(node.symbol().name() + "_-1", node.symbol().type().toString(), "var"));
         }
         // Local var
         else{ 
             HashSet<Symbol> newHash = new HashSet<Symbol>();
-            newHash.add(new Symbol(node.symbol().name() + "_-2", node.symbol().type().toString(), "var", 2));
+            newHash.add(new Symbol(node.symbol().name() + "_-2", node.symbol().type().toString(), node.symbol().getSymbolType(), 2));
             currentBB.varMap.put(node.symbol(), newHash);
         }
         node.symbol().accept(this);
