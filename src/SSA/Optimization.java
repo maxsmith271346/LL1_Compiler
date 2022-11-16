@@ -319,48 +319,12 @@ public class Optimization {
     }
 
     // Max
-    public void deadCodeElimination(){
+    public Boolean deadCodeElimination(){
         // liveness analysis
+        Boolean globalChange = false;
         HashMap<BasicBlock, Integer> exitSetCount = new HashMap<BasicBlock, Integer>();
 
-
-        // HashSet<BasicBlock> reachable = new HashSet<BasicBlock>();
-        HashMap<BasicBlock, Boolean> discovered = new HashMap<BasicBlock, Boolean>();
-        LinkedList<BasicBlock> q = new LinkedList<BasicBlock>();
-
         Set<BasicBlock> bbList = ssa.getBasicBlockList();
-
-        // BasicBlock v;
-
-        // q.add(ssa.getEndBB());
-
-
-
-        // // initialize all nodes except 
-        // for (BasicBlock bb : bbList) {
-        //     if (bb == ssa.getEndBB()) {
-        //         discovered.put(bb, true);
-        //     }
-        //     else {
-        //         discovered.put(bb, false);
-        //     }
-        // }
-
-        // while (!q.isEmpty()) {
-        //     v = q.pop();
-        //     // if not discovered, visit node and add to reachable
-        //     if (!discovered.get(v)) {
-        //         // label v as discovered
-        //         discovered.put(v, true);
-        //         reachable.add(v);
-        //         for (Transitions t : v.transitionList) {
-        //             q.push(t.toBB);
-        //         }
-        //     }
-        // }
-
-
-// ====================================================================
 
         for (BasicBlock bb : ssa.getBasicBlockList()) {
             exitSetCount.put(bb, 0);
@@ -372,7 +336,6 @@ public class Optimization {
         // Ensure proper visiting order for global liveness analysis
         
         Boolean change = false;
-        BasicBlock bb = ssa.getEndBB();
 
          do {
             // System.out.println("print");
@@ -390,8 +353,6 @@ public class Optimization {
                 switch (ii.getOperator()) {
                     case ADDA:
                         break;
-                    
-                    
                     case BEQ:
                     case BGE:
                     case BGT:
@@ -402,8 +363,8 @@ public class Optimization {
                         break;
 
                     case CALL:  //TODO:
-
                         break;
+                        
                     case END:
                         break;
                     case LOAD:
@@ -432,6 +393,7 @@ public class Optimization {
                     case SUB:
                         if (!live.contains(ii.instNum())) {  // result not used later
                             ii.eliminate();
+                            globalChange = true;
                         }
                         break;
 
@@ -440,6 +402,7 @@ public class Optimization {
                     case READ_F:
                         if (!live.contains(ii.instNum())) {  // result not used later
                             ii.eliminate();
+                            globalChange = true;
                         }
                         break;
                     
@@ -451,6 +414,7 @@ public class Optimization {
                     case MOVE:
                         if (!live.contains(ii.getOperandTwo())) {  // result not used later
                             ii.eliminate();
+                            globalChange = true;
                         }
                         break;
                     
@@ -460,6 +424,7 @@ public class Optimization {
                 }
             }
         }
+        return globalChange;
     }
 
     // Max
