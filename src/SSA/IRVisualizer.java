@@ -27,6 +27,7 @@ public class IRVisualizer {
             
             enterBasicBlock(BB);
             for (IntermediateInstruction intIns: BB.getIntInsList()){
+                
                 // "Call" instructions need a "tag"
                 if (intIns.getOperator().equals(SSAOperator.CALL)){
                     dotGraph.append("<c" + intIns.getFuncName() + intIns.instNum().getInstructionNumber() +  ">");
@@ -52,12 +53,9 @@ public class IRVisualizer {
     }
 
     public void enterBasicBlock(BasicBlock BB){
-        //String BBLabel = "BB" + BB.BBNumber + BB.lvEntry + "\n" + BB.lvExit + "|{";
         String BBLabel = "BB" + BB.BBNumber + "|{";
         if (!BB.name().equals("")){
-            //BBLabel = BB.name() + "\\nBB" + BB.BBNumber + BB.lvEntry + "\n" + BB.lvExit + "|{";
-            BBLabel = BB.name() + "\\nBB" + BB.BBNumber + "\n" + "|{";
-
+            BBLabel = BB.name() + "\\nBB" + "|{";
         }
         dotGraph.append("BB" + BB.BBNumber + "[shape=record, label=\"<b>" + BBLabel); 
     }
