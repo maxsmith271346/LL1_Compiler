@@ -982,8 +982,10 @@ public class Optimization {
                     
                     case RET:
                         for (int j = i + 1; j < block.getIntInsList().size(); j++) {
-                            block.getIntInsList().get(j).eliminate();
-                            globalChange = true;
+                            if (!block.getIntInsList().get(j).isElim()){
+                                block.getIntInsList().get(j).eliminate();
+                                globalChange = true;
+                            }   
                         }
                         break;
                         

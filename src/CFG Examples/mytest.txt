@@ -1,27 +1,51 @@
 main
-	int a, b, c, d, e;
-	int tmp;
+
+//dce
+
+function early_return () : int
 {
-	let a = 31;
-	let b = 69;
-	let c = 110;
-	let d = 52;
-	let e = 8;
+    int c, d, unused;
 
-	// sorting network of size 5
-	if (a < d) then let tmp = a; let a = d; let d = tmp; fi;
-	if (b < e) then let tmp = b; let b = e; let e = tmp; fi;
-	if (a < c) then let tmp = a; let a = c; let c = tmp; fi;
-	if (b < d) then let tmp = b; let b = d; let d = tmp; fi;
-	if (a < b) then let tmp = a; let a = b; let b = tmp; fi;
-	if (c < e) then let tmp = c; let c = e; let e = tmp; fi;
-	if (b < c) then let tmp = b; let b = c; let c = tmp; fi;
-	if (d < e) then let tmp = d; let d = e; let e = tmp; fi;
-	if (c < d) then let tmp = c; let c = d; let d = tmp; fi;
+    let c = 1; // dce - overwritten
+    let c = 2;
+    let unused = c / d; // dce - unused
+    return c * d;
+    call printInt(c * d); // dce - unreachable
+};
 
-	call printInt(a); // 110
-	call printInt(b); // 69
-	call printInt(c); // 52
-	call printInt(d); // 31
-	call printInt(e); // 8
+function unreachableIf () : void
+{
+    int c, d;
+
+    let c = 1;
+    let d = 2;
+    if(d == c) then
+        let d = c;
+    fi;
+
+    if(false) then
+        call println();
+    else
+        call println();
+    fi;
+
+    if(true) then
+        call println();
+    else
+        call println();
+    fi;
+
+    if(true) then
+        call println();
+    fi;
+
+    if(false) then
+        call println();
+    fi;
+
+};
+
+{
+    call unreachableIf();
+    call early_return();
 }.
