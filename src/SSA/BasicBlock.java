@@ -244,6 +244,7 @@ public class BasicBlock implements Operand {
 
         // Add all successor lvEntry sets to this's lvExit
         for (BasicBlock successor : this.getOutList()) {
+            if (successor.name().contains("elim")){continue;}
             this.lvExit.addAll(successor.lvEntry);
         }
         
@@ -252,7 +253,8 @@ public class BasicBlock implements Operand {
         HashSet<Operand> live = new HashSet<Operand>(this.lvExit);
         // determine liveness at entry and exit to BB
         for (int i = this.getIntInsList().size()-1; i >= 0; i--) {
-            IntermediateInstruction ii = this.getIntInsList().get(i);            
+            IntermediateInstruction ii = this.getIntInsList().get(i);  
+            if (ii.isElim()){continue;}          
             switch (ii.getOperator()) {
                 case ADDA:
                     break;
@@ -366,6 +368,11 @@ public class BasicBlock implements Operand {
         }
         this.lvEntry = live;
         
+        /*for (Symbol s : varMap.keySet()){
+            if (s.scope == 1){
+                System.out.println("s " + s);
+            }
+        }*/
         return change;
     }
 

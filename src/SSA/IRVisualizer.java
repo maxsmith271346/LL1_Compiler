@@ -35,7 +35,7 @@ public class IRVisualizer {
                     dotGraph.append("<c" + intIns.getFuncName() + intIns.instNum().getInstructionNumber() +  ">");
                 }
                 //dotGraph.append(intIns.instNum().getInstructionNumber() + " : " + intIns.toString() + "" + intIns.getLiveVars() + "|");
-                dotGraph.append(intIns.instNum() + " : "+intIns.toString() + "|");
+                dotGraph.append(intIns.insNum() + " : "+intIns.toString() + "|");
                 currentLineNum++;
             }
             exitBasicBlock();

@@ -1,6 +1,13 @@
 main
 int a,b,c,d,e,f,g,h;
 
+function foo() : void
+{
+	int x, y, z;
+
+	let x = 1;
+};
+
 {
     let a = 7;
     let b = a + 2;

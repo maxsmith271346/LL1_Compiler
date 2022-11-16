@@ -32,7 +32,7 @@ public class Optimization {
                 change |= constantFolding();
                 change |= copyPropagation();
                 change |= commonSubexpressionElimination();
-                change = deadCodeElimination(); 
+                change |= deadCodeElimination(); 
                 change |= orphanFunctionElimination();
             }
 
@@ -890,6 +890,7 @@ public class Optimization {
         Set<BasicBlock> bbList = ssa.getBasicBlockList();
 
         for (BasicBlock bb : ssa.getBasicBlockList()) {
+            if (bb.name().contains("elim")){continue;}
             exitSetCount.put(bb, 0);
             for (Transitions t : bb.transitionList) {
                 t.toBB.addInEdge(bb);
@@ -904,14 +905,17 @@ public class Optimization {
             // System.out.println("print");
             change = false;
             for (BasicBlock block: bbList) {
+                if (block.name().contains("elim")){continue;}
                 change |= block.liveAnalysis();
             }
         } while (change);
 
         // DCE
         for (BasicBlock block: bbList) {
+            if (block.name().contains("elim")){continue;}
             for (int i = block.getIntInsList().size()-1; i >= 0; i--) {
                 IntermediateInstruction ii = block.getIntInsList().get(i);
+                if (ii.isElim()){continue;}
                 HashSet<Operand> live = ii.getLiveVars();
                 switch (ii.getOperator()) {
                     case ADDA:
