@@ -21,6 +21,7 @@ public class BasicBlock implements Operand {
     public static int insNumber = 0;            // Contains a running count of the instruction number
     public HashSet<Operand> lvEntry;
     public HashSet<Operand> lvExit;
+    public Boolean inFunc;
 
     public Set<IntermediateInstruction> exitAvailableExpression;
     
@@ -35,7 +36,7 @@ public class BasicBlock implements Operand {
         }
     }
 
-    public BasicBlock(int BBNumber, HashMap<Symbol, HashSet<Symbol>> varMap){
+    public BasicBlock(int BBNumber, HashMap<Symbol, HashSet<Symbol>> varMap, Boolean inFunc){
         IntermediateInstructionList = new ArrayList<IntermediateInstruction>();
         transitionList = new ArrayList<Transitions>();
         this.BBNumber = BBNumber;
@@ -54,10 +55,11 @@ public class BasicBlock implements Operand {
         this.lvEntry = new HashSet<Operand>();
         this.lvExit = new HashSet<Operand>();
         this.exitAvailableExpression = new HashSet<IntermediateInstruction>();
+        this.inFunc = inFunc;
     }
 
-    public BasicBlock(int BBNumber, HashMap<Symbol, HashSet<Symbol>> varMap, String name){
-        this(BBNumber, varMap);
+    public BasicBlock(int BBNumber, HashMap<Symbol, HashSet<Symbol>> varMap, String name, Boolean inFunc){
+        this(BBNumber, varMap, inFunc);
         this.BBName = name;
     }
 
@@ -161,7 +163,9 @@ public class BasicBlock implements Operand {
     public ArrayList<BasicBlock> getOutList() {
         ArrayList<BasicBlock> outList = new ArrayList<>();
         for (Transitions t : this.transitionList) {
-            outList.add(t.toBB);
+            if (!t.label.contains("call")) {
+                outList.add(t.toBB);
+            }
         }
         return outList;
     }
@@ -258,8 +262,6 @@ public class BasicBlock implements Operand {
             switch (ii.getOperator()) {
                 case ADDA:
                     break;
-                
-                
                 case BEQ:
                 case BGE:
                 case BGT:
@@ -267,23 +269,50 @@ public class BasicBlock implements Operand {
                 case BLT:
                 case BNE:
                     live.add(ii.getOperandOne());
-                    // change = true;
                     break;
 
                 case CALL:  // TODO:
+                    for (Transitions t : this.transitionList) {
+                        BasicBlock successor = t.toBB;
+                        if (t.label.contains("call") && successor.name().equals(ii.getOperandOne().toString())) {
+                            for (Operand o : successor.lvEntry){
+                                if ((o instanceof Symbol) && ((Symbol) o).scope == 1){
+                                    live.add(o);
+                                }
+                            }
+                        }
+                    }
+                    break;
 
-                    break;
                 case RET:
+                    live.add(ii.getOperandOne());
+                    for (Symbol s : varMap.keySet()){
+                        if (s.scope == 1){
+                            live.add(s);
+                        }
+                    }
                     break;
+
                 case END:
                     break;
                 case LOAD:
                     break;
+
                 case NEG:
+                    if (live.contains(ii.instNum())) {
+                        live.remove(ii.instNum());
+                    }
+                    live.add(ii.getOperandOne());
                     break;
+
                 case NONE:
                     break;
+
                 case NOT:
+                    if (live.contains(ii.instNum())) {
+                        live.remove(ii.instNum());
+                    }
+                    live.add(ii.getOperandOne());
                     break;
                 case STORE:
                     break;
@@ -306,6 +335,7 @@ public class BasicBlock implements Operand {
                     live.add(ii.getOperandOne());
                     live.add(ii.getOperandTwo());
                     break;
+
                 case ADD:
                 case AND:
                 case CMP:
@@ -329,6 +359,7 @@ public class BasicBlock implements Operand {
                         live.remove(ii.instNum());
                     }
                     break;
+
                 case WRITE:
                 case WRITE_B:
                 case WRITE_F:
@@ -345,34 +376,18 @@ public class BasicBlock implements Operand {
                 default:
                     break; 
             }
-            // System.out.println(BBNumber);
-            // System.out.println(lvEntry);
-            // System.out.println(lvExit + "\n");
-            System.out.println(ii.instNum().getInstructionNumber());
-            // System.out.println(ii.liveVars);
-            // ii.setLiveVars(new HashSet<Operand>(live));
 
             if (i == this.getIntInsList().size()-1 && i > 0) {
-                // System.out.println(origExit);
-                // System.out.println(lvExit);
-                // System.out.println(origEntry);
-                // System.out.println(lvEntry);
                 change |= this.getIntInsList().get(i).setLiveVars(new HashSet<Operand>(lvExit));
-                System.out.println("First: " + change);
             }
             if (i != 0) {
                 change |= this.getIntInsList().get(i-1).setLiveVars(new HashSet<Operand>(live));
-                System.out.println("Second: " + change);
             }
             
         }
         this.lvEntry = live;
         
-        /*for (Symbol s : varMap.keySet()){
-            if (s.scope == 1){
-                System.out.println("s " + s);
-            }
-        }*/
+        
         return change;
     }
 
