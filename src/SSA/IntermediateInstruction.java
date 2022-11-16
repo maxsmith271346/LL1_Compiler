@@ -210,9 +210,9 @@ public class IntermediateInstruction {
         return instNum;
     }
         
-    /*blic void setInsNum(int insNum){
-        this.insNum = insNum;
-    }*/
+    public void setInsNum(int insNum){
+        this.instNum = new InstructionNumber(insNum);
+    }
     public int insNum(){
         return instNum.getInstructionNumber();
     }

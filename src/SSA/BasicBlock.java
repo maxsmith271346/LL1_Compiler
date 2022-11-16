@@ -143,6 +143,7 @@ public class BasicBlock implements Operand {
         }
         
         this.IntermediateInstructionList.add(intIns);
+        intIns.setInsNum(insNumber);
         insNumber++;
         return intIns.instNum();
     }
