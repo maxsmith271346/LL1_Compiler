@@ -882,10 +882,114 @@ public class Optimization {
         return false; // If there was just one loop, then there was no code change
     }
 
-    // Max
-    public void deadCodeElimination(){
+    public Boolean deadCodeElimination(){
         // liveness analysis
+        Boolean globalChange = false;
+        HashMap<BasicBlock, Integer> exitSetCount = new HashMap<BasicBlock, Integer>();
+
+        Set<BasicBlock> bbList = ssa.getBasicBlockList();
+
+        for (BasicBlock bb : ssa.getBasicBlockList()) {
+            exitSetCount.put(bb, 0);
+            for (Transitions t : bb.transitionList) {
+                t.toBB.addInEdge(bb);
+            }
+        }
+
+        // Ensure proper visiting order for global liveness analysis
+        
+        Boolean change = false;
+
+         do {
+            // System.out.println("print");
+            change = false;
+            for (BasicBlock block: bbList) {
+                change |= block.liveAnalysis();
+            }
+        } while (change);
+
+        // DCE
+        for (BasicBlock block: bbList) {
+            for (int i = block.getIntInsList().size()-1; i >= 0; i--) {
+                IntermediateInstruction ii = block.getIntInsList().get(i);
+                HashSet<Operand> live = ii.getLiveVars();
+                switch (ii.getOperator()) {
+                    case ADDA:
+                        break;
+                    case BEQ:
+                    case BGE:
+                    case BGT:
+                    case BLE:
+                    case BLT:
+                    case BNE:
+                    case BRA:
+                        break;
+
+                    case CALL:  //TODO:
+                        break;
+                        
+                    case END:
+                        break;
+                    case LOAD:
+                        break;
+                    case NEG:
+                        break;
+                    case NONE:
+                        break;
+                    case NOT:
+                        break;
+                    case PHI:
+                        break;
+                    case RET:
+                        break;
+                    case STORE:
+                        break;
+
+                    case ADD:
+                    case AND:
+                    case CMP:
+                    case DIV:
+                    case MOD:
+                    case MUL:
+                    case OR:
+                    case POW:
+                    case SUB:
+                        if (!live.contains(ii.instNum())) {  // result not used later
+                            ii.eliminate();
+                            globalChange = true;
+                        }
+                        break;
+
+                    case READ:
+                    case READ_B:
+                    case READ_F:
+                        if (!live.contains(ii.instNum())) {  // result not used later
+                            ii.eliminate();
+                            globalChange = true;
+                        }
+                        break;
+                    
+                    case WRITE:
+                    case WRITE_B:
+                    case WRITE_F:
+                        break;
+
+                    case MOVE:
+                        if (!live.contains(ii.getOperandTwo())) {  // result not used later
+                            ii.eliminate();
+                            globalChange = true;
+                        }
+                        break;
+                    
+                    default:
+                        break;
+                    
+                }
+            }
+        }
+        return globalChange;
     }
+
 
     // Emory
     public boolean orphanFunctionElimination(){
@@ -1067,4 +1171,3 @@ public class Optimization {
         }
     }
 }
-
