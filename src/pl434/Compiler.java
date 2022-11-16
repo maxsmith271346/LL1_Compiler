@@ -7,6 +7,7 @@ import java.util.HashMap;
 import java.util.List;
 import java.util.NoSuchElementException;
 
+import SSA.Optimization;
 import SSA.SSA;
 import ast.*;
 import pl434.Token.Kind;

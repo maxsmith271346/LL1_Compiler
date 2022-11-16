@@ -1,7 +1,9 @@
 package SSA;
 
+import java.util.HashSet;
 import java.util.List;
 
+import ast.*;
 import pl434.Symbol;
 
 public class IntermediateInstruction {
@@ -67,14 +69,20 @@ public class IntermediateInstruction {
     private SSAOperator operator; 
     private Operand operand_one; 
     private Operand operand_two; 
-    private int insNum;
+    // private int insNum;
     private List<Operand> extraOperands; // In the case of function calls there can be more than two operands, so this will keep track of the extras
+    private Boolean elim;
+    private InstructionNumber instNum;
+    public HashSet<Operand> liveVars;
 
     public IntermediateInstruction(SSAOperator operator, Operand operand_one, Operand operand_two, int insNum){
         this.operator = operator; 
         this.operand_one = operand_one; 
         this.operand_two = operand_two;
-        this.insNum = insNum;
+        // this.insNum = insNum;
+        this.elim = false;
+        this.instNum = new InstructionNumber(insNum);
+        this.liveVars = new HashSet<Operand>();
     }
 
     @Override
@@ -102,6 +110,14 @@ public class IntermediateInstruction {
             return retStr;
         }
        
+    }
+
+    public Boolean isElim() {
+        return elim;
+    }
+
+    public void eliminate() {
+        elim = true;
     }
 
     public void addExtraOperands(List<Operand> extraOperands){
@@ -150,8 +166,8 @@ public class IntermediateInstruction {
         return "";
     }
 
-    public int insNum(){
-        return insNum;
+    public InstructionNumber instNum(){
+        return instNum;
     }
 
     public Operand getOperandOne(){
@@ -173,4 +189,77 @@ public class IntermediateInstruction {
     public void putOperandTwo(Operand operand_two){
         this.operand_two = operand_two ;
     }
+
+    public HashSet<Operand> getLiveVars() {
+        return liveVars;
+    }
+
+    public void addLiveVars(HashSet<Operand> liveVars) {
+        this.liveVars.addAll(liveVars);
+    }
+
+    public boolean checkOperand(Operand opOne, Operand opTwo){
+        if (!opOne.getClass().toString().equals(opTwo.getClass().toString())){
+            return true;
+        }
+        if (opTwo instanceof Symbol && opOne instanceof Symbol){
+            String operandOneName = ((Symbol) opOne).name();
+            if (operandOneName.contains("_")){
+                operandOneName = operandOneName.substring(0, operandOneName.indexOf("_"));
+            }
+
+            String operandName = ((Symbol) opTwo).name();
+            if (operandName.contains("_")){
+                operandName = operandName.substring(0, operandName.indexOf("_"));
+            }
+
+            if(!operandOneName.equals(operandName)){
+                return true;
+            }
+        }
+        else if (opTwo instanceof BoolLiteral && opOne instanceof BoolLiteral){
+            if (!((BoolLiteral) opTwo).value().equals(((BoolLiteral) opOne).value())){
+                return true;
+            }
+        }
+        else if (opTwo instanceof IntegerLiteral && opOne instanceof IntegerLiteral){
+            if (!((IntegerLiteral ) opTwo).value().equals(((IntegerLiteral) opOne).value())){
+                return true;
+            }
+        }
+        else if (opTwo instanceof FloatLiteral && opOne instanceof FloatLiteral){
+            if (!((FloatLiteral) opTwo).value().equals(((FloatLiteral) opOne).value())){
+                return true;
+            }
+        }
+        else if (opTwo instanceof InstructionNumber && opOne instanceof InstructionNumber){
+            //System.out.println(opTwo); 
+            //System.out.println(opOne);
+            if (((InstructionNumber) opTwo).getInstructionNumber() != ((InstructionNumber) opOne).getInstructionNumber()){
+                return true;
+            }
+        }
+        return false;
+    }
+
+    public Boolean setLiveVars(HashSet<Operand> liveVars) {
+
+        System.out.println(this.liveVars);
+        System.out.println(liveVars);
+        Boolean exists = false;
+
+        for (Operand o : liveVars) {
+            exists = false;
+            for (Operand o1 : this.liveVars) {
+                exists |= !checkOperand(o, o1);
+            }
+            if (!exists) {
+                this.liveVars = liveVars;
+                return true;
+            }
+        }
+        this.liveVars = liveVars;
+        return false;
+    }
+
 }

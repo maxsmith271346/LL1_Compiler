@@ -1,5 +1,11 @@
 package SSA;
 
+import java.util.HashMap;
+import java.util.HashSet;
+import java.util.LinkedList;
+import java.util.Set;
+
+import SSA.BasicBlock.Transitions;
 import SSA.IntermediateInstruction.SSAOperator;
 import ast.BoolLiteral;
 import ast.FloatLiteral;
@@ -168,6 +174,11 @@ public class Optimization {
         // available expression analysis
     }
 
+    // TODO:
+    public Boolean hasOpnd() {
+        return false;
+    }
+
     // Max
     public void constantFolding(){
         // fold constant expression 
@@ -286,7 +297,7 @@ public class Optimization {
                             // Branch taken
                         }
                         else {
-                            // Branch untakens
+                            // Branch untaken
                         }
                         break;
                     default:
@@ -310,6 +321,145 @@ public class Optimization {
     // Max
     public void deadCodeElimination(){
         // liveness analysis
+        HashMap<BasicBlock, Integer> exitSetCount = new HashMap<BasicBlock, Integer>();
+
+
+        // HashSet<BasicBlock> reachable = new HashSet<BasicBlock>();
+        HashMap<BasicBlock, Boolean> discovered = new HashMap<BasicBlock, Boolean>();
+        LinkedList<BasicBlock> q = new LinkedList<BasicBlock>();
+
+        Set<BasicBlock> bbList = ssa.getBasicBlockList();
+
+        // BasicBlock v;
+
+        // q.add(ssa.getEndBB());
+
+
+
+        // // initialize all nodes except 
+        // for (BasicBlock bb : bbList) {
+        //     if (bb == ssa.getEndBB()) {
+        //         discovered.put(bb, true);
+        //     }
+        //     else {
+        //         discovered.put(bb, false);
+        //     }
+        // }
+
+        // while (!q.isEmpty()) {
+        //     v = q.pop();
+        //     // if not discovered, visit node and add to reachable
+        //     if (!discovered.get(v)) {
+        //         // label v as discovered
+        //         discovered.put(v, true);
+        //         reachable.add(v);
+        //         for (Transitions t : v.transitionList) {
+        //             q.push(t.toBB);
+        //         }
+        //     }
+        // }
+
+
+// ====================================================================
+
+        for (BasicBlock bb : ssa.getBasicBlockList()) {
+            exitSetCount.put(bb, 0);
+            for (Transitions t : bb.transitionList) {
+                t.toBB.addInEdge(bb);
+            }
+        }
+
+        // Ensure proper visiting order for global liveness analysis
+        
+        Boolean change = false;
+        BasicBlock bb = ssa.getEndBB();
+
+         do {
+            // System.out.println("print");
+            change = false;
+            for (BasicBlock block: bbList) {
+                change |= block.liveAnalysis();
+            }
+        } while (change);
+
+        // DCE
+        for (BasicBlock block: bbList) {
+            for (int i = block.getIntInsList().size()-1; i >= 0; i--) {
+                IntermediateInstruction ii = block.getIntInsList().get(i);
+                HashSet<Operand> live = ii.getLiveVars();
+                switch (ii.getOperator()) {
+                    case ADDA:
+                        break;
+                    
+                    
+                    case BEQ:
+                    case BGE:
+                    case BGT:
+                    case BLE:
+                    case BLT:
+                    case BNE:
+                    case BRA:
+                        break;
+
+                    case CALL:  //TODO:
+
+                        break;
+                    case END:
+                        break;
+                    case LOAD:
+                        break;
+                    case NEG:
+                        break;
+                    case NONE:
+                        break;
+                    case NOT:
+                        break;
+                    case PHI:
+                        break;
+                    case RET:
+                        break;
+                    case STORE:
+                        break;
+
+                    case ADD:
+                    case AND:
+                    case CMP:
+                    case DIV:
+                    case MOD:
+                    case MUL:
+                    case OR:
+                    case POW:
+                    case SUB:
+                        if (!live.contains(ii.instNum())) {  // result not used later
+                            ii.eliminate();
+                        }
+                        break;
+
+                    case READ:
+                    case READ_B:
+                    case READ_F:
+                        if (!live.contains(ii.instNum())) {  // result not used later
+                            ii.eliminate();
+                        }
+                        break;
+                    
+                    case WRITE:
+                    case WRITE_B:
+                    case WRITE_F:
+                        break;
+
+                    case MOVE:
+                        if (!live.contains(ii.getOperandTwo())) {  // result not used later
+                            ii.eliminate();
+                        }
+                        break;
+                    
+                    default:
+                        break;
+                    
+                }
+            }
+        }
     }
 
     // Max

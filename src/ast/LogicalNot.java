@@ -42,7 +42,7 @@ public class LogicalNot extends Node implements Expression {
         return insNumber;
     }
 
-    public void setInsNumber(int insNumber){
-        this.insNumber = new InstructionNumber(insNumber);
+    public void setInsNumber(InstructionNumber insNumber){
+        this.insNumber = insNumber;
     }
 }
