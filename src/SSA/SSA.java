@@ -73,6 +73,10 @@ public class SSA implements NodeVisitor{
         //generateEdgeList();
     }
 
+    public BasicBlock getEndBB() {
+        return endBB;
+    }
+    
     public SSA(){
         BasicBlockList = new HashSet<BasicBlock>();
     }
@@ -103,6 +107,7 @@ public class SSA implements NodeVisitor{
      * @param root root node of control flow graph
      * @return dominance frontier as mapping from basic block to set of basic blocks
      */
+
 
     public void insertPhi() {
         HashMap<BasicBlock, HashSet<BasicBlock>> dfMap = getDominanceFrontier(rootBB);
@@ -293,14 +298,14 @@ public class SSA implements NodeVisitor{
     */
     @Override
     public void visit(ArrayIndex node) {
-        int mulInsNum = 0;
-        int addInsNum = 0;
+        InstructionNumber mulInsNum = new InstructionNumber(0);
+        InstructionNumber addInsNum = new InstructionNumber(0);
         // First: the case where there is only one index for the array
         if (node.dimList().size() == 1){
             node.indices().get(0).accept(this);
             mulInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.MUL, node.indices().get(0).getOperand(currentBB.varMap), new IntegerLiteral(0, 0, "4"), BasicBlock.insNumber));
             addInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.ADD, new GDB(), node.arrayIdent(), BasicBlock.insNumber));
-            node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.ADDA, new InstructionNumber(addInsNum), new InstructionNumber(mulInsNum), BasicBlock.insNumber)));
+            node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.ADDA, addInsNum, mulInsNum, BasicBlock.insNumber)));
         }
         else{ 
             // see pl434 SSA notes
@@ -313,23 +318,23 @@ public class SSA implements NodeVisitor{
 
             for (Expression e : node.indices()){
                 if (counter != 1 && counter <= node.indices().size() - 1){
-                    i = new InstructionNumber(addInsNum);
+                    i = addInsNum;
                     N = new IntegerLiteral(0, 0, node.dimList().get(counter));
                     node.indices().get(counter).accept(this);
                     j = node.indices().get(counter).getOperand(currentBB.varMap); 
                     mulInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.MUL, i, N, BasicBlock.insNumber));
-                    addInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.ADD, new InstructionNumber(mulInsNum), j, BasicBlock.insNumber));
+                    addInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.ADD, mulInsNum, j, BasicBlock.insNumber));
                 }
                 if (counter == 1){
                     mulInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.MUL, i, N, BasicBlock.insNumber));
-                    addInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.ADD, new InstructionNumber(mulInsNum), j, BasicBlock.insNumber));
+                    addInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.ADD, mulInsNum, j, BasicBlock.insNumber));
                 }
                 counter++;
             }
 
-            mulInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.MUL, new InstructionNumber(addInsNum), new IntegerLiteral(0, 0, "4"), BasicBlock.insNumber));
+            mulInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.MUL, addInsNum, new IntegerLiteral(0, 0, "4"), BasicBlock.insNumber));
             addInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.ADD, new GDB(), node.arrayIdent(), BasicBlock.insNumber));
-            node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.ADDA, new InstructionNumber(addInsNum), new InstructionNumber(mulInsNum), BasicBlock.insNumber)));
+            node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.ADDA, addInsNum, mulInsNum, BasicBlock.insNumber)));
         }
     }
 
@@ -423,7 +428,7 @@ public class SSA implements NodeVisitor{
             ((ArrayIndex) node.rightExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rightExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
          }
 
-        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.ADD, node.leftExpression().getOperand(currentBB.varMap),  node.rightExpression().getOperand(currentBB.varMap), BasicBlock.insNumber)));
+        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.ADD, node.leftExpression().getOperand(currentBB.varMap), node.rightExpression().getOperand(currentBB.varMap), BasicBlock.insNumber)));
     }
 
     @Override
@@ -618,6 +623,7 @@ public class SSA implements NodeVisitor{
 
         joinBlock.addFullMap(thenBlock.varMap);
         // resolve any conflicts between the two branches
+        //InstructionNumber insNum = new InstructionNumber(0);
         int insNum = 0;
         for (Symbol key : elseBlock.varMap.keySet()){
             if (joinBlock.varMap.containsKey(key)){
@@ -625,7 +631,7 @@ public class SSA implements NodeVisitor{
 
                 if (joinBlock.varMap.get(key).size() > 1){
                     Iterator<Symbol> it = joinBlock.varMap.get(key).iterator();
-                    insNum = joinBlock.add(new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber));
+                    insNum = joinBlock.add(new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber)).getInstructionNumber();
                     HashSet<Symbol> newHash = new HashSet<Symbol>();
                     newHash.add(new Symbol(key.name() + "_" + insNum, key.type().toString(), "var", key.scope));
                     joinBlock.varMap.put(key, newHash);

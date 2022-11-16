@@ -4,6 +4,7 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
+import ast.*;
 import ast.BoolLiteral;
 import ast.FloatLiteral;
 import ast.IntegerLiteral;
@@ -72,22 +73,29 @@ public class IntermediateInstruction {
     private SSAOperator operator; 
     private Operand operand_one; 
     private Operand operand_two; 
-    private int insNum;
+    // private int insNum;
     private List<Operand> extraOperands; // In the case of function calls there can be more than two operands, so this will keep track of the extras
+    private Boolean elim;
+    private InstructionNumber instNum;
+    public HashSet<Operand> liveVars;
+
     public Set<IntermediateInstruction> availableExpressions;
     public boolean branchHandled;
-    public boolean elim;
+    //blic boolean elim;
 
     public IntermediateInstruction(SSAOperator operator, Operand operand_one, Operand operand_two, int insNum){
         this.operator = operator; 
         this.operand_one = operand_one; 
         this.operand_two = operand_two;
-        this.insNum = insNum;
+        // this.insNum = insNum;
+        this.elim = false;
+        this.instNum = new InstructionNumber(insNum);
+        this.liveVars = new HashSet<Operand>();
+
         this.availableExpressions = new HashSet<IntermediateInstruction>();
         if (this.isBranch()){
             branchHandled = false;
         }
-        this.elim = false;
         
     }
 
@@ -116,6 +124,14 @@ public class IntermediateInstruction {
             return retStr;
         }
        
+    }
+
+    public Boolean isElim() {
+        return elim;
+    }
+
+    public void eliminate() {
+        elim = true;
     }
 
     public void addExtraOperands(List<Operand> extraOperands){
@@ -164,11 +180,15 @@ public class IntermediateInstruction {
         return "";
     }
 
-    public void setInsNum(int insNum){
-        this.insNum = insNum;
+    public InstructionNumber instNum(){
+        return instNum;
     }
+        
+    /*blic void setInsNum(int insNum){
+        this.insNum = insNum;
+    }*/
     public int insNum(){
-        return insNum;
+        return instNum.getInstructionNumber();
     }
 
     public Operand getOperandOne(){
@@ -193,6 +213,14 @@ public class IntermediateInstruction {
 
     public void putOperandTwo(Operand operand_two){
         this.operand_two = operand_two ;
+    }
+
+    public HashSet<Operand> getLiveVars() {
+        return liveVars;
+    }
+
+    public void addLiveVars(HashSet<Operand> liveVars) {
+        this.liveVars.addAll(liveVars);
     }
 
     public boolean containsOperand(Operand operand){
@@ -339,8 +367,27 @@ public class IntermediateInstruction {
         return false;
     }
 
+    public Boolean setLiveVars(HashSet<Operand> liveVars) {
 
-    public boolean conflicts(IntermediateInstruction intIns, boolean merge){
+        System.out.println(this.liveVars);
+        System.out.println(liveVars);
+        Boolean exists = false;
+
+        for (Operand o : liveVars) {
+            exists = false;
+            for (Operand o1 : this.liveVars) {
+                exists |= !checkOperand(o, o1);
+            }
+            if (!exists) {
+                this.liveVars = liveVars;
+                return true;
+            }
+        }
+        this.liveVars = liveVars;
+        return false;
+    }
+
+    public boolean conflicts(IntermediateInstruction intIns){
         boolean conflict = true;
         if (intIns.getOperator() == operator && intIns.numberOperators() == this.numberOperators()){
             //System.out.println("one " + intIns);
@@ -363,13 +410,13 @@ public class IntermediateInstruction {
         }
         //conflict = true; 
         //return true;
-        if (merge){
+        /*if (merge){
             if (conflict == false && intIns.getOperator() == SSAOperator.ADDA){
                 if (intIns.insNum() != insNum){
                     conflict = true; 
                 }
             }
-        } 
+        } */
         return conflict;
     }
 

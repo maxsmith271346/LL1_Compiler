@@ -32,7 +32,7 @@ public class Optimization {
                 change |= constantFolding();
                 change |= copyPropagation();
                 change |= commonSubexpressionElimination();
-                //change = deadCodeElimination(); 
+                change = deadCodeElimination(); 
                 change |= orphanFunctionElimination();
             }
 
@@ -57,7 +57,7 @@ public class Optimization {
                             change |= commonSubexpressionElimination();
                             break;
                         case "dce":
-                            //change |= deadCodeElimination(); 
+                            change |= deadCodeElimination(); 
                             break;
                         case "ofe": 
                             change |= orphanFunctionElimination();
@@ -108,7 +108,7 @@ public class Optimization {
         for (BasicBlock bb : ssa.getBasicBlockList()) {
             if (bb.name().contains("elim")){continue;}
             for (IntermediateInstruction i : bb.getIntInsList()) {
-                if (i.elim){continue;}
+                if (i.isElim()){continue;}
                 Operand opnd1 = i.getOperandOne();
                 Operand opnd2 = i.getOperandTwo();
                 // continue if both operands are constants (should be taken care of in const. folding)
@@ -253,9 +253,9 @@ public class Optimization {
             for (BasicBlock bb : ssa.getBasicBlockList()){
                 if (bb.name().contains("elim")){continue;}
                 for (IntermediateInstruction ii : bb.getIntInsList()){
-                    if (ii.elim){continue;}
+                    if (ii.isElim()){continue;}
                     for (IntermediateInstruction iiAvail : ii.availableExpressions){
-                        if (iiAvail.elim){continue;}
+                        if (iiAvail.isElim()){continue;}
                         if (iiAvail.getOperator() == SSAOperator.MOVE){
                             if (iiAvail.getOperandOne() instanceof FloatLiteral || iiAvail.getOperandOne() instanceof BoolLiteral || iiAvail.getOperandOne() instanceof IntegerLiteral){
                                 // only replace the RHS of a MOVE!
@@ -442,7 +442,7 @@ public class Optimization {
         for (BasicBlock bb : ssa.getBasicBlockList()) {
             if (bb.name().contains("elim")){continue;}
             for (IntermediateInstruction i : bb.getIntInsList()) {
-                if (i.elim){continue;}
+                if (i.isElim()){continue;}
                 Operand opnd1 = i.getOperandOne();
                 Operand opnd2 = i.getOperandTwo();
                 // branches can have just one constant operator & still need to be folded:
@@ -752,9 +752,9 @@ public class Optimization {
             for (BasicBlock bb : ssa.getBasicBlockList()){
                 if (bb.name().contains("elim")){continue;}
                 for (IntermediateInstruction ii : bb.getIntInsList()){
-                    if (ii.elim){continue;}
+                    if (ii.isElim()){continue;}
                     for (IntermediateInstruction iiAvail : ii.availableExpressions){
-                        if (iiAvail.elim){continue;}
+                        if (iiAvail.isElim()){continue;}
                         if (iiAvail.getOperator() == SSAOperator.MOVE){
                             if (iiAvail.getOperandOne() instanceof Symbol){
                                 // only replace the RHS of a MOVE!
@@ -830,7 +830,7 @@ public class Optimization {
             for (BasicBlock bb : ssa.getBasicBlockList()){
                 if (bb.name().contains("elim")){continue;}
                 for (IntermediateInstruction ii : bb.getIntInsList()){
-                    if (ii.elim){continue;}
+                    if (ii.isElim()){continue;}
                     // check the toReplace Hash Set for each instruction: 
                     for (int op : toReplace.keySet()){
                         if (ii.getOperandOne() instanceof InstructionNumber){
@@ -847,8 +847,8 @@ public class Optimization {
                         }
                     }
                     for (IntermediateInstruction iiAvail : ii.availableExpressions){
-                        if (iiAvail.elim){continue;}
-                        if (!iiAvail.conflicts(ii, false)){
+                        if (iiAvail.isElim()){continue;}
+                        if (!iiAvail.conflicts(ii)){
                             if (iiAvail.getOperator() != SSAOperator.MOVE){
                                 if (ii.insNum() > iiAvail.insNum()){
                                     if (toReplace.keySet().contains(ii.insNum())){
@@ -882,10 +882,114 @@ public class Optimization {
         return false; // If there was just one loop, then there was no code change
     }
 
-    // Max
-    public void deadCodeElimination(){
+    public Boolean deadCodeElimination(){
         // liveness analysis
+        Boolean globalChange = false;
+        HashMap<BasicBlock, Integer> exitSetCount = new HashMap<BasicBlock, Integer>();
+
+        Set<BasicBlock> bbList = ssa.getBasicBlockList();
+
+        for (BasicBlock bb : ssa.getBasicBlockList()) {
+            exitSetCount.put(bb, 0);
+            for (Transitions t : bb.transitionList) {
+                t.toBB.addInEdge(bb);
+            }
+        }
+
+        // Ensure proper visiting order for global liveness analysis
+        
+        Boolean change = false;
+
+         do {
+            // System.out.println("print");
+            change = false;
+            for (BasicBlock block: bbList) {
+                change |= block.liveAnalysis();
+            }
+        } while (change);
+
+        // DCE
+        for (BasicBlock block: bbList) {
+            for (int i = block.getIntInsList().size()-1; i >= 0; i--) {
+                IntermediateInstruction ii = block.getIntInsList().get(i);
+                HashSet<Operand> live = ii.getLiveVars();
+                switch (ii.getOperator()) {
+                    case ADDA:
+                        break;
+                    case BEQ:
+                    case BGE:
+                    case BGT:
+                    case BLE:
+                    case BLT:
+                    case BNE:
+                    case BRA:
+                        break;
+
+                    case CALL:  //TODO:
+                        break;
+                        
+                    case END:
+                        break;
+                    case LOAD:
+                        break;
+                    case NEG:
+                        break;
+                    case NONE:
+                        break;
+                    case NOT:
+                        break;
+                    case PHI:
+                        break;
+                    case RET:
+                        break;
+                    case STORE:
+                        break;
+
+                    case ADD:
+                    case AND:
+                    case CMP:
+                    case DIV:
+                    case MOD:
+                    case MUL:
+                    case OR:
+                    case POW:
+                    case SUB:
+                        if (!live.contains(ii.instNum())) {  // result not used later
+                            ii.eliminate();
+                            globalChange = true;
+                        }
+                        break;
+
+                    case READ:
+                    case READ_B:
+                    case READ_F:
+                        if (!live.contains(ii.instNum())) {  // result not used later
+                            ii.eliminate();
+                            globalChange = true;
+                        }
+                        break;
+                    
+                    case WRITE:
+                    case WRITE_B:
+                    case WRITE_F:
+                        break;
+
+                    case MOVE:
+                        if (!live.contains(ii.getOperandTwo())) {  // result not used later
+                            ii.eliminate();
+                            globalChange = true;
+                        }
+                        break;
+                    
+                    default:
+                        break;
+                    
+                }
+            }
+        }
+        return globalChange;
     }
+
 
     // Emory
     public boolean orphanFunctionElimination(){
@@ -899,7 +1003,7 @@ public class Optimization {
         for(BasicBlock bb : ssa.getBasicBlockList()){
             if (bb.name().contains("elim")){continue;}
             for (IntermediateInstruction ii : bb.getIntInsList()){
-                if (ii.elim){continue;}
+                if (ii.isElim()){continue;}
                 if (ii.getOperator() == SSAOperator.CALL){
                     calledFunctions.add(ii.getFuncName());
                 }
@@ -959,14 +1063,14 @@ public class Optimization {
         List<IntermediateInstruction> toRemove = new ArrayList<IntermediateInstruction>();
 
         for (IntermediateInstruction ii : bb.getIntInsList()){
-            if (ii.elim){continue;}
+            if (ii.isElim()){continue;}
             ii.availableExpressions.clear();
             ii.availableExpressions.addAll(availableExpressions);
             // If there is a move instruction, then we need to remove elements from the set
             if (ii.getOperator() == SSAOperator.MOVE){
                 toRemove.clear();
                 for (IntermediateInstruction iiAvail : availableExpressions){
-                    if (iiAvail.elim){continue;}
+                    if (iiAvail.isElim()){continue;}
                     if (iiAvail.containsOperand(ii.getOperandTwo())){
                         toRemove.add(iiAvail);
                     }
@@ -976,28 +1080,7 @@ public class Optimization {
                 // Don't add move instructions with instruction numbers (for now - until CSE is implemented)
 
                 availableExpressions.add(new IntermediateInstruction(ii.getOperator(), ii.getOperandOne(), ii.getOperandTwo(), ii.insNum()));
-            }
-            else if (ii.getOperator() == SSAOperator.STORE){
-                toRemove.clear();
-                for (IntermediateInstruction iiAvail : availableExpressions){
-                    if (iiAvail.elim){continue;}
-                    if (iiAvail.containsOperand(ii.getOperandTwo())){
-                        toRemove.add(iiAvail);
-                    }
-                    if (ii.getOperandTwo() instanceof InstructionNumber){
-                        if (iiAvail.insNum() == ((InstructionNumber) ii.getOperandTwo()).getInstructionNumber()){
-                            toRemove.add(iiAvail);
-                            for (IntermediateInstruction iiAvail2 : availableExpressions){
-                                if (!iiAvail.conflicts(iiAvail2, false)){
-                                    toRemove.add(iiAvail2);
-                                }
-                            }
-                        }
-                    }
-                }
-                availableExpressions.removeAll(toRemove);
-            }
-            // Add other instructions to the set
+            }// Add other instructions to the set
             else{ 
                 if (opsToAdd.contains(ii.getOperator())){
                     availableExpressions.add(new IntermediateInstruction(ii.getOperator(), ii.getOperandOne(), ii.getOperandTwo(), ii.insNum()));
@@ -1021,7 +1104,7 @@ public class Optimization {
         BasicBlock bb; 
         boolean change = true; 
 
-        while ((bbList.size() != 0 && change) && visited.size() != 0) { 
+        while ((bbList.size() != 0 && change) || visited.size() != 0) { 
             change = false; 
             if (bbList.size() != 0){
                 bb = bbList.get(0);
@@ -1041,18 +1124,18 @@ public class Optimization {
 
             for (Transitions t : bb.transitionList){
                 if (t.label.contains("elim") || t.toBB.name().contains("elim")){
+                    //bbList.add(bb);
+                    bbList.add(t.toBB);
                     bbList.add(bb);
                     visited.remove(t.toBB);
                     continue;
                 }
                 if (t.label.contains("call")){
-                    //System.out.println("call " + t.label);
                     generateAvailableExpressionForBB(new HashSet<IntermediateInstruction>(), t.toBB);
                     bbList.add(t.toBB);
                     visited.remove(t.toBB);
                     continue;
                 }
-                //bbList.add(t.toBB);
 
                 if (t.toBB.getIntInsList().get(0).availableExpressions.size() == 0){
                     // If not, then just instantiate it with the avail expression set of the parent's last instruction 
@@ -1063,19 +1146,17 @@ public class Optimization {
                 else{ //Need to do an intersection - complexity increased by subscripts of variables
                     Set<IntermediateInstruction> intersection = new HashSet<IntermediateInstruction>();
                     for (IntermediateInstruction iiParent : bb.exitAvailableExpression){
-                        if (iiParent.elim){continue;}
+                        if (iiParent.isElim()){continue;}
                         for (IntermediateInstruction iiChild : t.toBB.getIntInsList().get(0).availableExpressions){
-                            if (iiChild.elim){continue;}
-                            if (!iiChild.conflicts(iiParent, true)){
+                            if (iiChild.isElim()){continue;}
+                            if (!iiChild.conflicts(iiParent)){
                                 intersection.add(iiChild);
-        
                             }
                         }
                     }
 
                     if (!t.toBB.getIntInsList().get(0).availableExpressions.equals(intersection)){
                         bbList.remove(bb);
-                        //bbList.add(1, t.toBB);
                         bbList.add(0, bb);
                         change = true;
                     }
