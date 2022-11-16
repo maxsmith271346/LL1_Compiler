@@ -6,8 +6,8 @@ int i, j;
 	let i = 0;
 	let j = 0;
 	while (i < 1000) do
-		let j = j + 1;
-		let i = i + 2;
+		let j = 1;
+		let i = 1;
 	od;
 	call printInt(j);
 	call printInt(i); 

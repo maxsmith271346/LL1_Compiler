@@ -5,8 +5,10 @@ import java.util.HashMap;
 import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
+import java.util.Set;
 
 import SSA.IntermediateInstruction.SSAOperator;
+import ast.IntegerLiteral;
 import pl434.Symbol;
 
 public class BasicBlock implements Operand {
@@ -20,6 +22,8 @@ public class BasicBlock implements Operand {
     public HashSet<Operand> lvEntry;
     public HashSet<Operand> lvExit;
 
+    public Set<IntermediateInstruction> exitAvailableExpression;
+    
     // This class is used to represent the children of a BB and their "relationship" to the parent BB (call, else, if, etc)
     public class Transitions{ 
         //public BasicBlock fromBB, toBB;
@@ -49,6 +53,7 @@ public class BasicBlock implements Operand {
         this.inList = new ArrayList<BasicBlock>();
         this.lvEntry = new HashSet<Operand>();
         this.lvExit = new HashSet<Operand>();
+        this.exitAvailableExpression = new HashSet<IntermediateInstruction>();
     }
 
     public BasicBlock(int BBNumber, HashMap<Symbol, HashSet<Symbol>> varMap, String name){
@@ -85,10 +90,59 @@ public class BasicBlock implements Operand {
      * @param intIns new IntermediateInstruction to add
      * @return current instruction number
     */
-    public InstructionNumber add(IntermediateInstruction intIns){
+    public int add(IntermediateInstruction intIns){
+        if (intIns.getOperator() != SSAOperator.PHI){
+            if (intIns.getOperandOne() != null){
+                if (intIns.getOperandOne() instanceof Symbol){
+                    Symbol operandOneSymbol = (Symbol) intIns.getOperandOne();
+                    String opOneName = (operandOneSymbol).name();
+                    if (opOneName.contains("-1") || opOneName.contains("-2")){
+                        System.out.println("warning: variable " + opOneName.substring(0, opOneName.indexOf("_")) + " has not been initialized!");
+                        Symbol newSymbol = new Symbol(operandOneSymbol.name().substring(0, opOneName.indexOf("_")) + "_" + insNumber, operandOneSymbol.type().toString(), "var", operandOneSymbol.scope);
+                        intIns.putOperandOne(newSymbol);
+                        this.IntermediateInstructionList.add(new IntermediateInstruction(SSAOperator.MOVE, new IntegerLiteral(0, 0, "0"), newSymbol, insNumber));
+                        insNumber++; 
+                        // update varMap
+                        HashSet<Symbol> newHash = new HashSet<Symbol>();
+                        newHash.add(newSymbol);
+                        for(Symbol s : varMap.keySet()){
+                            //update varMap:
+                            if (s.name().equals(opOneName.substring(0, opOneName.indexOf("_")))){
+                                varMap.put(s, newHash);
+                            }
+                        }
+                    }  
+                }
+            }
+            if (intIns.getOperator() != SSAOperator.MOVE){
+                if (intIns.getOperandTwo() != null){
+                    if (intIns.getOperandTwo() instanceof Symbol){
+                        Symbol operandTwoSymbol = (Symbol) intIns.getOperandTwo();
+                        String opTwoName = (operandTwoSymbol).name();
+                        if (opTwoName.contains("-1") || opTwoName.contains("-2")){
+                            System.out.println("warning: variable " + opTwoName.substring(0, opTwoName.indexOf("_")) + " has not been initialized!");
+                            Symbol newSymbol = new Symbol(operandTwoSymbol.name().substring(0, opTwoName.indexOf("_")) + "_" + insNumber, operandTwoSymbol.type().toString(), "var", operandTwoSymbol.scope);
+                            intIns.putOperandTwo(newSymbol);
+                            this.IntermediateInstructionList.add(new IntermediateInstruction(SSAOperator.MOVE, new IntegerLiteral(0, 0, "0"), newSymbol, insNumber));
+                            insNumber++;
+                            // update varMap
+                            HashSet<Symbol> newHash = new HashSet<Symbol>();
+                            newHash.add(newSymbol);
+                            for(Symbol s : varMap.keySet()){
+                                //update varMap:
+                                if (s.name().equals(opTwoName.substring(0, opTwoName.indexOf("_")))){
+                                    varMap.put(s, newHash);
+                                }
+                            }
+                        }  
+                    }
+                }   
+            }    
+        }
+        
         this.IntermediateInstructionList.add(intIns);
-        insNumber++;
-        return intIns.instNum();
+        intIns.setInsNum(insNumber);
+        return insNumber++;
     }
     
     public int addFront(IntermediateInstruction intIns){
@@ -115,6 +169,7 @@ public class BasicBlock implements Operand {
     /*public void addFront(IntermediateInstruction intIns) {
         this.IntermediateInstructionList.add(0, intIns);
     }*/
+    
 
     public List<IntermediateInstruction> getIntInsList(){
         return IntermediateInstructionList;

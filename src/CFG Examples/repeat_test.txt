@@ -4,8 +4,8 @@ int sum, n;
     let n = 1;
 	let sum = 0;
     repeat
-        let sum += n;
-        let n--;
+        let sum = n;
+        //let n--;
     until (n <= 0);
 
     let n = 4; 

@@ -8,7 +8,7 @@ import pl434.Token;
 
 public class FunctionDeclaration extends Node implements Declaration {
     private Symbol func;
-    private List<String> paramTypes; // TODO: enum type
+    private List<String> paramTypes; 
     FunctionBody funcBody; 
 
     public FunctionDeclaration(int lineNum, int charPos, Symbol func, FunctionBody funcBody){

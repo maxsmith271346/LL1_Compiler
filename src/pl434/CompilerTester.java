@@ -26,6 +26,7 @@ public class CompilerTester {
         options.addOption("onefile", "onefile", false, "If true, 'ast.dot' and 'cfg.dot' are the names for files in graphs/");
         options.addOption("allowVersions", "allowVersions", false, "Allowing versioning for files in graphs/");
 
+
         options.addOption("o", "opt", true, "Order-sensitive optimization -allowed to have multiple");
         options.addOption("max", "maxOpt", false, "Run all available optimizations till convergence");
 
@@ -140,14 +141,11 @@ public class CompilerTester {
 
         // Comment these out for PA 7 - 8 - 9
         String[] optArgs = cmd.getOptionValues("opt");
-        for (String opt : optArgs){
-            System.out.println(opt);
-        }
         List<String> optArguments = (optArgs!=null && optArgs.length != 0) ? Arrays.asList(optArgs) : new ArrayList<String>();
 
         //PA 7
         try {
-            dotgraph_text = c.optimization(optArguments, options);
+            dotgraph_text = c.optimization(optArguments, cmd);
             System.out.println(dotgraph_text);
         } catch (Exception e) {
             e.printStackTrace();

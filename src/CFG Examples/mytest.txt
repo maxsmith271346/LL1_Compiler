@@ -1,20 +1,20 @@
-digraph G { 
-BB1[shape=record, label="<b>main\nBB1|{0 : MOVE 1 c_0 |1 : ADD a b |2 : MOVE (1) c_2 |3 : MOVE c_2 d_3 |4 : MUL d_3 d_3 |5 : MOVE (4) e_5 |6 : ADD a c_2 |7 : MOVE (6) f_7 |8 : MOVE e_5 g_8 |9 : ADD g_8 d_3 |10 : MOVE (9) a_10 |11 : CMP a_10 c_2 |12 : BGE (11) [3] }"];
-BB1:s -> BB2:n [label="then"];
-BB1:s -> BB3:n [label="else"];
-BB2[shape=record, label="<b>BB2|{13 : ADD g_8 1 |14 : MOVE (13) h_14 |15 : CMP f_7 a_10 |16 : BLE (15) [6] }"];
-BB2:s -> BB5:n [label="then"];
-BB2:s -> BB6:n [label="else"];
-BB3[shape=record, label="<b>BB3|{19 : ADD d_3 c_2 |20 : MOVE (19) f_20 |21 : CMP f_20 a_10 |22 : BLE (21) [8] }"];
-BB3:s -> BB7:n [label="then"];
-BB3:s -> BB8:n [label="else"];
-BB4[shape=record, label="<b>BB4|{26 : MOVE e_5 g_26 |27 : ADD g_26 d_3 |28 : MOVE (27) a_28 }"];
-BB5[shape=record, label="<b>BB5|{17 : MOVE 2 c_17 }"];
-BB5:s -> BB6:n [label=""];
-BB6[shape=record, label="<b>BB6|{18 : BRA [4] }"];
-BB6:s -> BB4:n [label=""];
-BB7[shape=record, label="<b>BB7|{23 : MOVE 5 c_23 |24 : BRA [4] }"];
-BB7:s -> BB4:n [label=""];
-BB8[shape=record, label="<b>BB8|{25 : MOVE 0 f_25 }"];
-BB8:s -> BB4:n [label=""];
+main
+int a,b,c,d,e,f,g,h;
+
+{
+    let a = 7;
+    let b = a + 2;
+    let c = a + b;
+    let d = c + b;
+    let b = c + b;
+    let a = a + b;
+    let e = c + d;
+    let f = c + d;
+    let g = a + b;
+    let h = e + f;
+
+    //g and h are live
+    call printInt(g); // 57 
+    call printInt(h); // 82 
 }
+.

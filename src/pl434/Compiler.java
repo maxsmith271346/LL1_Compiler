@@ -97,11 +97,15 @@ public class Compiler {
         return ssa;
     }
 
-    public String optimization(List<String> optArguments, Options options){
+    public String optimization(List<String> optArguments, CommandLine cmd){
         System.out.println("optArguments " + optArguments); 
         Optimization optimization = new Optimization(ssa);
+
+        if (cmd.hasOption("max")){
+            optimization.runUntilConvergence(optArguments);
+            return ssa.asDotGraph();
+        }
         for (String opt : optArguments){
-            System.out.println(opt);
             switch(opt){
                 case "cp": 
                     optimization.constantPropagation();
@@ -121,6 +125,9 @@ public class Compiler {
                 case "ofe": 
                     optimization.orphanFunctionElimination();
                     break; 
+                case "as":
+                    optimization.arithmeticSimplification();
+                    break;
             }
         }
         //Optimizer.copyPropagation(ssa);
@@ -146,13 +153,13 @@ public class Compiler {
 
         // TODO: At some point, should likely change Symbol constructor to take in
         // list of types
-        rootScope.insert("readInt", new Symbol("readInt", "int", "func"));
-        rootScope.insert("readFloat", new Symbol("readFloat", "float", "func"));
-        rootScope.insert("readBool", new Symbol("readBool", "bool", "func"));
-        rootScope.insert("printInt", new Symbol("printInt", "void", "func", new ArrayList<String>(Arrays.asList("int"))));
-        rootScope.insert("printFloat", new Symbol("printFloat", "void", "func", new ArrayList<String>(Arrays.asList("float"))));
-        rootScope.insert("printBool", new Symbol("printBool", "void", "func", new ArrayList<String>(Arrays.asList("bool"))));
-        rootScope.insert("println", new Symbol("println", "void", "func"));
+        rootScope.insert("readInt", new Symbol("readInt", "int", "func", 1));
+        rootScope.insert("readFloat", new Symbol("readFloat", "float", "func", 1));
+        rootScope.insert("readBool", new Symbol("readBool", "bool", "func", 1));
+        rootScope.insert("printInt", new Symbol("printInt", "void", "func", new ArrayList<String>(Arrays.asList("int")), 1));
+        rootScope.insert("printFloat", new Symbol("printFloat", "void", "func", new ArrayList<String>(Arrays.asList("float")), 1));
+        rootScope.insert("printBool", new Symbol("printBool", "void", "func", new ArrayList<String>(Arrays.asList("bool")), 1));
+        rootScope.insert("println", new Symbol("println", "void", "func", 1));
     }
 
     private void enterScope(String scopeName) {
@@ -743,6 +750,7 @@ public class Compiler {
     private DeclarationList varDecl() {
         int lineNum = lineNumber();
         int charPos = charPosition();
+        String symbolType = "var";
 
         // create a new Declaration List node and fill it with Variable Declarations
         DeclarationList vars = new DeclarationList(lineNum, charPos);
@@ -754,6 +762,7 @@ public class Compiler {
         // moved this from typeDecl since it only returns a Token & this is the only method that calls typeDecl
         while (accept(Kind.OPEN_BRACKET)) {
             dimList.add(expectRetrieve(Kind.INT_VAL).lexeme());
+            symbolType = "arr";
             expect(Kind.CLOSE_BRACKET);
         }
 
@@ -762,7 +771,7 @@ public class Compiler {
             charPos = charPosition();
 
             Token identTok = expectRetrieve(Kind.IDENT);
-            varDec = new VariableDeclaration(lineNum, charPos, typeTok.lexeme(), identTok.lexeme());
+            varDec = new VariableDeclaration(lineNum, charPos, typeTok.lexeme(), identTok.lexeme(), 1, symbolType);
 
             lineNum = lineNumber();
             charPos = charPosition();
@@ -797,7 +806,7 @@ public class Compiler {
         String pType = paramType();
         Token ident = expectRetrieve(Kind.IDENT);
 
-        Symbol symbol = new Symbol(ident.lexeme(), pType, "param");
+        Symbol symbol = new Symbol(ident.lexeme(), pType, "param", 3);
 
         tryDeclareVariable(ident, symbol);
 
@@ -857,7 +866,7 @@ public class Compiler {
         Token identTok = expectRetrieve(Kind.IDENT);
 
         // Declare function in parent scope (still needs paramTypes list)
-        Symbol func = new Symbol(identTok.lexeme(), typeTok.lexeme(), "func");
+        Symbol func = new Symbol(identTok.lexeme(), typeTok.lexeme(), "func", 1);
 
         // save off the char pos and line number in case they are needed later for an error
         int funcCharPos = charPosition();
@@ -935,7 +944,7 @@ public class Compiler {
 
         resolveFunctions();
 
-        Symbol compSymbol = new Symbol("main", "void", "func");
+        Symbol compSymbol = new Symbol("main", "void", "func", 1);
         return new Computation(0, 0, compSymbol, vars, funcs, mainSeq);
 
     }

@@ -1,0 +1,9 @@
+igraph CFG {
+BB0[shape=record, label="<b>main\nBB0|{\[Entry\]}"];
+BB1[shape=record, label="<b>BB1|{0:&emsp;b(1) = a\l|1:&emsp;c(1) = a\l|2:&emsp;d(1) = a\l|3:&emsp;_i(3) = a + 1\l|4:&emsp;d(2) = _i(3)\l|5:&emsp;call [a] printInt\l|6:&emsp;call [a] printInt\l|7:&emsp;call [a] printInt\l|8:&emsp;call [_i(3)] printInt\l}"];
+BB0 -> BB1;
+BB2[shape=record, label="<b>BB2|{\[Exit\]}"];
+BB1 -> BB2;
+BB0:b:s -> BB1:b:n [color=blue, style=dotted, label="idom"];
+BB0:b:s -> BB2:b:n [color=blue, style=dotted, label="idom"];
+}

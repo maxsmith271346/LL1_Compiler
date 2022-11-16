@@ -1,18 +1,26 @@
-{[5]=[[7]], [7]=[[2]], [1]=[], [6]=[[7]], [3]=[[2]], [4]=[], [2]=[[2]]}
-digraph G { 
-BB5[shape=record, label="<b>BB5|{10 : MUL -1 a_1 |11 : ADD (10) 5 |12 : MOVE (11) a_12 |13 : MUL -3 b_3 |14 : SUB (13) 4 |15 : MOVE (14) b_15 |16 : BRA [7] }"];
-BB5:s -> BB7:n [label=""];
-BB7[shape=record, label="<b>BB7|{23 : SUB c_5 a_1 |24 : MUL (23) b_3 |25 : MOVE (24) c_25 |26 : SUB n_6 1 |27 : MOVE (26) n_27 }"];
-BB7:s -> BB3:n [label=""];
-BB1[shape=record, label="<b>main\nBB1|{0 : READ |1 : MOVE (0) a_1 |2 : READ |3 : MOVE (2) b_3 |4 : MUL a_1 b_3 |5 : MOVE (4) c_5 |6 : MOVE 10 n_6 }"];
-BB1:s -> BB2:n [label=""];
-BB6[shape=record, label="<b>BB6|{17 : POW a_1 2 |18 : MUL 2 a_1 |19 : SUB (17) (18) |20 : MOVE (19) a_20 |21 : MUL -1 b_3 |22 : MOVE (21) b_22 }"];
-BB6:s -> BB7:n [label=""];
-BB3[shape=record, label="<b>BB3|{28 : CMP n_6 0 |29 : BLT (28) [2] }"];
-BB3:s -> BB2:n [label="else"];
-BB3:s -> BB4:n [label="then"];
-BB4[shape=record, label="<b>BB4|{30 : WRITE c_5 |31 : END }"];
-BB2[shape=record, label="<b>BB2|{7 : CMP a_1 0 |8 : CMP b_3 0 |9 : OR (7) (8) }"];
-BB2:s -> BB5:n [label="then"];
-BB2:s -> BB6:n [label="else"];
+digraph G {
+BB3[shape=record, label="<b>BB3|{8 : ADD c_0 d_1 |9 : MOVE b_3 x_9 |10 : ADD b_3 c_0 |11 : MOVE (10) a_11 |12 : BRA [5] }"];
+BB3:s -> BB5:n [label=""];
+BB7[shape=record, label="<b>BB7|{32 : MOVE 0 y_32 |33 : MOVE 0 z_33 |34 : ADD y_59 z_56 |35 : MOVE (34) x_35 |36 : ADD y_59 z_56 |37 : MOVE x_35 y_37 |38 : CMP x_25 y_59 |39 : BNE (38) [10] }"];
+BB7:s -> BB9:n [label="then"];
+BB7:s -> BB10:n [label="else"];
+BB4[shape=record, label="<b>BB4|{13 : MOVE 0 a_13 |14 : ADD a_13 b_3 |15 : MOVE (14) y_15 }"];
+BB4:s -> BB5:n [label=""];
+BB1[shape=record, label="<b>main\nBB1|{<cwithout_loop62>62 : CALL without_loop |<cwith_loop63>63 : CALL with_loop |64 : END }"];
+BB1:cwithout_loop62 -> BB2:b [];
+BB1:cwith_loop63 -> BB6:b [];
+BB10[shape=record, label="<b>BB10|{45 : MOVE 0 w_45 |46 : ADD w_-2 x_25 |47 : MOVE (46) y_47 }"];
+BB10:s -> BB11:n [label=""];
+BB8[shape=record, label="<b>BB8|{60 : MOVE 0 w_60 |61 : WRITE w_60 }"];
+BB11[shape=record, label="<b>BB11|{48 : PHI z_33 z_43 |49 : PHI y_37 y_47 |50 : PHI w_45 w_41 |51 : ADD w_50 x_35 |52 : MOVE (51) w_52 |53 : ADD x_35 y_49 |54 : MOVE (53) z_54 |55 : BRA [6] }"];
+BB11:s -> BB6:n [label=""];
+BB9[shape=record, label="<b>BB9|{40 : ADD x_25 y_59 |41 : MOVE (40) w_41 |42 : ADD z_56 y_59 |43 : MOVE (42) z_43 |44 : BRA [11] }"];
+BB9:s -> BB11:n [label=""];
+BB6[shape=record, label="<b>with_loop\nBB6|{59 : PHI y_-2 y_37 |58 : PHI y_32 y_28 |57 : PHI x_-2 x_35 |56 : PHI z_33 z_-2 |31 : BEQ e_5 [8] }"];
+BB6:s -> BB7:n [label="then"];
+BB6:s -> BB8:n [label="else"];
+BB2[shape=record, label="<b>without_loop\nBB2|{0 : MOVE 0 c_0 |1 : MOVE 0 d_1 |2 : ADD c_0 d_1 |3 : MOVE (2) b_3 |4 : ADD c_0 d_1 |5 : MOVE b_3 e_5 |6 : CMP b_3 e_5 |7 : BNE (6) [4] }"];
+BB2:s -> BB3:n [label="then"];
+BB2:s -> BB4:n [label="else"];
+BB5[shape=record, label="<b>BB5|{16 : PHI x_-2 x_9 |17 : PHI y_-2 y_15 |18 : PHI a_13 a_11 |19 : ADD a_18 b_3 |20 : MOVE (19) x_20 |21 : ADD c_0 d_1 |22 : MOVE b_3 y_22 |23 : MUL b_3 c_0 |24 : DIV (23) x_20 |25 : MOVE (24) x_25 |26 : MUL b_3 c_0 |27 : DIV (23) e_5 |28 : MOVE (27) y_28 |29 : WRITE x_25 |30 : WRITE y_28 }"];    
 }

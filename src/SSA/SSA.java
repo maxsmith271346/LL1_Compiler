@@ -48,8 +48,19 @@ public class SSA implements NodeVisitor{
     private BasicBlock currentBB;
     private int BBNumber = 1;
 
-    private BasicBlock rootBB;
+    public BasicBlock rootBB;
     private BasicBlock endBB;
+
+    public List<Edge> edgeList; 
+
+    public class Edge{ 
+        BasicBlock BB1; 
+        BasicBlock BB2; 
+        public Edge (BasicBlock BB1, BasicBlock BB2){
+            this.BB1 = BB1; 
+            this.BB2 = BB2; 
+        }
+    }
     
     public SSA(AST ast){
         BasicBlockList = new HashSet<BasicBlock>();
@@ -57,12 +68,37 @@ public class SSA implements NodeVisitor{
         pruneEmpty();
         //insertPhi();
         //System.out.println(getDominanceFrontier(rootBB));
+
+        //edgeList = new ArrayList<Edge>();
+        //generateEdgeList();
     }
 
     public BasicBlock getEndBB() {
         return endBB;
     }
+    
+    public SSA(){
+        BasicBlockList = new HashSet<BasicBlock>();
+    }
 
+    public void copyBasicBlockList(SSA ssa){
+        this.BasicBlockList.addAll(ssa.getBasicBlockList());
+    }
+
+    public void clearAvailExpressions(){
+        for (BasicBlock bb : BasicBlockList){
+            for (IntermediateInstruction ii : bb.getIntInsList()){
+                ii.availableExpressions.clear();
+            }
+        }
+    }
+
+    public void removeBB(BasicBlock BB){
+        if (BB.name().contains("elim")){
+            return;
+        }
+        BB.putName(BB.name() + " elim");
+    }
 
     /**
      * Get the dominance frontier of a control flow graph
@@ -160,8 +196,6 @@ public class SSA implements NodeVisitor{
 
         return DominatorSet;
     }
-
-
     /**
      * Removes the empty Basic Blocks from the SSA
      * 
@@ -450,7 +484,7 @@ public class SSA implements NodeVisitor{
         if (node.lhsDesignator() instanceof Symbol){
              // put new subscript in
             HashSet<Symbol> newHash = new HashSet<Symbol>();
-            Symbol lhs = new Symbol(((Symbol) node.lhsDesignator()).name() + "_" + BasicBlock.insNumber, ((Symbol) node.lhsDesignator()).getType().toString(), "var");
+            Symbol lhs = new Symbol(((Symbol) node.lhsDesignator()).name() + "_" + BasicBlock.insNumber, ((Symbol) node.lhsDesignator()).getType().toString(), "var", ((Symbol) node.lhsDesignator()).scope);
             newHash.add(lhs);
             currentBB.varMap.put((Symbol) node.lhsDesignator(), newHash);   
             currentBB.add(new IntermediateInstruction(SSAOperator.MOVE, node.rhsExpr().getOperand(currentBB.varMap), lhs, BasicBlock.insNumber));
@@ -598,7 +632,7 @@ public class SSA implements NodeVisitor{
                     Iterator<Symbol> it = joinBlock.varMap.get(key).iterator();
                     insNum = joinBlock.add(new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber)).getInstructionNumber();
                     HashSet<Symbol> newHash = new HashSet<Symbol>();
-                    newHash.add(new Symbol(key.name() + "_" + insNum, key.type().toString(), "var"));
+                    newHash.add(new Symbol(key.name() + "_" + insNum, key.type().toString(), "var", key.scope));
                     joinBlock.varMap.put(key, newHash);
 
                     //System.out.println()
@@ -667,7 +701,7 @@ public class SSA implements NodeVisitor{
                     Iterator<Symbol> it = whileBlock.varMap.get(key).iterator();
                     insNum = whileBlock.addFront(new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber));
                     HashSet<Symbol> newHash = new HashSet<Symbol>();
-                    newHash.add(new Symbol(key.name() + "_" + insNum, key.type().toString(), "var"));
+                    newHash.add(new Symbol(key.name() + "_" + insNum, key.type().toString(), "var", key.scope));
                     whileBlock.varMap.put(key, newHash);
 
                     //System.out.println()
@@ -734,7 +768,7 @@ public class SSA implements NodeVisitor{
                     Iterator<Symbol> it = repeatBB.varMap.get(key).iterator();
                     insNum = repeatBB.addFront(new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber));
                     HashSet<Symbol> newHash = new HashSet<Symbol>();
-                    newHash.add(new Symbol(key.name() + "_" + insNum, key.type().toString(), "var"));
+                    newHash.add(new Symbol(key.name() + "_" + insNum, key.type().toString(), "var", key.scope));
                     repeatBB.varMap.put(key, newHash);
                 }
             }
@@ -754,9 +788,13 @@ public class SSA implements NodeVisitor{
     public void visit(ReturnStatement node) {
         if (node.returnValue() != null){
             node.returnValue().accept(this);
+            currentBB.add(new IntermediateInstruction(SSAOperator.RET, node.returnValue().getOperand(currentBB.varMap), null, BasicBlock.insNumber));
+        }
+        else{
+            currentBB.add(new IntermediateInstruction(SSAOperator.RET, null, null, BasicBlock.insNumber));
+
         }
 
-        currentBB.add(new IntermediateInstruction(SSAOperator.RET, node.returnValue().getOperand(currentBB.varMap), null, BasicBlock.insNumber));
     }
 
     @Override
@@ -771,14 +809,19 @@ public class SSA implements NodeVisitor{
         // Global var
         if (currentBB.name().equals("main")){
             HashSet<Symbol> newHash = new HashSet<Symbol>();
-            newHash.add(new Symbol(node.symbol().name() + "_-1", node.symbol().type().toString(), "var"));
+            if (node.symbol().getSymbolType().equals("arr")){
+                newHash.add(new Symbol(node.symbol().name(), node.symbol().type().toString(), node.symbol().getSymbolType(), 1));
+            }
+            else{ 
+                newHash.add(new Symbol(node.symbol().name() + "_-1", node.symbol().type().toString(), node.symbol().getSymbolType(), 1));
+            }
             currentBB.varMap.put(node.symbol(), newHash);
             //currentBB.varMap.put(node.symbol(), new Symbol(node.symbol().name() + "_-1", node.symbol().type().toString(), "var"));
         }
         // Local var
         else{ 
             HashSet<Symbol> newHash = new HashSet<Symbol>();
-            newHash.add(new Symbol(node.symbol().name() + "_-2", node.symbol().type().toString(), "var"));
+            newHash.add(new Symbol(node.symbol().name() + "_-2", node.symbol().type().toString(), node.symbol().getSymbolType(), 2));
             currentBB.varMap.put(node.symbol(), newHash);
         }
         node.symbol().accept(this);
