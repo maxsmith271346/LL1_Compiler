@@ -95,7 +95,7 @@ public class IntermediateInstruction {
     public String toString(){
         // The operands can be null (sometimes there are less than 2 operands)
         if (operand_two == null && operand_one == null){ 
-            return operator + " " ;
+            return  operator + " " ;
         }
         else if (operand_one == null){
             return operator + " " + operand_two.toString() + " ";
@@ -105,7 +105,7 @@ public class IntermediateInstruction {
         }
 
         if (extraOperands == null){
-            return operator + " " + operand_one.toString() + " " + operand_two.toString() + " ";
+            return  operator + " " + operand_one.toString() + " " + operand_two.toString() + " ";
         }
         else{ 
             String retStr = operator + " " + operand_one.toString() + " " + operand_two.toString();
@@ -197,7 +197,7 @@ public class IntermediateInstruction {
 
     public boolean containsOperand(Operand operand){
         if (operand_one != null){
-            if (operand_one instanceof Symbol){
+            if (operand_one instanceof Symbol && operand instanceof Symbol){
                 String operandOneName = ((Symbol) operand_one).name();
                 operandOneName = operandOneName.substring(0, operandOneName.indexOf("_"));
 
@@ -208,9 +208,14 @@ public class IntermediateInstruction {
                     return true;
                 }
             }   
+            else if (operand_one instanceof InstructionNumber && operand instanceof InstructionNumber){
+                if(((InstructionNumber) operand_one).getInstructionNumber() == ((InstructionNumber) operand).getInstructionNumber()){
+                    return true;
+                }
+            }   
         }
         if (operand_two != null){
-            if (operand_two instanceof Symbol){
+            if (operand_two instanceof Symbol && operand instanceof Symbol){
                 String operandTwoName = ((Symbol) operand_two).name();
                 if (operandTwoName.contains("_")){
                     operandTwoName = operandTwoName.substring(0, operandTwoName.indexOf("_"));
@@ -224,7 +229,12 @@ public class IntermediateInstruction {
                 if(operandTwoName.equals(operandName)){
                     return true;
                 }
-            }   
+            } 
+            else if (operand_two instanceof InstructionNumber && operand instanceof InstructionNumber){
+                if(((InstructionNumber) operand_two).getInstructionNumber() == ((InstructionNumber) operand).getInstructionNumber()){
+                    return true;
+                }
+            }     
         }
         if (extraOperands != null){
             for (Operand e : extraOperands){
@@ -330,24 +340,37 @@ public class IntermediateInstruction {
     }
 
 
-    public boolean conflicts(IntermediateInstruction intIns){
+    public boolean conflicts(IntermediateInstruction intIns, boolean merge){
+        boolean conflict = true;
         if (intIns.getOperator() == operator && intIns.numberOperators() == this.numberOperators()){
             //System.out.println("one " + intIns);
             //System.out.println("two " + this);
+            conflict = false; 
             if (operand_one != null && intIns.getOperandOne() != null){
                 if (checkOperand(operand_one, intIns.getOperandOne())){
-                    return true;
+                    conflict = true;
+                    //return true;
                 }
                 
             }
             if (operand_two != null && intIns.getOperandTwo() != null){
                 if (checkOperand(operand_two, intIns.getOperandTwo())){
-                    return true;
+                    conflict = true;
+                    //return true;
                 }
             }
-            return false; 
+            //return false; 
         }
-        return true; 
+        //conflict = true; 
+        //return true;
+        if (merge){
+            if (conflict == false && intIns.getOperator() == SSAOperator.ADDA){
+                if (intIns.insNum() != insNum){
+                    conflict = true; 
+                }
+            }
+        } 
+        return conflict;
     }
 
     public int numberOperators(){

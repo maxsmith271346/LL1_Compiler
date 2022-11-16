@@ -1,3 +1,10 @@
-digraph G {
-BB1[shape=record, label="<b>main\nBB1|{0 : READ |1 : MOVE (0) a_1 |2 : READ |3 : MOVE a_1 b_3 |4 : MOVE 1 x_4 |5 : ADD a_1 b_3 |6 : MOVE (5) y_6 |7 : MUL y_6 y_6 |8 : MOVE (7) z_8 |9 : MUL y_6 1 |10 : MOVE (9) c_10 |11 : ADD a_1 b_3 |12 : MOVE y_6 e_12 |13 : MUL e_12 e_12 |14 : MOVE (13) d_14 |15 : SUB 1 1 |16 : MOVE (15) e_16 |17 : ADD e_16 4 |18 : MOVE (17) b_18 |19 : ADD a_1 b_18 |20 : MOVE (19) x_20 |21 : MUL y_6 x_20 |22 : MOVE (21) y_22 |23 : WRITE x_20 |24 : WRITE y_22 |25 : END }"];
+digraph G { 
+BB3[shape=record, label="<b>BB3|{30 : MUL i_0 4 |31 : ADD GDB a |32 : ADDA (31) (30) |33 : LOAD (32) |34 : MUL i_0 4 |35 : ADD GDB a |36 : ADDA (35) (34) |37 : LOAD (36) |38 : ADD (33) (37) |39 : MOVE (38) k_39 |40 : MUL i_0 4 |41 : ADD GDB a |42 : ADDA (41) (40) |43 : ADD k_52 1 |44 : STORE (43) (42) |45 : MUL i_0 4 |46 : ADD GDB a |47 : ADDA (46) (45) |48 : LOAD (47) |49 : MOVE (48) z_49 |50 : WRITE z_53 |51 : BRA [2] }"];
+BB3:s -> BB2:n [label=""];
+BB4[shape=record, label="<b>BB4|{54 : WRITE |55 : MUL i_0 4 |56 : ADD GDB a |57 : ADDA (56) (55) |58 : LOAD (57) |59 : MOVE (58) w_59 |60 : WRITE w_59 |61 : END }"];
+BB2[shape=record, label="<b>BB2|{53 : PHI z_49 z_-1 |52 : PHI k_14 k_39 |20 : MUL i_0 4 |21 : ADD GDB a |22 : ADDA (21) (20) |23 : LOAD (22) |24 : MUL j_15 4 |25 : ADD GDB b |26 : ADDA (25) (24) |27 : LOAD (26) |28 : CMP (23) (27) |29 : BGE (28) [4] }"];
+BB2:s -> BB3:n [label="then"];
+BB2:s -> BB4:n [label="else"];
+BB1[shape=record, label="<b>main\nBB1|{0 : MOVE 1 i_0 |1 : MUL 1 4 |2 : ADD GDB a |3 : ADDA (2) (1) |4 : STORE 5 (3) |5 : MUL i_0 4 |6 : ADD GDB a |7 : ADDA (6) (5) |8 : LOAD (7) |9 : MOVE (8) x_9 |10 : MUL i_0 4 |11 : ADD GDB a |12 : ADDA (11) (10) |13 : LOAD (12) |14 : MOVE (13) k_14 |15 : MOVE 2 j_15 |16 : MUL j_15 4 |17 : ADD GDB b |18 : ADDA (17) (16) |19 : STORE 19 (18) }"];
+BB1:s -> BB2:n [label=""];
 }

@@ -848,7 +848,7 @@ public class Optimization {
                     }
                     for (IntermediateInstruction iiAvail : ii.availableExpressions){
                         if (iiAvail.elim){continue;}
-                        if (!iiAvail.conflicts(ii)){
+                        if (!iiAvail.conflicts(ii, false)){
                             if (iiAvail.getOperator() != SSAOperator.MOVE){
                                 if (ii.insNum() > iiAvail.insNum()){
                                     if (toReplace.keySet().contains(ii.insNum())){
@@ -976,7 +976,28 @@ public class Optimization {
                 // Don't add move instructions with instruction numbers (for now - until CSE is implemented)
 
                 availableExpressions.add(new IntermediateInstruction(ii.getOperator(), ii.getOperandOne(), ii.getOperandTwo(), ii.insNum()));
-            }// Add other instructions to the set
+            }
+            else if (ii.getOperator() == SSAOperator.STORE){
+                toRemove.clear();
+                for (IntermediateInstruction iiAvail : availableExpressions){
+                    if (iiAvail.elim){continue;}
+                    if (iiAvail.containsOperand(ii.getOperandTwo())){
+                        toRemove.add(iiAvail);
+                    }
+                    if (ii.getOperandTwo() instanceof InstructionNumber){
+                        if (iiAvail.insNum() == ((InstructionNumber) ii.getOperandTwo()).getInstructionNumber()){
+                            toRemove.add(iiAvail);
+                            for (IntermediateInstruction iiAvail2 : availableExpressions){
+                                if (!iiAvail.conflicts(iiAvail2, false)){
+                                    toRemove.add(iiAvail2);
+                                }
+                            }
+                        }
+                    }
+                }
+                availableExpressions.removeAll(toRemove);
+            }
+            // Add other instructions to the set
             else{ 
                 if (opsToAdd.contains(ii.getOperator())){
                     availableExpressions.add(new IntermediateInstruction(ii.getOperator(), ii.getOperandOne(), ii.getOperandTwo(), ii.insNum()));
@@ -1000,7 +1021,7 @@ public class Optimization {
         BasicBlock bb; 
         boolean change = true; 
 
-        while ((bbList.size() != 0 && change) || visited.size() != 0) { 
+        while ((bbList.size() != 0 && change) && visited.size() != 0) { 
             change = false; 
             if (bbList.size() != 0){
                 bb = bbList.get(0);
@@ -1020,18 +1041,18 @@ public class Optimization {
 
             for (Transitions t : bb.transitionList){
                 if (t.label.contains("elim") || t.toBB.name().contains("elim")){
-                    //bbList.add(bb);
-                    bbList.add(t.toBB);
                     bbList.add(bb);
                     visited.remove(t.toBB);
                     continue;
                 }
                 if (t.label.contains("call")){
+                    //System.out.println("call " + t.label);
                     generateAvailableExpressionForBB(new HashSet<IntermediateInstruction>(), t.toBB);
                     bbList.add(t.toBB);
                     visited.remove(t.toBB);
                     continue;
                 }
+                //bbList.add(t.toBB);
 
                 if (t.toBB.getIntInsList().get(0).availableExpressions.size() == 0){
                     // If not, then just instantiate it with the avail expression set of the parent's last instruction 
@@ -1045,14 +1066,16 @@ public class Optimization {
                         if (iiParent.elim){continue;}
                         for (IntermediateInstruction iiChild : t.toBB.getIntInsList().get(0).availableExpressions){
                             if (iiChild.elim){continue;}
-                            if (!iiChild.conflicts(iiParent)){
+                            if (!iiChild.conflicts(iiParent, true)){
                                 intersection.add(iiChild);
+        
                             }
                         }
                     }
 
                     if (!t.toBB.getIntInsList().get(0).availableExpressions.equals(intersection)){
                         bbList.remove(bb);
+                        //bbList.add(1, t.toBB);
                         bbList.add(0, bb);
                         change = true;
                     }
@@ -1067,4 +1090,3 @@ public class Optimization {
         }
     }
 }
-
