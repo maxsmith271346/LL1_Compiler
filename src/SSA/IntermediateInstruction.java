@@ -369,8 +369,8 @@ public class IntermediateInstruction {
 
     public Boolean setLiveVars(HashSet<Operand> liveVars) {
 
-        System.out.println(this.liveVars);
-        System.out.println(liveVars);
+        //System.out.println(this.liveVars);
+        //System.out.println(liveVars);
         Boolean exists = false;
 
         for (Operand o : liveVars) {

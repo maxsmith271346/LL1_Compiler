@@ -27,12 +27,12 @@ public class IRVisualizer {
             
             enterBasicBlock(BB);
             for (IntermediateInstruction intIns: BB.getIntInsList()){
-                if (intIns.isElim()) {
-                    dotGraph.append("elim: ");
-                }
                 // "Call" instructions need a "tag"
                 if (intIns.getOperator().equals(SSAOperator.CALL)){
                     dotGraph.append("<c" + intIns.getFuncName() + intIns.instNum().getInstructionNumber() +  ">");
+                }
+                if (intIns.isElim()) {
+                    dotGraph.append("elim: ");
                 }
                 //dotGraph.append(intIns.instNum().getInstructionNumber() + " : " + intIns.toString() + "" + intIns.getLiveVars() + "|");
                 dotGraph.append(intIns.insNum() + " : "+intIns.toString() + "|");
@@ -52,9 +52,12 @@ public class IRVisualizer {
     }
 
     public void enterBasicBlock(BasicBlock BB){
-        String BBLabel = "BB" + BB.BBNumber + BB.lvEntry + "\n" + BB.lvExit + "|{";
+        //String BBLabel = "BB" + BB.BBNumber + BB.lvEntry + "\n" + BB.lvExit + "|{";
+        String BBLabel = "BB" + BB.BBNumber + "|{";
         if (!BB.name().equals("")){
-            BBLabel = BB.name() + "\\nBB" + BB.BBNumber + BB.lvEntry + "\n" + BB.lvExit + "|{";
+            //BBLabel = BB.name() + "\\nBB" + BB.BBNumber + BB.lvEntry + "\n" + BB.lvExit + "|{";
+            BBLabel = BB.name() + "\\nBB" + BB.BBNumber + "\n" + "|{";
+
         }
         dotGraph.append("BB" + BB.BBNumber + "[shape=record, label=\"<b>" + BBLabel); 
     }
