@@ -930,6 +930,16 @@ public class Optimization {
                         break;
 
                     case CALL:  //TODO:
+                        if (!live.contains(ii.instNum())) {  // result not used later
+                            ii.eliminate();
+                            globalChange = true;
+                        }
+                        break;
+                    
+                    case RET:
+                        for (int j = i + 1; j < block.getIntInsList().size(); j++) {
+                            block.getIntInsList().get(j).eliminate();
+                        }
                         break;
                         
                     case END:
@@ -944,8 +954,7 @@ public class Optimization {
                         break;
                     case PHI:
                         break;
-                    case RET:
-                        break;
+                    
                     case STORE:
                         break;
 

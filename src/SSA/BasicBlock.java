@@ -257,7 +257,7 @@ public class BasicBlock implements Operand {
         HashSet<Operand> live = new HashSet<Operand>(this.lvExit);
         // determine liveness at entry and exit to BB
         for (int i = this.getIntInsList().size()-1; i >= 0; i--) {
-            IntermediateInstruction ii = this.getIntInsList().get(i);  
+            IntermediateInstruction ii = this.getIntInsList().get(i);
             if (ii.isElim()){continue;}          
             switch (ii.getOperator()) {
                 case ADDA:
@@ -268,10 +268,15 @@ public class BasicBlock implements Operand {
                 case BLE:
                 case BLT:
                 case BNE:
-                    live.add(ii.getOperandOne());
+                    if (ii.getOperandOne() != null) {
+                        live.add(ii.getOperandOne());
+                    }
                     break;
 
                 case CALL:  // TODO:
+                    if (live.contains(ii.instNum())) {
+                        live.remove(ii.instNum());
+                    }
                     for (Transitions t : this.transitionList) {
                         BasicBlock successor = t.toBB;
                         if (t.label.contains("call") && successor.name().equals(ii.getOperandOne().toString())) {
@@ -285,9 +290,11 @@ public class BasicBlock implements Operand {
                     break;
 
                 case RET:
-                    live.add(ii.getOperandOne());
+                    if (ii.getOperandOne() != null) {
+                        live.add(ii.getOperandOne());
+                    }
                     for (Symbol s : varMap.keySet()){
-                        if (s.scope == 1){
+                        if (s.scope == 1 && s != null){
                             live.add(s);
                         }
                     }
@@ -302,7 +309,9 @@ public class BasicBlock implements Operand {
                     if (live.contains(ii.instNum())) {
                         live.remove(ii.instNum());
                     }
-                    live.add(ii.getOperandOne());
+                    if (ii.getOperandOne() != null) {
+                        live.add(ii.getOperandOne());
+                    }
                     break;
 
                 case NONE:
@@ -312,7 +321,9 @@ public class BasicBlock implements Operand {
                     if (live.contains(ii.instNum())) {
                         live.remove(ii.instNum());
                     }
-                    live.add(ii.getOperandOne());
+                    if (ii.getOperandOne() != null) {
+                        live.add(ii.getOperandOne());
+                    }
                     break;
                 case STORE:
                     break;
@@ -323,7 +334,7 @@ public class BasicBlock implements Operand {
                     varName = varName.split("_")[0];
                     varName = varName + "_" + ii.instNum().getInstructionNumber();
                     for (Operand opnd : live) {
-                        if (opnd.toString().equals(varName)) {
+                        if (opnd != null && opnd.toString().equals(varName)) {
                             op = opnd;
                             break;
                         }
@@ -332,8 +343,12 @@ public class BasicBlock implements Operand {
                     // if (live.contains(ii.instNum())) {
                     //     live.remove(ii.instNum());
                     // }
-                    live.add(ii.getOperandOne());
-                    live.add(ii.getOperandTwo());
+                    if (ii.getOperandOne() != null) {
+                        live.add(ii.getOperandOne());
+                    }
+                    if (ii.getOperandOne() != null) {
+                        live.add(ii.getOperandTwo());
+                    }
                     break;
 
                 case ADD:
@@ -348,8 +363,12 @@ public class BasicBlock implements Operand {
                     if (live.contains(ii.instNum())) {
                         live.remove(ii.instNum());
                     }
-                    live.add(ii.getOperandOne());
-                    live.add(ii.getOperandTwo());
+                    if (ii.getOperandOne() != null) {
+                        live.add(ii.getOperandOne());
+                    }
+                    if (ii.getOperandOne() != null) {
+                        live.add(ii.getOperandTwo());
+                    }                    
                     break;
 
                 case READ:
@@ -363,14 +382,18 @@ public class BasicBlock implements Operand {
                 case WRITE:
                 case WRITE_B:
                 case WRITE_F:
-                    live.add(ii.getOperandOne());
+                    if (ii.getOperandOne() != null) {
+                        live.add(ii.getOperandOne());
+                    }
                     break;
 
                 case MOVE:
                     if (live.contains(ii.getOperandTwo())) {
                         live.remove(ii.getOperandTwo());
                     }
-                    live.add(ii.getOperandOne());
+                    if (ii.getOperandOne() != null) {
+                        live.add(ii.getOperandOne());
+                    }
                     break;
                 
                 default:
