@@ -161,24 +161,50 @@ public class IntermediateInstruction {
 
     // This wll get the function name from a "call" instruction
     // Complicated because the function name is at the end of the TAC 
-    public String getFuncName(){
+    public Symbol getFunc(){
         if (extraOperands == null){
             if (operand_two == null){
                 if (operand_one instanceof Symbol){
-                    return ((Symbol) operand_one).name();
+                    return ((Symbol) operand_one);
                 }
             }
             else{ 
-                return ((Symbol) operand_two).name();
+                return ((Symbol) operand_two);
             }
         }
         else{ 
             if (extraOperands.get(extraOperands.size() - 1) instanceof Symbol){
-                return ((Symbol) extraOperands.get(extraOperands.size() - 1)).name();
+                return ((Symbol) extraOperands.get(extraOperands.size() - 1));
             }
+        }
+        return null;
+    }
+
+    public String getFuncName(){
+        if (getFunc() != null) {
+            return getFunc().name();
         }
         return "";
     }
+
+    // public String getFuncName(){
+    //     if (extraOperands == null){
+    //         if (operand_two == null){
+    //             if (operand_one instanceof Symbol){
+    //                 return ((Symbol) operand_one).name();
+    //             }
+    //         }
+    //         else{ 
+    //             return ((Symbol) operand_two).name();
+    //         }
+    //     }
+    //     else{ 
+    //         if (extraOperands.get(extraOperands.size() - 1) instanceof Symbol){
+    //             return ((Symbol) extraOperands.get(extraOperands.size() - 1)).name();
+    //         }
+    //     }
+    //     return "";
+    // }
 
     public InstructionNumber instNum(){
         return instNum;
@@ -369,8 +395,8 @@ public class IntermediateInstruction {
 
     public Boolean setLiveVars(HashSet<Operand> liveVars) {
 
-        System.out.println(this.liveVars);
-        System.out.println(liveVars);
+        // System.out.println(this.liveVars);
+        // System.out.println(liveVars);
         Boolean exists = false;
 
         for (Operand o : liveVars) {

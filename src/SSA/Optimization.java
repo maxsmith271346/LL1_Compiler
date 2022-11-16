@@ -29,11 +29,34 @@ public class Optimization {
                 // run all of them
                 // maybe have each of them return a boolean value that indicates whether or not there were code changes? 
                 change |= constantPropagation();
+                if (change) {
+                    // System.out.println("CP");
+                }
                 change |= constantFolding();
+                if (change) {
+                    System.out.println("CF");
+                }
                 change |= copyPropagation();
+                if (change) {
+                    //System.out.println("CPP");
+                }
                 change |= commonSubexpressionElimination();
+                if (change) {
+                    //System.out.println("CSE");
+                }
                 change |= deadCodeElimination(); 
+                if (change) {
+                    //System.out.println("DCE");
+                }
                 change |= orphanFunctionElimination();
+                if (change) {
+                    //System.out.println("OFE");
+                }
+                change |= arithmeticSimplification();
+                if (change) {
+                    //System.out.println("AS");
+                }
+                break; 
             }
 
         }
@@ -46,24 +69,45 @@ public class Optimization {
                     switch(opt){
                         case "cp": 
                             change |= constantPropagation();
+                            if (change) {
+                                //System.out.println("CP");
+                            }
                             break;
                         case "cf":
                             change |= constantFolding();
+                            if (change) {
+                                //System.out.println("CF");
+                            }
                             break;
                         case "cpp": 
                             change |= copyPropagation();
+                            if (change) {
+                                //System.out.println("CPP");
+                            }
                             break;
                         case "cse": 
                             change |= commonSubexpressionElimination();
+                            if (change) {
+                                //System.out.println("CSE");
+                            }
                             break;
                         case "dce":
                             change |= deadCodeElimination(); 
+                            if (change) {
+                                //System.out.println("DCE");
+                            }
                             break;
                         case "ofe": 
                             change |= orphanFunctionElimination();
+                            if (change) {
+                                //System.out.println("OPE");
+                            }
                             break; 
                         case "as": 
                             change |= arithmeticSimplification();
+                            if (change) {
+                                //System.out.println("AS");
+                            }
                             break; 
                         case "max":
                             break;
@@ -930,7 +974,7 @@ public class Optimization {
                         break;
 
                     case CALL:  //TODO:
-                        if (!live.contains(ii.instNum())) {  // result not used later
+                        if (ii.getFunc().type().toString() != "void" && !live.contains(ii.instNum())) {  // result not used later
                             ii.eliminate();
                             globalChange = true;
                         }
@@ -939,6 +983,7 @@ public class Optimization {
                     case RET:
                         for (int j = i + 1; j < block.getIntInsList().size(); j++) {
                             block.getIntInsList().get(j).eliminate();
+                            globalChange = true;
                         }
                         break;
                         

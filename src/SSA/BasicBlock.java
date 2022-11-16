@@ -274,7 +274,7 @@ public class BasicBlock implements Operand {
                     break;
 
                 case CALL:  // TODO:
-                    if (live.contains(ii.instNum())) {
+                    if (ii.getFunc().type().toString() != "void" && live.contains(ii.instNum())) {
                         live.remove(ii.instNum());
                     }
                     // for (Transitions t : this.transitionList) {
