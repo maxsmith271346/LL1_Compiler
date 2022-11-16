@@ -277,16 +277,16 @@ public class BasicBlock implements Operand {
                     if (live.contains(ii.instNum())) {
                         live.remove(ii.instNum());
                     }
-                    for (Transitions t : this.transitionList) {
-                        BasicBlock successor = t.toBB;
-                        if (t.label.contains("call") && successor.name().equals(ii.getOperandOne().toString())) {
-                            for (Operand o : successor.lvEntry){
-                                if ((o instanceof Symbol) && ((Symbol) o).scope == 1){
-                                    live.add(o);
-                                }
-                            }
-                        }
-                    }
+                    // for (Transitions t : this.transitionList) {
+                    //     BasicBlock successor = t.toBB;
+                    //     if (t.label.contains("call") && successor.name().equals(ii.getOperandOne().toString())) {
+                    //         for (Operand o : successor.lvEntry){
+                    //             if ((o instanceof Symbol) && ((Symbol) o).scope == 1){
+                    //                 live.add(o);
+                    //             }
+                    //         }
+                    //     }
+                    // }
                     break;
 
                 case RET:
