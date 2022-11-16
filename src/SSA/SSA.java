@@ -811,6 +811,7 @@ public class SSA implements NodeVisitor{
                 newHash.add(new Symbol(node.symbol().name() + "_-1", node.symbol().type().toString(), node.symbol().getSymbolType(), 1));
             }
             currentBB.varMap.put(node.symbol(), newHash);
+            node.symbol().scope = 1;
             //currentBB.varMap.put(node.symbol(), new Symbol(node.symbol().name() + "_-1", node.symbol().type().toString(), "var"));
         }
         // Local var
@@ -818,6 +819,7 @@ public class SSA implements NodeVisitor{
             HashSet<Symbol> newHash = new HashSet<Symbol>();
             newHash.add(new Symbol(node.symbol().name() + "_-2", node.symbol().type().toString(), node.symbol().getSymbolType(), 2));
             currentBB.varMap.put(node.symbol(), newHash);
+            node.symbol().scope = 2;
         }
         node.symbol().accept(this);
     }

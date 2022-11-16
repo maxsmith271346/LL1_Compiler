@@ -1,23 +1,27 @@
 main
 
-int i, j, k, w, z, x, y;
-int[8] a, b;
+int a, b, c, d;
 
+// cp cf dce
 {
-    let i = 1;
-    let a[1] = 5;
-    let x = a[i];
-    let k = a[i];
-    let j = 2;
-    let b[j] = 19;
-    while (a[i] < b[j]) do
-        let k = a[i] + a[i];
-        let a[i] = k + 1;
-        let z = a[i];
-        call printInt(z); // 11 23
-    od;
+    let a = 22;
+    let b = 22;
+    let c = 22;
+    let d = call readInt();
+    if (a == b) then
+        if (b == c) then
+            if (c == d) then
+                let a += a;
+                call printInt(a);
+            else
+                call printInt(b);
+            fi;
+        else
+            call printInt(c);
+        fi;
+    else
+        let d = call readInt();
+        call printInt(d);
+    fi;
     call println();
-
-    let w = a[i];
-    call printInt(w); // 23
 }.
