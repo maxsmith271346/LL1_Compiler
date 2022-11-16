@@ -1,51 +1,19 @@
 main
 
-//dce
+function foo () : int {
 
-function early_return () : int
-{
-    int c, d, unused;
+    int a,b,c;
 
-    let c = 1; // dce - overwritten
-    let c = 2;
-    let unused = c / d; // dce - unused
-    return c * d;
-    call printInt(c * d); // dce - unreachable
-};
+    let a = 30;
+    let b = 9 - (a / 5);
 
-function unreachableIf () : void
-{
-    int c, d;
-
-    let c = 1;
-    let d = 2;
-    if(d == c) then
-        let d = c;
+    let c = b * 4;
+    if (c > 10) then
+        let c = c - 10;
     fi;
-
-    if(false) then
-        call println();
-    else
-        call println();
-    fi;
-
-    if(true) then
-        call println();
-    else
-        call println();
-    fi;
-
-    if(true) then
-        call println();
-    fi;
-
-    if(false) then
-        call println();
-    fi;
-
+    return c * (60 / a); // 4
 };
 
 {
-    call unreachableIf();
-    call early_return();
+    call printInt(call foo());
 }.

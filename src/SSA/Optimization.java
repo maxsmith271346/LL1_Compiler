@@ -495,20 +495,24 @@ public class Optimization {
                         case BEQ:
                             if (isIntLit(opnd1)){
                                 if (((IntegerLiteral) opnd1).valueAsInt() != 0){
+                                    i.eliminate();
                                     change = true;
                                     eliminateElse(((BasicBlock) opnd2), bb);
                                 }
                                 else{
+                                    i.eliminate();
                                     change = true; 
                                     eliminateThen(bb);
                                 }
                             }
                             else if (isFloatLit(opnd1)){
                                 if (((FloatLiteral) opnd1).valueAsFloat() != 0){
+                                    i.eliminate();
                                     change = true;
                                     eliminateElse(((BasicBlock) opnd2), bb);
                                 }
                                 else{ 
+                                    i.eliminate();
                                     change = true;
                                     eliminateThen(bb);
                                 }
@@ -518,20 +522,24 @@ public class Optimization {
                         case BGE:
                             if (isIntLit(opnd1)){
                                 if (((IntegerLiteral) opnd1).valueAsInt() < 0){
+                                    i.eliminate();
                                     change = true;
                                     eliminateElse(((BasicBlock) opnd2), bb);
                                 }
                                 else{ 
+                                    i.eliminate();
                                     change = true;
                                     eliminateThen(bb);
                                 }
                             }
                             else if (isFloatLit(opnd1)){
                                 if (((FloatLiteral) opnd1).valueAsFloat() < 0){
+                                    i.eliminate();
                                     change = true;
                                     eliminateElse(((BasicBlock) opnd2), bb);
                                 }
                                 else{
+                                    i.eliminate();
                                     change = true; 
                                     eliminateThen(bb);
                                 }
@@ -541,20 +549,24 @@ public class Optimization {
                         case BGT:
                             if (isIntLit(opnd1)){
                                 if (((IntegerLiteral) opnd1).valueAsInt() <= 0){
+                                    i.eliminate();
                                     change = true;
                                     eliminateElse(((BasicBlock) opnd2), bb);
                                 }
                                 else{
+                                    i.eliminate();
                                     change = true; 
                                     eliminateThen(bb);
                                 }
                             }
                             else if (isFloatLit(opnd1)){
                                 if (((FloatLiteral) opnd1).valueAsFloat() <= 0){
+                                    i.eliminate();
                                     change = true;
                                     eliminateElse(((BasicBlock) opnd2), bb);
                                 }
                                 else{ 
+                                    i.eliminate();
                                     change = true;
                                     eliminateThen(bb);
                                 }
@@ -564,20 +576,24 @@ public class Optimization {
                         case BLE:
                             if (isIntLit(opnd1)){
                                 if (((IntegerLiteral) opnd1).valueAsInt() > 0){
+                                    i.eliminate();
                                     change = true;
                                     eliminateElse(((BasicBlock) opnd2), bb);
                                 }
                                 else{ 
+                                    i.eliminate();
                                     change = true;
                                     eliminateThen(bb);
                                 }
                             }
                             else if (isFloatLit(opnd1)){
                                 if (((FloatLiteral) opnd1).valueAsFloat() > 0){
+                                    i.eliminate();
                                     change = true;
                                     eliminateElse(((BasicBlock) opnd2), bb);
                                 }
                                 else{ 
+                                    i.eliminate();
                                     change = true;
                                     eliminateThen(bb);
                                 }
@@ -587,20 +603,24 @@ public class Optimization {
                         case BLT:
                             if (isIntLit(opnd1)){
                                 if (((IntegerLiteral) opnd1).valueAsInt() >= 0){
+                                    i.eliminate();
                                     change = true;
                                     eliminateElse(((BasicBlock) opnd2), bb);
                                 }
                                 else{ 
+                                    i.eliminate();
                                     change = true;
                                     eliminateThen(bb);
                                 }
                             }
                             else if (isFloatLit(opnd1)){
                                 if (((FloatLiteral) opnd1).valueAsFloat() >= 0){
+                                    i.eliminate();
                                     change = true;
                                     eliminateElse(((BasicBlock) opnd2), bb);
                                 }
                                 else{ 
+                                    i.eliminate();
                                     change = true;
                                     eliminateThen(bb);
                                 }
@@ -610,20 +630,24 @@ public class Optimization {
                         case BNE:
                             if (isIntLit(opnd1)){
                                 if (((IntegerLiteral) opnd1).valueAsInt() == 0){
+                                    i.eliminate();
                                     change = true;
                                     eliminateElse(((BasicBlock) opnd2), bb);
                                 }
                                 else{ 
+                                    i.eliminate();
                                     change = true;
                                     eliminateThen(bb);
                                 }
                             }
                             else if (isFloatLit(opnd1)){
                                 if (((FloatLiteral) opnd1).valueAsFloat() == 0){
+                                    i.eliminate();
                                     change = true;
                                     eliminateElse(((BasicBlock) opnd2), bb);
                                 }
                                 else{ 
+                                    i.eliminate();
                                     change = true;
                                     eliminateThen(bb);
                                 }
