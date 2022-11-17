@@ -1,19 +1,28 @@
 main
 
-function foo () : int {
-
-    int a,b,c;
-
-    let a = 30;
-    let b = 9 - (a / 5);
-
-    let c = b * 4;
-    if (c > 10) then
-        let c = c - 10;
-    fi;
-    return c * (60 / a); // 4
-};
+int a, b, c, d, e;
 
 {
-    call printInt(call foo());
+    let a = 1;
+    let b = 2;
+    let c = 3;
+    let d = 4;
+    let e = 5;
+
+    while ((c+4) < d) do
+        if ((a+5-b) > (b*6)) then
+            let a = a / c * d;
+            let d = d - 1;
+            call printInt(a);
+            call printInt(d);
+        else
+            let d = a + b;
+            call printInt(d);
+        fi;
+        call println();
+    od;
+
+    let e = c - a + b;
+    call printInt(e); // 4
+    let a = a + b;
 }.
