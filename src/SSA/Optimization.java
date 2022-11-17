@@ -30,31 +30,31 @@ public class Optimization {
                 // maybe have each of them return a boolean value that indicates whether or not there were code changes? 
                 change |= constantPropagation();
                 if (change) {
-                     System.out.println("CP");
+                    // System.out.println("CP");
                 }
                 change |= constantFolding();
                 if (change) {
-                    System.out.println("CF");
+                    //System.out.println("CF");
                 }
                 change |= copyPropagation();
                 if (change) {
-                    System.out.println("CPP");
+                    //System.out.println("CPP");
                 }
                 change |= commonSubexpressionElimination();
                 if (change) {
-                    System.out.println("CSE");
+                    //System.out.println("CSE");
                 }
                 change |= deadCodeElimination(); 
                 if (change) {
-                    System.out.println("DCE");
+                    //System.out.println("DCE");
                 }
                 change |= orphanFunctionElimination();
                 if (change) {
-                    System.out.println("OFE");
+                   // System.out.println("OFE");
                 }
                 change |= arithmeticSimplification();
                 if (change) {
-                    System.out.println("AS");
+                    //System.out.println("AS");
                 }
                 //break; 
             }
@@ -360,7 +360,7 @@ public class Optimization {
         }
 
         if (loops > 1){ // If there was more than one loop, then there was a code change
-            System.out.println("loops " + loops);
+            //System.out.println("loops " + loops);
             return true;
         }
         return false; // If there was just one loop, then there was no code change
@@ -879,7 +879,7 @@ public class Optimization {
                     }
                 }
             }
-            System.out.println("change " + change);
+            //System.out.println("change " + change);
         }
 
         if (loops > 1){ // If there was more than one loop, then there was a code change
