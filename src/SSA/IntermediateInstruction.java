@@ -39,7 +39,7 @@ public class IntermediateInstruction {
         BGE("BGE"),
         BGT("BGT"),
 
-        READ("READ"),
+        READ_I("READ_I"),
         WRITE("WRITE"),
         READ_B("READ_B"),
         WRITE_B("WRITE_B"),
@@ -71,26 +71,32 @@ public class IntermediateInstruction {
     }
 
     private SSAOperator operator; 
-    private Operand operand_one; 
-    private Operand operand_two; 
+    private Operand operandOne; 
+    private Operand operandTwo; 
+    private Integer registerOne; 
+    private Integer registerTwo;
     // private int insNum;
     private List<Operand> extraOperands; // In the case of function calls there can be more than two operands, so this will keep track of the extras
     private Boolean elim;
     private InstructionNumber instNum;
     public HashSet<Operand> liveVars;
+    public Integer returnReg;
+    public Symbol phiSymbol;
 
     public Set<IntermediateInstruction> availableExpressions;
     public boolean branchHandled;
     //blic boolean elim;
 
-    public IntermediateInstruction(SSAOperator operator, Operand operand_one, Operand operand_two, int insNum){
+    public IntermediateInstruction(SSAOperator operator, Operand operandOne, Operand operandTwo, int insNum){
         this.operator = operator; 
-        this.operand_one = operand_one; 
-        this.operand_two = operand_two;
+        this.operandOne = operandOne; 
+        this.operandTwo = operandTwo;
         // this.insNum = insNum;
         this.elim = false;
         this.instNum = new InstructionNumber(insNum);
         this.liveVars = new HashSet<Operand>();
+        this.returnReg = null;
+        this.phiSymbol = null;
 
         this.availableExpressions = new HashSet<IntermediateInstruction>();
         if (this.isBranch()){
@@ -102,21 +108,21 @@ public class IntermediateInstruction {
     @Override
     public String toString(){
         // The operands can be null (sometimes there are less than 2 operands)
-        if (operand_two == null && operand_one == null){ 
+        if (operandTwo == null && operandOne == null){ 
             return  operator + " " ;
         }
-        else if (operand_one == null){
-            return operator + " " + operand_two.toString() + " ";
+        else if (operandOne == null){
+            return operator + " " + operandTwo.toString() + " ";
         }
-        else if (operand_two == null){
-            return operator + " " + operand_one.toString() + " ";
+        else if (operandTwo == null){
+            return operator + " " + operandOne.toString() + " ";
         }
 
         if (extraOperands == null){
-            return  operator + " " + operand_one.toString() + " " + operand_two.toString() + " ";
+            return  operator + " " + operandOne.toString() + " " + operandTwo.toString() + " ";
         }
         else{ 
-            String retStr = operator + " " + operand_one.toString() + " " + operand_two.toString();
+            String retStr = operator + " " + operandOne.toString() + " " + operandTwo.toString();
             for (Operand extra : extraOperands){
                 retStr += " " + extra.toString();
             }
@@ -144,11 +150,11 @@ public class IntermediateInstruction {
 
     // These branch-related methods are used in the pruning portion of the SSA construction to "repair" any branch instructions 
     public void updateBranchIns(BasicBlock BB){
-        if (operand_two == null){
-            operand_one = BB;
+        if (operandTwo == null){
+            operandOne = BB;
         }
         else{ 
-            operand_two = BB;
+            operandTwo = BB;
         }
     }
 
@@ -163,13 +169,13 @@ public class IntermediateInstruction {
     // Complicated because the function name is at the end of the TAC 
     public Symbol getFunc(){
         if (extraOperands == null){
-            if (operand_two == null){
-                if (operand_one instanceof Symbol){
-                    return ((Symbol) operand_one);
+            if (operandTwo == null){
+                if (operandOne instanceof Symbol){
+                    return ((Symbol) operandOne);
                 }
             }
             else{ 
-                return ((Symbol) operand_two);
+                return ((Symbol) operandTwo);
             }
         }
         else{ 
@@ -189,13 +195,13 @@ public class IntermediateInstruction {
 
     // public String getFuncName(){
     //     if (extraOperands == null){
-    //         if (operand_two == null){
-    //             if (operand_one instanceof Symbol){
-    //                 return ((Symbol) operand_one).name();
+    //         if (operandTwo == null){
+    //             if (operandOne instanceof Symbol){
+    //                 return ((Symbol) operandOne).name();
     //             }
     //         }
     //         else{ 
-    //             return ((Symbol) operand_two).name();
+    //             return ((Symbol) operandTwo).name();
     //         }
     //     }
     //     else{ 
@@ -218,41 +224,78 @@ public class IntermediateInstruction {
     }
 
     public Operand getOperandOne(){
-        return operand_one;
+        return operandOne;
     }
 
     public void setOperandOne(Operand newOp){
-        this.operand_one = newOp;
+        this.operandOne = newOp;
     }
 
     public Operand getOperandTwo(){
-        return operand_two;
+        return operandTwo;
     }
 
     public void putOperator(SSAOperator operator){
         this.operator = operator;
     }
 
-    public void putOperandOne(Operand operand_one){
-        this.operand_one = operand_one;
+    public void putOperandOne(Operand operandOne){
+        this.operandOne = operandOne;
     }
 
-    public void putOperandTwo(Operand operand_two){
-        this.operand_two = operand_two ;
+    public void putOperandTwo(Operand operandTwo){
+        this.operandTwo = operandTwo ;
     }
 
     public HashSet<Operand> getLiveVars() {
         return liveVars;
+    }
+    
+    public Integer getRegisterOne(){
+        return this.registerOne; 
+    }
+
+    public Integer getRegisterTwo(){
+        return this.registerTwo; 
+    }
+
+    public void putRegisterOne(Integer newReg){
+        this.registerOne = newReg;
+    }
+
+    public void putRegisterTwo(Integer newReg){
+        this.registerTwo = newReg;
     }
 
     public void addLiveVars(HashSet<Operand> liveVars) {
         this.liveVars.addAll(liveVars);
     }
 
+    public static Boolean isConst(Operand opnd) {
+        return (opnd instanceof BoolLiteral) || (opnd instanceof IntegerLiteral) || (opnd instanceof FloatLiteral);
+    }
+    
+    public static Boolean isIntLit(Operand opnd) {
+        return opnd instanceof IntegerLiteral;
+    }
+
+    public static Boolean isFloatLit(Operand opnd) {
+        return opnd instanceof FloatLiteral;
+    }
+
+    public static Boolean isBoolLit(Operand opnd) {
+        return opnd instanceof BoolLiteral;
+    }
+
+    public static Boolean numericOpndEquals(Operand opnd, int num) {
+        return isIntLit(opnd) && ((IntegerLiteral) opnd).valueAsInt() == num || 
+            isFloatLit(opnd) && ((FloatLiteral) opnd).valueAsFloat() == num;
+    }
+
     public boolean containsOperand(Operand operand){
-        if (operand_one != null){
-            if (operand_one instanceof Symbol && operand instanceof Symbol){
-                String operandOneName = ((Symbol) operand_one).name();
+        if (operandOne != null){
+            if (operandOne instanceof Symbol && operand instanceof Symbol){
+                String operandOneName = ((Symbol) operandOne).name();
                 operandOneName = operandOneName.substring(0, operandOneName.indexOf("_"));
 
                 String operandName = ((Symbol) operand).name();
@@ -262,15 +305,15 @@ public class IntermediateInstruction {
                     return true;
                 }
             }   
-            else if (operand_one instanceof InstructionNumber && operand instanceof InstructionNumber){
-                if(((InstructionNumber) operand_one).getInstructionNumber() == ((InstructionNumber) operand).getInstructionNumber()){
+            else if (operandOne instanceof InstructionNumber && operand instanceof InstructionNumber){
+                if(((InstructionNumber) operandOne).getInstructionNumber() == ((InstructionNumber) operand).getInstructionNumber()){
                     return true;
                 }
             }   
         }
-        if (operand_two != null){
-            if (operand_two instanceof Symbol && operand instanceof Symbol){
-                String operandTwoName = ((Symbol) operand_two).name();
+        if (operandTwo != null){
+            if (operandTwo instanceof Symbol && operand instanceof Symbol){
+                String operandTwoName = ((Symbol) operandTwo).name();
                 if (operandTwoName.contains("_")){
                     operandTwoName = operandTwoName.substring(0, operandTwoName.indexOf("_"));
                 }
@@ -284,8 +327,8 @@ public class IntermediateInstruction {
                     return true;
                 }
             } 
-            else if (operand_two instanceof InstructionNumber && operand instanceof InstructionNumber){
-                if(((InstructionNumber) operand_two).getInstructionNumber() == ((InstructionNumber) operand).getInstructionNumber()){
+            else if (operandTwo instanceof InstructionNumber && operand instanceof InstructionNumber){
+                if(((InstructionNumber) operandTwo).getInstructionNumber() == ((InstructionNumber) operand).getInstructionNumber()){
                     return true;
                 }
             }     
@@ -302,9 +345,9 @@ public class IntermediateInstruction {
     }
 
     public boolean setMatchingOperand(Operand matchingOperand, Operand settingOperand){
-        if (operand_one != null){
-            if (operand_one instanceof Symbol){
-                String operandOneName = ((Symbol) operand_one).name();
+        if (operandOne != null){
+            if (operandOne instanceof Symbol){
+                String operandOneName = ((Symbol) operandOne).name();
                 if (operandOneName.contains("_")){
                     operandOneName = operandOneName.substring(0, operandOneName.indexOf("_"));
                 }
@@ -315,14 +358,14 @@ public class IntermediateInstruction {
                 }
 
                 if(operandOneName.equals(operandName)){
-                    operand_one = settingOperand;
+                    operandOne = settingOperand;
                     return true;
                 }
             }   
         }
-        if (operand_two != null){
-            if (operand_two instanceof Symbol){
-                String operandTwoName = ((Symbol) operand_two).name();
+        if (operandTwo != null){
+            if (operandTwo instanceof Symbol){
+                String operandTwoName = ((Symbol) operandTwo).name();
                 if (operandTwoName.contains("_")){
                     operandTwoName = operandTwoName.substring(0, operandTwoName.indexOf("_"));
                 }
@@ -333,7 +376,7 @@ public class IntermediateInstruction {
                 }
                 
                 if(operandTwoName.equals(operandName)){
-                    operand_two = settingOperand;
+                    operandTwo = settingOperand;
                     return true;
                 }
             }   
@@ -349,7 +392,7 @@ public class IntermediateInstruction {
         return false;
     }
 
-    public boolean checkOperand(Operand opOne, Operand opTwo){
+    public static boolean checkOperand(Operand opOne, Operand opTwo){
         if (!opOne.getClass().toString().equals(opTwo.getClass().toString())){
             return true;
         }
@@ -419,15 +462,15 @@ public class IntermediateInstruction {
             //System.out.println("one " + intIns);
             //System.out.println("two " + this);
             conflict = false; 
-            if (operand_one != null && intIns.getOperandOne() != null){
-                if (checkOperand(operand_one, intIns.getOperandOne())){
+            if (operandOne != null && intIns.getOperandOne() != null){
+                if (checkOperand(operandOne, intIns.getOperandOne())){
                     conflict = true;
                     //return true;
                 }
                 
             }
-            if (operand_two != null && intIns.getOperandTwo() != null){
-                if (checkOperand(operand_two, intIns.getOperandTwo())){
+            if (operandTwo != null && intIns.getOperandTwo() != null){
+                if (checkOperand(operandTwo, intIns.getOperandTwo())){
                     conflict = true;
                     //return true;
                 }
@@ -448,10 +491,10 @@ public class IntermediateInstruction {
 
     public int numberOperators(){
         int number = 0;
-        if (operand_one != null){
+        if (operandOne != null){
             number++;
         }
-        if (operand_two != null){
+        if (operandTwo != null){
             number++; 
         }
         if (extraOperands != null){

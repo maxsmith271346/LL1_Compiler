@@ -1,0 +1,17 @@
+digraph G { 
+BB2[shape=record, label="<b>BB2|{5 : NONE 7 |6 : NONE 3 |elim: 7 : BGE 3 [4] }"];
+BB2:s -> BB3:n [label="elim then"];
+BB2:s -> BB4:n [label="else"];
+BB3[shape=record, label="<b> elim\nBB3|{8 : NONE 6 |9 : NONE 4 |10 : NONE 12 |11 : NONE -8 |elim: 12 : BLE -8 [6] }"];
+BB3:s -> BB5:n [label="elim then"];
+BB3:s -> BB6:n [label="else"];
+BB4[shape=record, label="<b>BB4|{28 : NONE 2 |29 : NONE 4 |elim: 30 : MOVE 4 e_30 |31 : WRITE 4 |32 : NONE 3 |elim: 33 : MOVE (32) a_33 |34 : END }"];
+BB5[shape=record, label="<b> elim\nBB5|{13 : NONE 0 |14 : NONE 0 |15 : MOVE 0 a_15 |16 : NONE 3 |17 : MOVE 3 d_17 |18 : WRITE 0 |19 : WRITE 3 |20 : BRA [7] }"];    
+BB5:s -> BB7:n [label=""];
+BB7[shape=record, label="<b> elim\nBB7|{24 : PHI a_15 a_0 |25 : PHI d_17 d_22 |26 : WRITE |27 : BRA [2] }"];
+BB7:s -> BB2:n [label=""];
+BB6[shape=record, label="<b> elim\nBB6|{21 : NONE 3 |22 : MOVE 3 d_22 |23 : WRITE 3 }"];
+BB6:s -> BB7:n [label=""];
+BB1[shape=record, label="<b>main\nBB1|{0 : MOVE 1 a_0 |elim: 1 : MOVE 2 b_1 |elim: 2 : MOVE 3 c_2 |3 : MOVE 4 d_3 |elim: 4 : MOVE 5 e_4 }"];
+BB1:s -> BB2:n [label=""];
+}

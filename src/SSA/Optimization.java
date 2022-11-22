@@ -119,27 +119,6 @@ public class Optimization {
 
     // Max
 
-    public Boolean isConst(Operand opnd) {
-        return (opnd instanceof BoolLiteral) || (opnd instanceof IntegerLiteral) || (opnd instanceof FloatLiteral);
-    }
-    
-    public Boolean isIntLit(Operand opnd) {
-        return opnd instanceof IntegerLiteral;
-    }
-
-    public Boolean isFloatLit(Operand opnd) {
-        return opnd instanceof FloatLiteral;
-    }
-
-    public Boolean isBoolLit(Operand opnd) {
-        return opnd instanceof BoolLiteral;
-    }
-
-    public Boolean numericOpndEquals(Operand opnd, int num) {
-        return isIntLit(opnd) && ((IntegerLiteral) opnd).valueAsInt() == num || 
-            isFloatLit(opnd) && ((FloatLiteral) opnd).valueAsFloat() == num;
-    }
-
     public boolean arithmeticSimplification(){
         // replace mul by add 
         // remove arithmetic identity
@@ -171,13 +150,13 @@ public class Optimization {
                         break;
 
                     case ADD:
-                        if (numericOpndEquals(opnd1, 0)) {
+                        if (IntermediateInstruction.numericOpndEquals(opnd1, 0)) {
                             i.putOperator(SSAOperator.NONE);
                             i.putOperandOne(i.getOperandTwo());
                             i.putOperandTwo(null);
                             change = true;
                         }
-                        else if (numericOpndEquals(opnd2, 0)) {
+                        else if (IntermediateInstruction.numericOpndEquals(opnd2, 0)) {
                             i.putOperator(SSAOperator.NONE);
                             i.putOperandTwo(null);
                             change = true;
@@ -193,7 +172,7 @@ public class Optimization {
                         // }
                         break;
                     case SUB:
-                        if (numericOpndEquals(opnd2, 0)) {
+                        if (IntermediateInstruction.numericOpndEquals(opnd2, 0)) {
                             i.putOperator(SSAOperator.NONE);
                             i.putOperandTwo(null);
                             change = true;
@@ -202,60 +181,60 @@ public class Optimization {
                         //     i.putOperator(SSAOperator.NONE);
                         //     i.putOperandTwo(null);
                         // }
-                        else if (!isConst(opnd1) && !isConst(opnd2) && opnd1 == opnd2) {
+                        else if (!IntermediateInstruction.isConst(opnd1) && !IntermediateInstruction.isConst(opnd2) && opnd1 == opnd2) {
                             i.putOperator(SSAOperator.NONE);
-                            Operand newOpnd = isIntLit(opnd1) ? (new IntegerLiteral(-1, -1, "0")) : (new FloatLiteral(-1, -1, "0.0"));
+                            Operand newOpnd = IntermediateInstruction.isIntLit(opnd1) ? (new IntegerLiteral(-1, -1, "0")) : (new FloatLiteral(-1, -1, "0.0"));
                             i.putOperandOne(newOpnd);
                             i.putOperandTwo(null);
                             change = true;
                         }
                         break;
                     case MUL:
-                        if (numericOpndEquals(opnd1, 0) || numericOpndEquals(opnd2, 0)) {
+                        if (IntermediateInstruction.numericOpndEquals(opnd1, 0) || IntermediateInstruction.numericOpndEquals(opnd2, 0)) {
                             i.putOperator(SSAOperator.NONE);
-                            Operand newOpnd = isIntLit(opnd1) ? (new IntegerLiteral(-1, -1, "0")) : (new FloatLiteral(-1, -1, "0.0"));
+                            Operand newOpnd = IntermediateInstruction.isIntLit(opnd1) ? (new IntegerLiteral(-1, -1, "0")) : (new FloatLiteral(-1, -1, "0.0"));
                             i.putOperandOne(newOpnd);
                             i.putOperandTwo(null);
                             change = true;
                         }
-                        else if (numericOpndEquals(opnd1, 1)) {
+                        else if (IntermediateInstruction.numericOpndEquals(opnd1, 1)) {
                             i.putOperator(SSAOperator.NONE);
                             i.putOperandOne(i.getOperandTwo());
                             i.putOperandTwo(null);
                             change = true;
                         }
-                        else if (numericOpndEquals(opnd2, 1)) {
+                        else if (IntermediateInstruction.numericOpndEquals(opnd2, 1)) {
                             i.putOperator(SSAOperator.NONE);
                             i.putOperandTwo(null);
                             change = true; 
                         }
-                        else if (numericOpndEquals(opnd1, 2)) {
+                        else if (IntermediateInstruction.numericOpndEquals(opnd1, 2)) {
                             i.putOperator(SSAOperator.ADD);
                             i.putOperandOne(i.getOperandTwo());
                             change = true;
                         }
-                        else if (numericOpndEquals(opnd2, 2)) {
+                        else if (IntermediateInstruction.numericOpndEquals(opnd2, 2)) {
                             i.putOperator(SSAOperator.ADD);
                             i.putOperandTwo(i.getOperandOne());
                             change = true;
                         }
                     break;
                     case DIV:
-                        if (numericOpndEquals(opnd1, 0)) {
+                        if (IntermediateInstruction.numericOpndEquals(opnd1, 0)) {
                             i.putOperator(SSAOperator.NONE);
-                            Operand newOpnd = isIntLit(opnd1) ? (new IntegerLiteral(-1, -1, "0")) : (new FloatLiteral(-1, -1, "0.0"));
+                            Operand newOpnd = IntermediateInstruction.isIntLit(opnd1) ? (new IntegerLiteral(-1, -1, "0")) : (new FloatLiteral(-1, -1, "0.0"));
                             i.putOperandOne(newOpnd);
                             i.putOperandTwo(null);
                             change = true; 
                         }
-                        else if (numericOpndEquals(opnd2, 1)) {
+                        else if (IntermediateInstruction.numericOpndEquals(opnd2, 1)) {
                             i.putOperator(SSAOperator.NONE);
                             i.putOperandTwo(null);
                             change = true;
                         }
-                        else if (!isConst(opnd1) && !isConst(opnd2) && opnd1 == opnd2) {
+                        else if (!IntermediateInstruction.isConst(opnd1) && !IntermediateInstruction.isConst(opnd2) && opnd1 == opnd2) {
                             i.putOperator(SSAOperator.NONE);
-                            Operand newOpnd = isIntLit(opnd1) ? (new IntegerLiteral(-1, -1, "1")) : (new FloatLiteral(-1, -1, "1.0"));
+                            Operand newOpnd = IntermediateInstruction.isIntLit(opnd1) ? (new IntegerLiteral(-1, -1, "1")) : (new FloatLiteral(-1, -1, "1.0"));
                             i.putOperandOne(newOpnd);
                             i.putOperandTwo(null);
                             change = true;
@@ -327,7 +306,7 @@ public class Optimization {
                             }
                         }
                         else if(iiAvail.getOperator() == SSAOperator.NONE){
-                            if (isConst(iiAvail.getOperandOne())){
+                            if (IntermediateInstruction.isConst(iiAvail.getOperandOne())){
                                 if (ii.getOperator() == SSAOperator.MOVE){
                                     if (ii.getOperandOne() instanceof InstructionNumber){
                                         if (((InstructionNumber) ii.getOperandOne()).getInstructionNumber() == iiAvail.insNum()){
@@ -391,7 +370,7 @@ public class Optimization {
 
         return false;
     }
-    public boolean checkIfElseBlock(BasicBlock parentBB){
+    public BasicBlock checkIfElseBlock(BasicBlock parentBB){
         BasicBlock thenBlock = null;
         BasicBlock elseBlock = null;
         // if the then is a parent of parentbb + 2, then there is no else
@@ -405,18 +384,17 @@ public class Optimization {
             }
         }
         
-
         if (isParent(thenBlock, elseBlock)){
-            return false;
+            return elseBlock;
         }
-        return true;
+        return null;
     }
     public void eliminateElse(BasicBlock elsebb, BasicBlock parentbb){
         
         List<BasicBlock> toCheck = new ArrayList<BasicBlock>();
         BasicBlock check;
 
-        if (checkIfElseBlock(parentbb)){
+        if (checkIfElseBlock(parentbb) != null){
             toCheck.add(elsebb);
             while(toCheck.size() != 0){
                 check = toCheck.get(0);
@@ -439,14 +417,31 @@ public class Optimization {
             }
     }
 
+    public boolean loops(BasicBlock bb){
+        List<BasicBlock> toCheck = new ArrayList<BasicBlock>();
+        toCheck.add(bb);
+        BasicBlock bbCheck;
+        
+        while(toCheck.size() != 0){
+            bbCheck = toCheck.get(0);
+            
+            if (bbCheck.BBNumber == bb.BBNumber){
+                return true;
+            }
+            for (Transitions t : bb.transitionList){
+                toCheck.add(t.toBB);
+            }
+            toCheck.remove(0);
+        }
+
+        return false;
+    }
     public void eliminateThen(BasicBlock bb){
         List<BasicBlock> toCheck = new ArrayList<BasicBlock>();
         BasicBlock check;
         int joinBlockNumber = 2; 
+        BasicBlock elseBlock = checkIfElseBlock(bb);
 
-        if (!checkIfElseBlock(bb)){
-            joinBlockNumber = 1;
-        }
 
         BasicBlock thenBlock = null;
         for (Transitions t : bb.transitionList){
@@ -456,16 +451,22 @@ public class Optimization {
             }
         }
 
+        if (elseBlock != null){
+            joinBlockNumber = 1;
+        }
+
         if (thenBlock != null){
             toCheck.add(thenBlock);
             while(toCheck.size() != 0){
                 check = toCheck.get(0);
                 for (Transitions t : check.transitionList){
                     if (t.label.contains("elim")){continue;}
-                    if (t.toBB.BBNumber > thenBlock.BBNumber + joinBlockNumber){
-                        toCheck.add(t.toBB);
+                        if (t.toBB.BBNumber > thenBlock.BBNumber + joinBlockNumber){
+                            if (!loops(t.toBB)){
+                                toCheck.add(t.toBB);
+                            }  
+                        }
                     }
-                }
                 ssa.removeBB(check);
                 toCheck.remove(check);
             }
@@ -492,10 +493,10 @@ public class Optimization {
                 Operand opnd1 = i.getOperandOne();
                 Operand opnd2 = i.getOperandTwo();
                 // branches can have just one constant operator & still need to be folded:
-                if (i.isBranch() && isConst(opnd1) && i.branchHandled == false){
+                if (i.isBranch() && IntermediateInstruction.isConst(opnd1) && i.branchHandled == false){
                     switch (i.getOperator()){
                         case BEQ:
-                            if (isIntLit(opnd1)){
+                            if (IntermediateInstruction.isIntLit(opnd1)){
                                 if (((IntegerLiteral) opnd1).valueAsInt() != 0){
                                     i.eliminate();
                                     change = true;
@@ -507,7 +508,7 @@ public class Optimization {
                                     eliminateThen(bb);
                                 }
                             }
-                            else if (isFloatLit(opnd1)){
+                            else if (IntermediateInstruction.isFloatLit(opnd1)){
                                 if (((FloatLiteral) opnd1).valueAsFloat() != 0){
                                     i.eliminate();
                                     change = true;
@@ -522,7 +523,7 @@ public class Optimization {
                             i.branchHandled = true;
                             break;
                         case BGE:
-                            if (isIntLit(opnd1)){
+                            if (IntermediateInstruction.isIntLit(opnd1)){
                                 if (((IntegerLiteral) opnd1).valueAsInt() < 0){
                                     i.eliminate();
                                     change = true;
@@ -534,7 +535,7 @@ public class Optimization {
                                     eliminateThen(bb);
                                 }
                             }
-                            else if (isFloatLit(opnd1)){
+                            else if (IntermediateInstruction.isFloatLit(opnd1)){
                                 if (((FloatLiteral) opnd1).valueAsFloat() < 0){
                                     i.eliminate();
                                     change = true;
@@ -549,7 +550,7 @@ public class Optimization {
                             i.branchHandled = true;
                             break;
                         case BGT:
-                            if (isIntLit(opnd1)){
+                            if (IntermediateInstruction.isIntLit(opnd1)){
                                 if (((IntegerLiteral) opnd1).valueAsInt() <= 0){
                                     i.eliminate();
                                     change = true;
@@ -561,7 +562,7 @@ public class Optimization {
                                     eliminateThen(bb);
                                 }
                             }
-                            else if (isFloatLit(opnd1)){
+                            else if (IntermediateInstruction.isFloatLit(opnd1)){
                                 if (((FloatLiteral) opnd1).valueAsFloat() <= 0){
                                     i.eliminate();
                                     change = true;
@@ -576,7 +577,7 @@ public class Optimization {
                             i.branchHandled = true;
                             break;
                         case BLE:
-                            if (isIntLit(opnd1)){
+                            if (IntermediateInstruction.isIntLit(opnd1)){
                                 if (((IntegerLiteral) opnd1).valueAsInt() > 0){
                                     i.eliminate();
                                     change = true;
@@ -588,7 +589,7 @@ public class Optimization {
                                     eliminateThen(bb);
                                 }
                             }
-                            else if (isFloatLit(opnd1)){
+                            else if (IntermediateInstruction.isFloatLit(opnd1)){
                                 if (((FloatLiteral) opnd1).valueAsFloat() > 0){
                                     i.eliminate();
                                     change = true;
@@ -603,7 +604,7 @@ public class Optimization {
                             i.branchHandled = true;
                             break;
                         case BLT:
-                            if (isIntLit(opnd1)){
+                            if (IntermediateInstruction.isIntLit(opnd1)){
                                 if (((IntegerLiteral) opnd1).valueAsInt() >= 0){
                                     i.eliminate();
                                     change = true;
@@ -615,7 +616,7 @@ public class Optimization {
                                     eliminateThen(bb);
                                 }
                             }
-                            else if (isFloatLit(opnd1)){
+                            else if (IntermediateInstruction.isFloatLit(opnd1)){
                                 if (((FloatLiteral) opnd1).valueAsFloat() >= 0){
                                     i.eliminate();
                                     change = true;
@@ -630,7 +631,7 @@ public class Optimization {
                             i.branchHandled = true;
                             break;
                         case BNE:
-                            if (isIntLit(opnd1)){
+                            if (IntermediateInstruction.isIntLit(opnd1)){
                                 if (((IntegerLiteral) opnd1).valueAsInt() == 0){
                                     i.eliminate();
                                     change = true;
@@ -642,7 +643,7 @@ public class Optimization {
                                     eliminateThen(bb);
                                 }
                             }
-                            else if (isFloatLit(opnd1)){
+                            else if (IntermediateInstruction.isFloatLit(opnd1)){
                                 if (((FloatLiteral) opnd1).valueAsFloat() == 0){
                                     i.eliminate();
                                     change = true;
@@ -662,10 +663,10 @@ public class Optimization {
                 }
 
                 // continue if either operands is non-constant
-                if (!(isConst(opnd1) && opnd2 != null && isConst(opnd2))) { continue; }
+                if (!(IntermediateInstruction.isConst(opnd1) && opnd2 != null && IntermediateInstruction.isConst(opnd2))) { continue; }
                 switch (i.getOperator()) {
                     case NOT:
-                        if (isBoolLit(opnd1)){
+                        if (IntermediateInstruction.isBoolLit(opnd1)){
                             Boolean not = !((BoolLiteral) opnd1).valueAsBool();
                             BoolLiteral boolLit = new BoolLiteral(-1, -1, not.toString());
                             change = true;
@@ -681,7 +682,7 @@ public class Optimization {
                         // }
                         // break;
                     case AND:
-                        if (isBoolLit(opnd1)){
+                        if (IntermediateInstruction.isBoolLit(opnd1)){
                             Boolean and = ((BoolLiteral) opnd1).valueAsBool() && ((BoolLiteral) opnd2).valueAsBool();
                             BoolLiteral boolLit = new BoolLiteral(-1, -1, and.toString());
                             change = true;
@@ -689,7 +690,7 @@ public class Optimization {
                         }
                         break;
                     case OR:
-                        if (isBoolLit(opnd1)){
+                        if (IntermediateInstruction.isBoolLit(opnd1)){
                             Boolean or = ((BoolLiteral) opnd1).valueAsBool() && ((BoolLiteral) opnd2).valueAsBool();
                             BoolLiteral boolLit = new BoolLiteral(-1, -1, or.toString());
                             change = true;
@@ -698,13 +699,13 @@ public class Optimization {
                         break;
 
                     case ADD:
-                        if (isIntLit(opnd1)) {
+                        if (IntermediateInstruction.isIntLit(opnd1)) {
                             Integer sum = ((IntegerLiteral) opnd1).valueAsInt() + ((IntegerLiteral) opnd2).valueAsInt();
                             IntegerLiteral intLit = new IntegerLiteral(-1, -1, Integer.toString(sum));
                             change = true;
                             i.putOperandOne(intLit);
                         }
-                        else if (isFloatLit(opnd1)) {
+                        else if (IntermediateInstruction.isFloatLit(opnd1)) {
                             Float sum = ((FloatLiteral) opnd1).valueAsFloat() + ((FloatLiteral) opnd2).valueAsFloat();
                             FloatLiteral intLit = new FloatLiteral(-1, -1, Float.toString(sum));
                             change = true;
@@ -714,13 +715,13 @@ public class Optimization {
                         i.putOperandTwo(null);
                         break;
                     case SUB:
-                        if (isIntLit(opnd1)) {
+                        if (IntermediateInstruction.isIntLit(opnd1)) {
                             Integer sum = ((IntegerLiteral) opnd1).valueAsInt() - ((IntegerLiteral) opnd2).valueAsInt();
                             IntegerLiteral intLit = new IntegerLiteral(-1, -1, Integer.toString(sum));
                             change = true;
                             i.putOperandOne(intLit);
                         }
-                        else if (isFloatLit(opnd1)) {
+                        else if (IntermediateInstruction.isFloatLit(opnd1)) {
                             Float sum = ((FloatLiteral) opnd1).valueAsFloat() - ((FloatLiteral) opnd2).valueAsFloat();
                             FloatLiteral intLit = new FloatLiteral(-1, -1, Float.toString(sum));
                             change = true;
@@ -730,13 +731,13 @@ public class Optimization {
                         i.putOperandTwo(null);
                         break;
                     case MUL:
-                        if (isIntLit(opnd1)) {
+                        if (IntermediateInstruction.isIntLit(opnd1)) {
                             Integer sum = ((IntegerLiteral) opnd1).valueAsInt() * ((IntegerLiteral) opnd2).valueAsInt();
                             IntegerLiteral intLit = new IntegerLiteral(-1, -1, Integer.toString(sum));
                             change = true;
                             i.putOperandOne(intLit);
                         }
-                        else if (isFloatLit(opnd1)) {
+                        else if (IntermediateInstruction.isFloatLit(opnd1)) {
                             Float sum = ((FloatLiteral) opnd1).valueAsFloat() * ((FloatLiteral) opnd2).valueAsFloat();
                             FloatLiteral intLit = new FloatLiteral(-1, -1, Float.toString(sum));
                             change = true;
@@ -746,13 +747,13 @@ public class Optimization {
                         i.putOperandTwo(null);
                         break;
                     case DIV:
-                        if (isIntLit(opnd1)) {
+                        if (IntermediateInstruction.isIntLit(opnd1)) {
                             Integer sum = ((IntegerLiteral) opnd1).valueAsInt() / ((IntegerLiteral) opnd2).valueAsInt();
                             IntegerLiteral intLit = new IntegerLiteral(-1, -1, Integer.toString(sum));
                             change = true;
                             i.putOperandOne(intLit);
                         }
-                        else if (isFloatLit(opnd1)) {
+                        else if (IntermediateInstruction.isFloatLit(opnd1)) {
                             Float sum = ((FloatLiteral) opnd1).valueAsFloat() / ((FloatLiteral) opnd2).valueAsFloat();
                             FloatLiteral intLit = new FloatLiteral(-1, -1, Float.toString(sum));
                             change = true;
@@ -762,13 +763,13 @@ public class Optimization {
                         i.putOperandTwo(null);
                         break;
                     case MOD:
-                        if (isIntLit(opnd1)) {
+                        if (IntermediateInstruction.isIntLit(opnd1)) {
                             Integer sum = ((IntegerLiteral) opnd1).valueAsInt() % ((IntegerLiteral) opnd2).valueAsInt();
                             IntegerLiteral intLit = new IntegerLiteral(-1, -1, Integer.toString(sum));
                             change = true;
                             i.putOperandOne(intLit);
                         }
-                        else if (isFloatLit(opnd1)) {
+                        else if (IntermediateInstruction.isFloatLit(opnd1)) {
                             Float sum = ((FloatLiteral) opnd1).valueAsFloat() % ((FloatLiteral) opnd2).valueAsFloat();
                             FloatLiteral intLit = new FloatLiteral(-1, -1, Float.toString(sum));
                             change = true;
@@ -786,13 +787,13 @@ public class Optimization {
                         i.putOperandTwo(null);
                         break;
                     case CMP: 
-                        if (isIntLit(opnd1)) {
+                        if (IntermediateInstruction.isIntLit(opnd1)) {
                             Integer cmp = ((IntegerLiteral) opnd1).valueAsInt() - ((IntegerLiteral) opnd2).valueAsInt();
                             IntegerLiteral intLiteral = new IntegerLiteral(-1, -1, Integer.toString(cmp));
                             change = true;
                             i.putOperandOne(intLiteral);
                         }
-                        else if (isFloatLit(opnd1)) {
+                        else if (IntermediateInstruction.isFloatLit(opnd1)) {
                             Float cmp = ((FloatLiteral) opnd1).valueAsFloat() - ((FloatLiteral) opnd2).valueAsFloat();
                             FloatLiteral floatLit = new FloatLiteral(-1, -1, Float.toString(cmp));
                             change = true;
@@ -1047,7 +1048,7 @@ public class Optimization {
                         }
                         break;
 
-                    case READ:
+                    case READ_I:
                     case READ_B:
                     case READ_F:
                         if (!live.contains(ii.instNum())) {  // result not used later
@@ -1064,6 +1065,7 @@ public class Optimization {
                     case MOVE:
                         if (!live.contains(ii.getOperandTwo())) {  // result not used later
                             ii.eliminate();
+                            System.out.println("ii " + ii);
                             globalChange = true;
                         }
                         break;
@@ -1141,7 +1143,6 @@ public class Optimization {
         opsToAdd.add(SSAOperator.ADDA);
         opsToAdd.add(SSAOperator.LOAD);
         opsToAdd.add(SSAOperator.STORE);
-        opsToAdd.add(SSAOperator.READ);
         opsToAdd.add(SSAOperator.NONE);
 
         Set<IntermediateInstruction> availableExpressions = new HashSet<IntermediateInstruction>();

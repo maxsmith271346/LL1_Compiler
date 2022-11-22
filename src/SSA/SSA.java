@@ -542,7 +542,15 @@ public class SSA implements NodeVisitor{
 
         if (preFuncMatch != null){
             if (preFuncMatch.name().contains("read")){
-                node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.READ, null, null, BasicBlock.insNumber)));
+                if (preFuncMatch.name().equals("readInt")){
+                    node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.READ_I, null, null, BasicBlock.insNumber)));
+                }
+                else if (preFuncMatch.name().equals("readFloat")){
+                    node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.READ_F, null, null, BasicBlock.insNumber)));
+                }
+                else if (preFuncMatch.name().equals("readBool")){
+                    node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.READ_B, null, null, BasicBlock.insNumber)));
+                }
             }
             else{
                 if (preFuncMatch.name().equals("println")){
@@ -633,11 +641,14 @@ public class SSA implements NodeVisitor{
 
                 if (joinBlock.varMap.get(key).size() > 1){
                     Iterator<Symbol> it = joinBlock.varMap.get(key).iterator();
-                    insNum = joinBlock.add(new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber)).getInstructionNumber();
+                    IntermediateInstruction newIns = new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber);
+                    insNum = joinBlock.add(newIns).getInstructionNumber();
                     HashSet<Symbol> newHash = new HashSet<Symbol>();
-                    newHash.add(new Symbol(key.name() + "_" + insNum, key.type().toString(), "var", key.scope));
+                    Symbol newSymbol = new Symbol(key.name() + "_" + insNum, key.type().toString(), "var", key.scope);
+                    newHash.add(newSymbol);
                     joinBlock.varMap.put(key, newHash);
-
+                    
+                    newIns.phiSymbol = newSymbol;
                     //System.out.println()
                 }
             }
@@ -702,11 +713,14 @@ public class SSA implements NodeVisitor{
 
                 if (whileBlock.varMap.get(key).size() > 1){
                     Iterator<Symbol> it = whileBlock.varMap.get(key).iterator();
-                    insNum = whileBlock.addFront(new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber));
+                    IntermediateInstruction newIns = new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber);
+                    insNum = whileBlock.addFront(newIns);
                     HashSet<Symbol> newHash = new HashSet<Symbol>();
-                    newHash.add(new Symbol(key.name() + "_" + insNum, key.type().toString(), "var", key.scope));
+                    Symbol newSymbol = new Symbol(key.name() + "_" + insNum, key.type().toString(), "var", key.scope);
+                    newHash.add(newSymbol);
                     whileBlock.varMap.put(key, newHash);
 
+                    newIns.phiSymbol = newSymbol;
                     //System.out.println()
                 }
             }
@@ -769,10 +783,14 @@ public class SSA implements NodeVisitor{
                 if (repeatBB.varMap.get(key).size() > 1){
                     //System.out.println("here");
                     Iterator<Symbol> it = repeatBB.varMap.get(key).iterator();
-                    insNum = repeatBB.addFront(new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber));
+                    IntermediateInstruction newIns = new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber);
+                    insNum = repeatBB.addFront(newIns);
                     HashSet<Symbol> newHash = new HashSet<Symbol>();
-                    newHash.add(new Symbol(key.name() + "_" + insNum, key.type().toString(), "var", key.scope));
+                    Symbol newSymbol = new Symbol(key.name() + "_" + insNum, key.type().toString(), "var", key.scope);
+                    newHash.add(newSymbol);
                     repeatBB.varMap.put(key, newHash);
+
+                    newIns.phiSymbol = newSymbol;
                 }
             }
         }

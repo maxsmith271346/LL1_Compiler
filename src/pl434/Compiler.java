@@ -133,6 +133,19 @@ public class Compiler {
         //Optimizer.copyPropagation(ssa);
         return ssa.asDotGraph();
     }
+
+    int numRegs;
+
+    public void regAlloc(int numRegs){
+        RegisterAllocator regAlloc = new RegisterAllocator(ssa, numRegs);
+        this.numRegs = numRegs;
+    }
+
+    public int[] genCode(){
+        CodeGenerator codeGen = new CodeGenerator(ssa, numRegs);
+        return new ArrayList<Integer>().stream().mapToInt(Integer::intValue).toArray();
+    }
+    
     public int[] compile() {
         initSymbolTable();
         try {

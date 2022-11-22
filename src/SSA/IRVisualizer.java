@@ -36,7 +36,12 @@ public class IRVisualizer {
                     dotGraph.append("elim: ");
                 }
                 //dotGraph.append(intIns.instNum().getInstructionNumber() + " : " + intIns.toString() + "" + intIns.getLiveVars() + "|");
-                dotGraph.append(intIns.insNum() + " : "  + intIns.toString() + "|");
+                if (intIns.returnReg != null){
+                    dotGraph.append(intIns.insNum() + " : " + intIns.returnReg + " = " + intIns.toString() + "" + intIns.getLiveVars() +"|");
+                }
+                else {
+                    dotGraph.append(intIns.insNum() + " : "  + intIns.toString() + "" + intIns.getLiveVars() + "|");
+                }
                 currentLineNum++;
             }
             exitBasicBlock();
