@@ -1,9 +1,12 @@
 package pl434;
 
+import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
+import java.util.HashSet;
 import java.util.List;
+import java.util.Set;
 
 import SSA.BasicBlock;
 import SSA.InstructionNumber;
@@ -21,19 +24,28 @@ import types.IntType;
 //TODO List
 // fix type checker to allow for printFloat as a variable name 
 // add user defined functions to code gen 
-// add functionality to have bool a = 3 == 2
+// need to modify where R30 is hard-coded
+// need to generate the prologue & epilogue for functions 
+// need to have a location for the beginning of the function for call instructions 
+// if (true) is broken
+// not sure if functions with more than two parameters is working
 
 public class CodeGenerator {
     private SSA ssa; 
     public List<Integer> instructions; 
     private Integer spillRegOne; 
     private Integer spillRegTwo;
-    private Operand spillRegOneOperand; 
-    private Operand spillRegTwoOperand;
     private int globalVarOffset;
     private HashMap<String, Integer> operandsToOffset;
     private int spillResultLoadIns;
     private HashMap<BasicBlock, List<Integer>> branchesToFix;
+    private HashMap<String, List<BasicBlock>> procedureToBBList;
+    private HashMap<Symbol, Integer> FunctionToFirstInstruction;
+    final int BA = 31;
+    final int GDB = 30; 
+    final int SP = 29; 
+    final int FP = 28;
+    Set<Integer> registersInUse;
     
     public CodeGenerator(SSA ssa, int numRegs){
         this.ssa = ssa;
@@ -44,17 +56,73 @@ public class CodeGenerator {
         operandsToOffset = new HashMap<String, Integer>();
         spillResultLoadIns = -1;
         branchesToFix = new HashMap<BasicBlock, List<Integer>>();
+        procedureToBBList = new HashMap<String, List<BasicBlock>>();
+        registersInUse = new HashSet<Integer>();
+        registersInUse.add(spillRegOne);
+        registersInUse.add(spillRegTwo); 
+        FunctionToFirstInstruction = new HashMap<Symbol, Integer>();
 
-        generateCode();
-
+        generateCodeForProcedures();
     }
 
-    public void generateCode(){
-        // have to visit the BBs in order
-        List<BasicBlock> BBList = getChildren(ssa.rootBB);
 
-        allocateGlobalVars();
-        // write a code generator for the DLX processor
+    public void generateCodeForProcedures(){
+        procedureToBBList = getChildrenForProcedures();
+        for (String s : procedureToBBList.keySet()){
+            generatePrologue(s, procedureToBBList.get(s).get(0));
+
+            if (!s.equals("main")){
+                FunctionToFirstInstruction.put(procedureToBBList.get(s).get(0).function, instructions.size() + 1);
+            }
+
+            generateCode(procedureToBBList.get(s));
+
+            int numberParameters = 0;
+
+            if (!s.equals("main")){
+                numberParameters = procedureToBBList.get(s).get(0).function.getParamTypes().size();
+            }
+            generateEpilogue(s, numberParameters);
+        }     
+    }
+
+    public HashMap<String, List<BasicBlock>> getChildrenForProcedures(){
+        HashMap<String, List<BasicBlock>> childrenForProcedures = new HashMap<String, List<BasicBlock>>();
+        for (BasicBlock bb : ssa.getBasicBlockList()){
+            if (bb.name().contains("elim")){continue;}
+            if (!bb.name().equals("")){
+                childrenForProcedures.put(bb.name(), getChildren(bb));
+            }
+        }
+        System.out.println("childrenForProcedures " + childrenForProcedures);
+        return childrenForProcedures;
+    }
+
+    public void generatePrologue(String procedureName, BasicBlock rootBB){
+        if (procedureName.equals("main")){
+            instructions.add(DLX.assemble(DLX.SUBI, 29, 30, getNumberOfVars(1, rootBB) * 4));
+            instructions.add(DLX.assemble(DLX.ADDI, 28, 29, 0));
+        }
+        else{ 
+            instructions.add(DLX.assemble(DLX.PSH, BA, SP, -4));
+            instructions.add(DLX.assemble(DLX.PSH, FP, SP, -4));
+            instructions.add(DLX.assemble(DLX.ADD, FP, 0, SP));
+            instructions.add(DLX.assemble(DLX.SUBI, SP, SP, 4 * getNumberOfVars(2, rootBB)));
+        }
+    }
+
+    public void generateEpilogue(String procedureName, int numberParameters){
+        if (procedureName.equals("main")){
+            instructions.add(DLX.assemble(DLX.RET, 0));
+        }
+        else{ 
+            instructions.add(DLX.assemble(DLX.ADD, SP, FP, 0));
+            instructions.add(DLX.assemble(DLX.POP, FP, SP, 4));
+            instructions.add(DLX.assemble(DLX.POP, BA, SP, 4 * numberParameters));
+        }
+    }
+
+    public void generateCode(List<BasicBlock> BBList){
         for (BasicBlock bb : BBList){ // NEED TO TRAVERSE THESE IN ORDER
             if (bb.name().contains("elim")){continue;}
             
@@ -75,6 +143,10 @@ public class CodeGenerator {
                 resolveAnySpilledOperands(ii);
                 spillResultLoadIns = -1;
                 resolveAnySpilledResults(ii);
+
+                if (ii.returnReg != null){
+                    registersInUse.add(ii.returnReg);
+                }
                 switch(ii.getOperator()){
                     case READ_I:
                         instructions.add(DLX.assemble(DLX.RDI, ii.returnReg));
@@ -109,6 +181,8 @@ public class CodeGenerator {
                                 }
                             }
                         }
+
+                        registersInUse.add(ii.getRegisterOne());
                         break;
                     case WRITE: 
                         if (ii.getOperandOne() == null){
@@ -218,6 +292,7 @@ public class CodeGenerator {
                         generateBranchIns(ii, DLX.BGT);
                         break; 
                     case CALL: 
+                        generateCall(ii);
                         break; 
                     case RET: 
                         break;
@@ -229,7 +304,6 @@ public class CodeGenerator {
                 }
             }
         }
-        instructions.add(DLX.assemble(DLX.RET, 0));
     }
 
     public List<BasicBlock> getChildren(BasicBlock bb){
@@ -247,7 +321,7 @@ public class CodeGenerator {
             else if (t.label.contains("else")){ 
                 elseBlock = t.toBB;
             }
-            else{ 
+            else if (!t.label.contains("call")){ 
                 if(!t.backEdge){
                     otherBlock = t.toBB;
                 }
@@ -264,10 +338,13 @@ public class CodeGenerator {
         }
 
         if (bb.equals(ssa.rootBB)){
-            while(children.size() > ssa.getBasicBlockList().size()){
+            boolean change = true;
+            while(change){
+                change = false;
                 for (BasicBlock block : ssa.getBasicBlockList()){
                     if (Collections.frequency(children, block) > 1){
                         children.remove(block);
+                        change = true;
                     }
                 }
             }
@@ -333,16 +410,15 @@ public class CodeGenerator {
         return offset;       
     }
 
-    public void allocateGlobalVars(){
-        int globalVarCount = 0;
-        for (Symbol s : ssa.getBasicBlockList().iterator().next().varMap.keySet()){
+    public int getNumberOfVars(int scope, BasicBlock rootBB){
+        int varCount = 0;
+        for (Symbol s : rootBB.varMap.keySet()){
             if (s.scope == 1){
-                globalVarCount++;
+                varCount++;
             }
         }
 
-        instructions.add(DLX.assemble(DLX.SUBI, 29, 30, globalVarCount * 4));
-        instructions.add(DLX.assemble(DLX.ADDI, 28, 29, 0));
+        return varCount;
     }
 
     // generic function to handle arithmetic operations given the four different potential operands 
@@ -497,11 +573,7 @@ public class CodeGenerator {
         for (BasicBlock bb : ssa.getBasicBlockList()){
             if (bb.name().contains("elim")){continue;}
             for (IntermediateInstruction ii : bb.getIntInsList()){
-                System.out.println("ii " + ii);
-
-                if (ii.isElim()){continue;}
-                System.out.println("ii " + ii);
-                System.out.println("iitest " + iiTest);
+                if (ii.isElim() & !ii.isElimSilly()){continue;}
                 if (!ii.isBranch()){
                     if (ii.getOperandOne() != null){
                         if (ii.getOperandOne() instanceof InstructionNumber){
@@ -527,11 +599,70 @@ public class CodeGenerator {
 
     public void convertFromCMPToBool(IntermediateInstruction intIns){
         if (intIns.cmp.equals("==")){
+            instructions.add(DLX.assemble(DLX.ASHI, spillRegOne, intIns.returnReg, -31));
+            instructions.add(DLX.assemble(DLX.XOR, intIns.returnReg, intIns.returnReg, spillRegOne));
+            instructions.add(DLX.assemble(DLX.SUB, intIns.returnReg, intIns.returnReg, spillRegOne));
+            instructions.add(DLX.assemble(DLX.XORI, intIns.returnReg, intIns.returnReg, 1));
+            intIns.instNum().setType(new BoolType());
+        }
+        else if (intIns.cmp.equals("!=")){
+            instructions.add(DLX.assemble(DLX.ASHI, spillRegOne, intIns.returnReg, -31));
+            instructions.add(DLX.assemble(DLX.XOR, intIns.returnReg, intIns.returnReg, spillRegOne));
+            instructions.add(DLX.assemble(DLX.SUB, intIns.returnReg, intIns.returnReg, spillRegOne)); 
+            intIns.instNum().setType(new BoolType());   
+        }
+        else if (intIns.cmp.equals("<=")){
+            instructions.add(DLX.assemble(DLX.ASHI, spillRegOne, intIns.returnReg, -31));
+            instructions.add(DLX.assemble(DLX.XOR, intIns.returnReg, intIns.returnReg, spillRegOne));
+            instructions.add(DLX.assemble(DLX.XORI, intIns.returnReg, intIns.returnReg, 1));
+            intIns.instNum().setType(new BoolType());
+        }
+        else if (intIns.cmp.equals("<")){
+            instructions.add(DLX.assemble(DLX.LSHI, intIns.returnReg, intIns.returnReg, -31));
+            intIns.instNum().setType(new BoolType());
+        }
+        else if (intIns.cmp.equals(">")){
+            instructions.add(DLX.assemble(DLX.XORI, intIns.returnReg, intIns.returnReg, -1));
+            instructions.add(DLX.assemble(DLX.ADDI, intIns.returnReg, intIns.returnReg, 1));
+            instructions.add(DLX.assemble(DLX.LSHI, intIns.returnReg, intIns.returnReg, -31));
+            intIns.instNum().setType(new BoolType());
+        }
+        else if (intIns.cmp.equals(">=")){
+            instructions.add(DLX.assemble(DLX.XORI, intIns.returnReg, intIns.returnReg, -1));
+            instructions.add(DLX.assemble(DLX.ADDI, intIns.returnReg, intIns.returnReg, 1));
+            instructions.add(DLX.assemble(DLX.ASHI, spillRegOne, intIns.returnReg, -31));
+            instructions.add(DLX.assemble(DLX.XOR, intIns.returnReg, intIns.returnReg, spillRegOne));
+            instructions.add(DLX.assemble(DLX.XORI, intIns.returnReg, intIns.returnReg, 1));
+            intIns.instNum().setType(new BoolType());
+        }
+    }
 
+    public void generateCall(IntermediateInstruction intIns){
+        List<Integer> pushedRegisters = new ArrayList<Integer>();
+        // push registers
+        for (int reg : registersInUse){
+            DLX.assemble(DLX.PSH, reg, SP, -4);
+            pushedRegisters.add(reg);
         }
-        else if (intIns.cmp.equals("==")){
-            
+        // push parameters 
+        DLX.assemble(DLX.PSH, intIns.getRegisterOne(), SP, -4);
+        pushedRegisters.add(intIns.getRegisterOne());
+
+        // jump to target function 
+        DLX.assemble(DLX.JSR, FunctionToFirstInstruction.get(intIns.getFunc()) * 4);
+
+
+        // unwind the saved registers 
+        for (int i = pushedRegisters.size() - 1; i > 0; i--){
+            DLX.assemble(DLX.POP, pushedRegisters.get(i), SP, 4);
         }
+
+        // need to connect the parameter caller register to the parameter callee register
+        // could move the caller register into the parameter callee register 
+            // know the caller register, need to find the parameter callee register
+            // need to find an instruction with an operand that has "-3" -- this will only work for functions with one parameter
+    
+
     }
 }
 

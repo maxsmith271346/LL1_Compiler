@@ -29,40 +29,40 @@ public class Optimization {
                 // run all of them
                 // maybe have each of them return a boolean value that indicates whether or not there were code changes? 
                 change |= constantPropagation();
-                if (change) {
+                /*if (change) {
                     System.out.println("CP");
                     System.out.println(ssa.asDotGraph());
-                }
+                }*/
                 change |= constantFolding();
-                if (change) {
+                /*if (change) {
                     System.out.println("CF");
                     System.out.println(ssa.asDotGraph());
-                }
+                }*/
                 change |= copyPropagation();
-                if (change) {
+                /*if (change) {
                     System.out.println("CPP");
                     System.out.println(ssa.asDotGraph());
-                }
+                }*/
                 change |= commonSubexpressionElimination();
-                if (change) {
+                /*if (change) {
                     System.out.println("CSE");
                     System.out.println(ssa.asDotGraph());
-                }
+                }*/
                 change |= deadCodeElimination(); 
-                if (change) {
+                /*if (change) {
                     System.out.println("DCE");
                     System.out.println(ssa.asDotGraph());
-                }
+                }*/
                 change |= orphanFunctionElimination();
-                if (change) {
+                /*if (change) {
                    System.out.println("OFE");
                    System.out.println(ssa.asDotGraph());
-                }
+                }*/
                 change |= arithmeticSimplification();
-                if (change) {
+                /*if (change) {
                     System.out.println("AS");
                     System.out.println(ssa.asDotGraph());
-                }
+                }*/
                 //break; 
             }
 

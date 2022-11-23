@@ -1,8 +1,18 @@
-main
-int y,z,a;
-bool x;
-{	
-    let y = call readInt();
-    let z = call readInt();
-    call printBool(y == z);
+main 
+int x, y; 
+
+function foo(int z): int 
+{
+    int i, j;
+    call printInt(z); 
+    let j = 4; 
+    return j; 
+};
+
+{
+    let y = call readInt(); 
+    let x = call readInt(); 
+    let y = call foo(x); 
+    call printInt(y);
+    //if (x == y) then call printInt(1); else call printInt(2); fi;
 }.

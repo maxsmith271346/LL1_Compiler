@@ -38,9 +38,9 @@ public class RegisterAllocator {
         buildInterferenceGraph();
         colorInterferenceGraph();
         
-        /*for (Operand o : colorMap.keySet()){
+        for (Operand o : colorMap.keySet()){
             System.out.println("o " + o + " color " + colorMap.get(o));
-        }*/
+        }
         
         insertRegisters();
         removeSillyMoves();
@@ -54,25 +54,11 @@ public class RegisterAllocator {
        //System.out.println("after liveness analysis " + ssa.asDotGraph());
         for (BasicBlock bb : ssa.getBasicBlockList()){
             if (bb.name().contains("elim")){continue;}
+            addToInterferenceGraph(bb.lvEntry);
+            addToInterferenceGraph(bb.lvExit);
             for (IntermediateInstruction ii : bb.getIntInsList()){
                 if (ii.isElim()){continue;}
-                for (Operand o : ii.liveVars){
-                    if (IntermediateInstruction.isConst(o)){continue;}
-                    Set<Operand> adjSet;
-                    if (interferenceGraph.containsKey(o)){
-                        adjSet = interferenceGraph.get(o);
-                    }
-                    else{ 
-                        adjSet = new HashSet<Operand>();
-                    }
-                    for (Operand oAdj : ii.liveVars){
-                        if (IntermediateInstruction.isConst(oAdj)){continue;}
-                        if (!o.equals(oAdj)){
-                            adjSet.add(oAdj);
-                        }
-                    }
-                    interferenceGraph.put(o, adjSet);
-                }
+                addToInterferenceGraph(ii.liveVars);
             }
         }
         /*
@@ -80,6 +66,26 @@ public class RegisterAllocator {
             System.out.println("key: " + o + " value " + interferenceGraph.get(o));
         }
         */
+    }
+
+    public void addToInterferenceGraph(HashSet<Operand> liveVars){
+        for (Operand o : liveVars){
+            if (IntermediateInstruction.isConst(o)){continue;}
+            Set<Operand> adjSet;
+            if (interferenceGraph.containsKey(o)){
+                adjSet = interferenceGraph.get(o);
+            }
+            else{ 
+                adjSet = new HashSet<Operand>();
+            }
+            for (Operand oAdj : liveVars){
+                if (IntermediateInstruction.isConst(oAdj)){continue;}
+                if (!o.equals(oAdj)){
+                    adjSet.add(oAdj);
+                }
+            }
+            interferenceGraph.put(o, adjSet);
+        }
     }
 
     public void generateLivenessAnalysis(){
@@ -280,6 +286,7 @@ public class RegisterAllocator {
                     if (ii.getRegisterOne() != null && ii.getRegisterTwo() != null){
                         if (ii.getRegisterOne().equals(ii.getRegisterTwo())){
                             ii.eliminate();
+                            ii.eliminateSilly();
                         }
                     }
                 }

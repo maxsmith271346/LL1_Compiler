@@ -23,6 +23,7 @@ public class BasicBlock implements Operand {
     public HashSet<Operand> lvEntry;
     public HashSet<Operand> lvExit;
     public Boolean inFunc;
+    public Symbol function;
 
     public Set<IntermediateInstruction> exitAvailableExpression;
     
@@ -63,6 +64,7 @@ public class BasicBlock implements Operand {
         this.lvExit = new HashSet<Operand>();
         this.exitAvailableExpression = new HashSet<IntermediateInstruction>();
         this.inFunc = inFunc;
+        this.function = null;
     }
 
     public BasicBlock(int BBNumber, HashMap<Symbol, HashSet<Symbol>> varMap, String name, Boolean inFunc){

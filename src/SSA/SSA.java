@@ -591,6 +591,7 @@ public class SSA implements NodeVisitor{
             for (BasicBlock BB : BasicBlockList){
                 if(BB.name() == function.name()){
                     functionBB = BB;
+                    functionBB.function = function;
                     currentBB.transitionList.add(currentBB.new Transitions(functionBB, "call" + function.name() + (BasicBlock.insNumber - 1)));
                 }
             }

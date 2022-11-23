@@ -1,5 +1,6 @@
 package SSA;
 
+import java.security.spec.EllipticCurve;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -88,7 +89,7 @@ public class IntermediateInstruction {
     public Set<IntermediateInstruction> availableExpressions;
     public boolean branchHandled;
     public String cmp;
-    //blic boolean elim;
+    private boolean elimSilly;
 
     public IntermediateInstruction(SSAOperator operator, Operand operandOne, Operand operandTwo, int insNum, Type type){
         this.operator = operator; 
@@ -96,6 +97,7 @@ public class IntermediateInstruction {
         this.operandTwo = operandTwo;
         // this.insNum = insNum;
         this.elim = false;
+        this.elimSilly = false;
         this.instNum = new InstructionNumber(insNum, type);
         this.liveVars = new HashSet<Operand>();
         this.returnReg = null;
@@ -141,6 +143,14 @@ public class IntermediateInstruction {
 
     public void eliminate() {
         elim = true;
+    }
+    
+    public void eliminateSilly(){
+        elimSilly = true;
+    }
+
+    public boolean isElimSilly(){
+        return elimSilly;
     }
 
     public void addExtraOperands(List<Operand> extraOperands){
