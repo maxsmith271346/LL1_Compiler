@@ -1,10 +1,15 @@
 package SSA;
 
+import types.Type;
+import types.VoidType;
+
 public class InstructionNumber implements Operand{
     private int instructionNumber; 
-    
-    public InstructionNumber(int instructionNumber){
+    private Type type;
+
+    public InstructionNumber(int instructionNumber, Type type){
         this.instructionNumber = instructionNumber;
+        this.type = type;
     }
 
     public int getInstructionNumber(){
@@ -26,5 +31,13 @@ public class InstructionNumber implements Operand{
             }
         }
         return true;
+    }
+
+    public Type type(){
+        return type;
+    }
+
+    public void setType(Type type){
+        this.type = type;
     }
 }

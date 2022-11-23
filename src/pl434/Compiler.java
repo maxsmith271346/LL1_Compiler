@@ -143,7 +143,7 @@ public class Compiler {
 
     public int[] genCode(){
         CodeGenerator codeGen = new CodeGenerator(ssa, numRegs);
-        return new ArrayList<Integer>().stream().mapToInt(Integer::intValue).toArray();
+        return codeGen.instructions.stream().mapToInt(Integer::intValue).toArray();
     }
     
     public int[] compile() {

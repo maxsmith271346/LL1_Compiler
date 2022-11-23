@@ -12,6 +12,10 @@ import java.util.Stack;
 
 import ast.*;
 import pl434.Symbol;
+import types.BoolType;
+import types.FloatType;
+import types.IntType;
+import types.VoidType;
 import SSA.BasicBlock.Transitions;
 import SSA.IntermediateInstruction.SSAOperator;
 
@@ -117,7 +121,7 @@ public class SSA implements NodeVisitor{
         for (BasicBlock bb : BasicBlockList) {
             HashSet<BasicBlock> df = dfMap.get(bb);
             for (BasicBlock j : df) {
-                j.addFront(new IntermediateInstruction(SSAOperator.PHI, null, null, -1));
+                j.addFront(new IntermediateInstruction(SSAOperator.PHI, null, null, -1, new VoidType()));
             }
         }
     }
@@ -300,14 +304,14 @@ public class SSA implements NodeVisitor{
     */
     @Override
     public void visit(ArrayIndex node) {
-        InstructionNumber mulInsNum = new InstructionNumber(0);
-        InstructionNumber addInsNum = new InstructionNumber(0);
+        InstructionNumber mulInsNum = new InstructionNumber(0, new IntType());
+        InstructionNumber addInsNum = new InstructionNumber(0, new IntType());
         // First: the case where there is only one index for the array
         if (node.dimList().size() == 1){
             node.indices().get(0).accept(this);
-            mulInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.MUL, node.indices().get(0).getOperand(currentBB.varMap), new IntegerLiteral(0, 0, "4"), BasicBlock.insNumber));
-            addInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.ADD, new GDB(), node.arrayIdent(), BasicBlock.insNumber));
-            node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.ADDA, addInsNum, mulInsNum, BasicBlock.insNumber)));
+            mulInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.MUL, node.indices().get(0).getOperand(currentBB.varMap), new IntegerLiteral(0, 0, "4"), BasicBlock.insNumber, new IntType()));
+            addInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.ADD, new GDB(), node.arrayIdent(), BasicBlock.insNumber, new IntType()));
+            node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.ADDA, addInsNum, mulInsNum, BasicBlock.insNumber, new IntType())));
         }
         else{ 
             // see pl434 SSA notes
@@ -324,19 +328,19 @@ public class SSA implements NodeVisitor{
                     N = new IntegerLiteral(0, 0, node.dimList().get(counter));
                     node.indices().get(counter).accept(this);
                     j = node.indices().get(counter).getOperand(currentBB.varMap); 
-                    mulInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.MUL, i, N, BasicBlock.insNumber));
-                    addInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.ADD, mulInsNum, j, BasicBlock.insNumber));
+                    mulInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.MUL, i, N, BasicBlock.insNumber, new IntType()));
+                    addInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.ADD, mulInsNum, j, BasicBlock.insNumber, new IntType()));
                 }
                 if (counter == 1){
-                    mulInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.MUL, i, N, BasicBlock.insNumber));
-                    addInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.ADD, mulInsNum, j, BasicBlock.insNumber));
+                    mulInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.MUL, i, N, BasicBlock.insNumber, new IntType()));
+                    addInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.ADD, mulInsNum, j, BasicBlock.insNumber, new IntType()));
                 }
                 counter++;
             }
 
-            mulInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.MUL, addInsNum, new IntegerLiteral(0, 0, "4"), BasicBlock.insNumber));
-            addInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.ADD, new GDB(), node.arrayIdent(), BasicBlock.insNumber));
-            node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.ADDA, addInsNum, mulInsNum, BasicBlock.insNumber)));
+            mulInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.MUL, addInsNum, new IntegerLiteral(0, 0, "4"), BasicBlock.insNumber, new IntType()));
+            addInsNum = currentBB.add(new IntermediateInstruction(SSAOperator.ADD, new GDB(), node.arrayIdent(), BasicBlock.insNumber, new IntType()));
+            node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.ADDA, addInsNum, mulInsNum, BasicBlock.insNumber, new IntType())));
         }
     }
 
@@ -344,135 +348,138 @@ public class SSA implements NodeVisitor{
     public void visit(LogicalNot node) {
         node.expr().accept(this);
         if (node.expr() instanceof ArrayIndex){
-            ((ArrayIndex) node.expr()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.expr().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+            ((ArrayIndex) node.expr()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.expr().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.expr().type())));
          }
 
-        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.NOT, node.expr().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.NOT, node.expr().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.expr().type())));
     }
 
     @Override
     public void visit(Power node) {
         node.leftExpression().accept(this);
         if (node.leftExpression() instanceof ArrayIndex){
-            ((ArrayIndex) node.leftExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.leftExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+            ((ArrayIndex) node.leftExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.leftExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.leftExpression().type())));
         }
         node.rightExpression().accept(this);
         if (node.rightExpression() instanceof ArrayIndex){
-            ((ArrayIndex) node.rightExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rightExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+            ((ArrayIndex) node.rightExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rightExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.rightExpression().type())));
          }
-        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.POW, node.leftExpression().getOperand(currentBB.varMap),  node.rightExpression().getOperand(currentBB.varMap), BasicBlock.insNumber)));
+        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.POW, node.leftExpression().getOperand(currentBB.varMap),  node.rightExpression().getOperand(currentBB.varMap), BasicBlock.insNumber, node.leftExpression().type())));
     }
 
     @Override
     public void visit(Multiplication node) {
         node.leftExpression().accept(this);
         if (node.leftExpression() instanceof ArrayIndex){
-            ((ArrayIndex) node.leftExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.leftExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+            ((ArrayIndex) node.leftExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.leftExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.leftExpression().type())));
         }
         node.rightExpression().accept(this);
         if (node.rightExpression() instanceof ArrayIndex){
-            ((ArrayIndex) node.rightExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rightExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+            ((ArrayIndex) node.rightExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rightExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.rightExpression().type())));
          }
 
-        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.MUL, node.leftExpression().getOperand(currentBB.varMap),  node.rightExpression().getOperand(currentBB.varMap), BasicBlock.insNumber)));
+        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.MUL, node.leftExpression().getOperand(currentBB.varMap),  node.rightExpression().getOperand(currentBB.varMap), BasicBlock.insNumber, node.rightExpression().type())));
     }
 
     @Override
     public void visit(Division node) {
         node.leftExpression().accept(this);
         if (node.leftExpression() instanceof ArrayIndex){
-            ((ArrayIndex) node.leftExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.leftExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+            ((ArrayIndex) node.leftExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.leftExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.leftExpression().type())));
         }
         node.rightExpression().accept(this);
         if (node.rightExpression() instanceof ArrayIndex){
-            ((ArrayIndex) node.rightExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rightExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+            ((ArrayIndex) node.rightExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rightExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.rightExpression().type())));
          }
 
-        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.DIV, node.leftExpression().getOperand(currentBB.varMap),  node.rightExpression().getOperand(currentBB.varMap), BasicBlock.insNumber)));
+        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.DIV, node.leftExpression().getOperand(currentBB.varMap),  node.rightExpression().getOperand(currentBB.varMap), BasicBlock.insNumber, node.rightExpression().type())));
     }
 
     @Override
     public void visit(Modulo node) {
         node.leftExpression().accept(this);
         if (node.leftExpression() instanceof ArrayIndex){
-            ((ArrayIndex) node.leftExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.leftExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+            ((ArrayIndex) node.leftExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.leftExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.leftExpression().type())));
         }
         node.rightExpression().accept(this);
         if (node.rightExpression() instanceof ArrayIndex){
-            ((ArrayIndex) node.rightExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rightExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+            ((ArrayIndex) node.rightExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rightExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.rightExpression().type())));
          }
 
-        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.MOD, node.leftExpression().getOperand(currentBB.varMap),  node.rightExpression().getOperand(currentBB.varMap), BasicBlock.insNumber)));
+        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.MOD, node.leftExpression().getOperand(currentBB.varMap),  node.rightExpression().getOperand(currentBB.varMap), BasicBlock.insNumber, node.rightExpression().type())));
     }
 
     @Override
     public void visit(LogicalAnd node) {
         node.leftExpression().accept(this);
         if (node.leftExpression() instanceof ArrayIndex){
-            ((ArrayIndex) node.leftExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.leftExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+            ((ArrayIndex) node.leftExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.leftExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.leftExpression().type())));
         }
         node.rightExpression().accept(this);
         if (node.rightExpression() instanceof ArrayIndex){
-            ((ArrayIndex) node.rightExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rightExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+            ((ArrayIndex) node.rightExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rightExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.leftExpression().type())));
          }
 
-        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.AND, node.leftExpression().getOperand(currentBB.varMap),  node.rightExpression().getOperand(currentBB.varMap), BasicBlock.insNumber)));
+        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.AND, node.leftExpression().getOperand(currentBB.varMap),  node.rightExpression().getOperand(currentBB.varMap), BasicBlock.insNumber, node.rightExpression().type())));
     }
 
     @Override
     public void visit(Addition node) {
         node.leftExpression().accept(this);
         if (node.leftExpression() instanceof ArrayIndex){
-            ((ArrayIndex) node.leftExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.leftExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+            ((ArrayIndex) node.leftExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.leftExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.leftExpression().type())));
         }
         node.rightExpression().accept(this);
         if (node.rightExpression() instanceof ArrayIndex){
-            ((ArrayIndex) node.rightExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rightExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+            ((ArrayIndex) node.rightExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rightExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.rightExpression().type())));
          }
 
-        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.ADD, node.leftExpression().getOperand(currentBB.varMap), node.rightExpression().getOperand(currentBB.varMap), BasicBlock.insNumber)));
+        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.ADD, node.leftExpression().getOperand(currentBB.varMap), node.rightExpression().getOperand(currentBB.varMap), BasicBlock.insNumber, node.rightExpression().type())));
     }
 
     @Override
     public void visit(Subtraction node) {
         node.leftExpression().accept(this);
         if (node.leftExpression() instanceof ArrayIndex){
-            ((ArrayIndex) node.leftExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.leftExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+            ((ArrayIndex) node.leftExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.leftExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.leftExpression().type())));
         }
         node.rightExpression().accept(this);
         if (node.rightExpression() instanceof ArrayIndex){
-            ((ArrayIndex) node.rightExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rightExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+            ((ArrayIndex) node.rightExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rightExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.rightExpression().type())));
          }
 
-        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.SUB, node.leftExpression().getOperand(currentBB.varMap),  node.rightExpression().getOperand(currentBB.varMap),  BasicBlock.insNumber)));
+        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.SUB, node.leftExpression().getOperand(currentBB.varMap),  node.rightExpression().getOperand(currentBB.varMap),  BasicBlock.insNumber, node.rightExpression().type())));
     }
 
     @Override
     public void visit(LogicalOr node) {
         node.leftExpression().accept(this);
         if (node.leftExpression() instanceof ArrayIndex){
-            ((ArrayIndex) node.leftExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.leftExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+            ((ArrayIndex) node.leftExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.leftExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.leftExpression().type())));
         }
         node.rightExpression().accept(this);
         if (node.rightExpression() instanceof ArrayIndex){
-            ((ArrayIndex) node.rightExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rightExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+            ((ArrayIndex) node.rightExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rightExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.rightExpression().type())));
          }
 
-        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.OR, node.leftExpression().getOperand(currentBB.varMap),  node.rightExpression().getOperand(currentBB.varMap), BasicBlock.insNumber)));
+        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.OR, node.leftExpression().getOperand(currentBB.varMap),  node.rightExpression().getOperand(currentBB.varMap), BasicBlock.insNumber, node.rightExpression().type())));
     }
 
     @Override
     public void visit(Relation node) {
         node.leftExpression().accept(this);
         if (node.leftExpression() instanceof ArrayIndex){
-            ((ArrayIndex) node.leftExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.leftExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+            ((ArrayIndex) node.leftExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.leftExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.leftExpression().type())));
         }
         node.rightExpression().accept(this);
         if (node.rightExpression() instanceof ArrayIndex){
-            ((ArrayIndex) node.rightExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rightExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+            ((ArrayIndex) node.rightExpression()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rightExpression().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.rightExpression().type())));
          }
     
-        node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.CMP, node.leftExpression().getOperand(currentBB.varMap),  node.rightExpression().getOperand(currentBB.varMap), BasicBlock.insNumber)));
+        
+        IntermediateInstruction ii = new IntermediateInstruction(SSAOperator.CMP, node.leftExpression().getOperand(currentBB.varMap),  node.rightExpression().getOperand(currentBB.varMap), BasicBlock.insNumber, node.rightExpression().type());
+        ii.cmp = node.operator();
+        node.setInsNumber(currentBB.add(ii));
     }
 
     @Override
@@ -481,7 +488,7 @@ public class SSA implements NodeVisitor{
         node.rhsExpr().accept(this);
 
         if (node.rhsExpr() instanceof ArrayIndex){
-           ((ArrayIndex) node.rhsExpr()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rhsExpr().getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+           ((ArrayIndex) node.rhsExpr()).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, node.rhsExpr().getOperand(currentBB.varMap), null, BasicBlock.insNumber, node.rhsExpr().type())));
         }
         if (node.lhsDesignator() instanceof Symbol){
              // put new subscript in
@@ -489,11 +496,11 @@ public class SSA implements NodeVisitor{
             Symbol lhs = new Symbol(((Symbol) node.lhsDesignator()).name() + "_" + BasicBlock.insNumber, ((Symbol) node.lhsDesignator()).getType().toString(), "var", ((Symbol) node.lhsDesignator()).scope);
             newHash.add(lhs);
             currentBB.varMap.put((Symbol) node.lhsDesignator(), newHash);   
-            currentBB.add(new IntermediateInstruction(SSAOperator.MOVE, node.rhsExpr().getOperand(currentBB.varMap), lhs, BasicBlock.insNumber));
+            currentBB.add(new IntermediateInstruction(SSAOperator.MOVE, node.rhsExpr().getOperand(currentBB.varMap), lhs, BasicBlock.insNumber, new VoidType()));
 
         }
         else{
-            currentBB.add(new IntermediateInstruction(SSAOperator.STORE, node.rhsExpr().getOperand(currentBB.varMap), node.lhsDesignator().getOperand(currentBB.varMap), BasicBlock.insNumber));
+            currentBB.add(new IntermediateInstruction(SSAOperator.STORE, node.rhsExpr().getOperand(currentBB.varMap), node.lhsDesignator().getOperand(currentBB.varMap), BasicBlock.insNumber, new VoidType()));
         }
 
     }
@@ -504,7 +511,7 @@ public class SSA implements NodeVisitor{
             for (Expression e : node.argList) { // TODO: make statement sequence iterable
                 e.accept(this);
                 if (e instanceof ArrayIndex){
-                    ((ArrayIndex) e).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, e.getOperand(currentBB.varMap), null, BasicBlock.insNumber)));
+                    ((ArrayIndex) e).setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.LOAD, e.getOperand(currentBB.varMap), null, BasicBlock.insNumber, e.type())));
                 }
             }
         }
@@ -543,21 +550,21 @@ public class SSA implements NodeVisitor{
         if (preFuncMatch != null){
             if (preFuncMatch.name().contains("read")){
                 if (preFuncMatch.name().equals("readInt")){
-                    node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.READ_I, null, null, BasicBlock.insNumber)));
+                    node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.READ_I, null, null, BasicBlock.insNumber, new IntType())));
                 }
                 else if (preFuncMatch.name().equals("readFloat")){
-                    node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.READ_F, null, null, BasicBlock.insNumber)));
+                    node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.READ_F, null, null, BasicBlock.insNumber, new FloatType())));
                 }
                 else if (preFuncMatch.name().equals("readBool")){
-                    node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.READ_B, null, null, BasicBlock.insNumber)));
+                    node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.READ_B, null, null, BasicBlock.insNumber, new BoolType())));
                 }
             }
             else{
                 if (preFuncMatch.name().equals("println")){
-                    currentBB.add(new IntermediateInstruction(SSAOperator.WRITE, null, null, BasicBlock.insNumber));
+                    currentBB.add(new IntermediateInstruction(SSAOperator.WRITE, null, null, BasicBlock.insNumber, new VoidType()));
                 }
                 else{
-                    currentBB.add(new IntermediateInstruction(SSAOperator.WRITE, node.argList.argList.get(0).getOperand(currentBB.varMap), null, BasicBlock.insNumber));
+                    currentBB.add(new IntermediateInstruction(SSAOperator.WRITE, node.argList.argList.get(0).getOperand(currentBB.varMap), null, BasicBlock.insNumber, new VoidType()));
                 }
             }
         }
@@ -565,14 +572,14 @@ public class SSA implements NodeVisitor{
         // handle user-defined functions: 
         else{
             if (node.argList.argList.size() == 0){
-                node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.CALL, function, null, BasicBlock.insNumber)));
+                node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.CALL, function, null, BasicBlock.insNumber, function.type())));
             }
             if (node.argList.argList.size() == 1){
-                node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.CALL, node.argList.argList.get(0).getOperand(currentBB.varMap), function, BasicBlock.insNumber)));
+                node.setInsNumber(currentBB.add(new IntermediateInstruction(SSAOperator.CALL, node.argList.argList.get(0).getOperand(currentBB.varMap), function, BasicBlock.insNumber, function.type())));
             }
             if (node.argList.argList.size() >= 2){
                 List<Operand> extra = new ArrayList<Operand>();
-                IntermediateInstruction intIns = new IntermediateInstruction(SSAOperator.CALL, node.argList.argList.get(0).getOperand(currentBB.varMap), node.argList.argList.get(1).getOperand(currentBB.varMap), BasicBlock.insNumber);
+                IntermediateInstruction intIns = new IntermediateInstruction(SSAOperator.CALL, node.argList.argList.get(0).getOperand(currentBB.varMap), node.argList.argList.get(1).getOperand(currentBB.varMap), BasicBlock.insNumber, function.type());
                 node.setInsNumber(currentBB.add(intIns));
                 for (int i = 2; i < node.argList.argList.size(); i++){
                     extra.add(node.argList.argList.get(i).getOperand(currentBB.varMap));
@@ -611,10 +618,10 @@ public class SSA implements NodeVisitor{
         currentBB.transitionList.add(currentBB.new Transitions(elseBlock, "else"));
         node.condition().accept(this);
         if (node.condition() instanceof Relation){
-            currentBB.add(new IntermediateInstruction(getBranchOperator((Relation) node.condition()), node.condition().getOperand(currentBB.varMap), elseBlock, BasicBlock.insNumber));
+            currentBB.add(new IntermediateInstruction(getBranchOperator((Relation) node.condition()), node.condition().getOperand(currentBB.varMap), elseBlock, BasicBlock.insNumber, new VoidType()));
         }
         else{ 
-            currentBB.add(new IntermediateInstruction(SSAOperator.BEQ, node.condition().getOperand(currentBB.varMap), elseBlock, BasicBlock.insNumber));
+            currentBB.add(new IntermediateInstruction(SSAOperator.BEQ, node.condition().getOperand(currentBB.varMap), elseBlock, BasicBlock.insNumber, new VoidType()));
         }
 
         currentBB = thenBlock; 
@@ -624,7 +631,7 @@ public class SSA implements NodeVisitor{
 
         currentBB = elseBlock;
         if (node.elseStatementSeq() != null){
-            thenBlock.add(new IntermediateInstruction(SSAOperator.BRA, joinBlock, null, BasicBlock.insNumber));
+            thenBlock.add(new IntermediateInstruction(SSAOperator.BRA, joinBlock, null, BasicBlock.insNumber, new VoidType()));
             //thenBlock.add(new IntermediateInstruction(SSAOperator.BRA, thenBlock.transitionList.get(thenBlock.transitionList.size() - 1).toBB, null));
             node.elseStatementSeq().accept(this);
         }
@@ -641,7 +648,7 @@ public class SSA implements NodeVisitor{
 
                 if (joinBlock.varMap.get(key).size() > 1){
                     Iterator<Symbol> it = joinBlock.varMap.get(key).iterator();
-                    IntermediateInstruction newIns = new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber);
+                    IntermediateInstruction newIns = new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber, new VoidType());
                     insNum = joinBlock.add(newIns).getInstructionNumber();
                     HashSet<Symbol> newHash = new HashSet<Symbol>();
                     Symbol newSymbol = new Symbol(key.name() + "_" + insNum, key.type().toString(), "var", key.scope);
@@ -689,18 +696,18 @@ public class SSA implements NodeVisitor{
         node.condition().accept(this);
 
         if (node.condition() instanceof Relation){
-            currentBB.add(new IntermediateInstruction(getBranchOperator((Relation) node.condition()), node.condition().getOperand(currentBB.varMap), elseBlock, BasicBlock.insNumber));
+            currentBB.add(new IntermediateInstruction(getBranchOperator((Relation) node.condition()), node.condition().getOperand(currentBB.varMap), elseBlock, BasicBlock.insNumber, new VoidType()));
         }
         else{ 
-            currentBB.add(new IntermediateInstruction(SSAOperator.BEQ, node.condition().getOperand(currentBB.varMap), elseBlock, BasicBlock.insNumber));
+            currentBB.add(new IntermediateInstruction(SSAOperator.BEQ, node.condition().getOperand(currentBB.varMap), elseBlock, BasicBlock.insNumber, new VoidType()));
         }
 
         currentBB.transitionList.add(currentBB.new Transitions(thenBlock, "then"));
         currentBB = thenBlock;
         node.statementSeq().accept(this);
-        currentBB.add(new IntermediateInstruction(SSAOperator.BRA, whileBlock, null, BasicBlock.insNumber));
+        currentBB.add(new IntermediateInstruction(SSAOperator.BRA, whileBlock, null, BasicBlock.insNumber, new VoidType()));
         //currentBB.transitionList.add(currentBB.new Transitions(thenBlock, whileBlock, ""));
-        currentBB.transitionList.add(currentBB.new Transitions(whileBlock, ""));
+        currentBB.transitionList.add(currentBB.new Transitions(whileBlock, "", true));
 
 
         //currentBB.transitionList.add(currentBB.new Transitions(elseBlock, "else"));
@@ -713,7 +720,7 @@ public class SSA implements NodeVisitor{
 
                 if (whileBlock.varMap.get(key).size() > 1){
                     Iterator<Symbol> it = whileBlock.varMap.get(key).iterator();
-                    IntermediateInstruction newIns = new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber);
+                    IntermediateInstruction newIns = new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber, new VoidType());
                     insNum = whileBlock.addFront(newIns);
                     HashSet<Symbol> newHash = new HashSet<Symbol>();
                     Symbol newSymbol = new Symbol(key.name() + "_" + insNum, key.type().toString(), "var", key.scope);
@@ -751,7 +758,7 @@ public class SSA implements NodeVisitor{
         BBNumber++;
         BasicBlockList.add(elseBB);
 
-        currentBB.transitionList.add(currentBB.new Transitions(repeatBB, ""));
+        currentBB.transitionList.add(currentBB.new Transitions(repeatBB, "", true));
         currentBB = repeatBB; 
         node.statementSeq().accept(this);
         repeatBB.addFullMap(currentBB.varMap);
@@ -767,10 +774,10 @@ public class SSA implements NodeVisitor{
         node.condition().accept(this);
 
         if (node.condition() instanceof Relation){
-            currentBB.add(new IntermediateInstruction(getBranchOperator((Relation) node.condition()), node.condition().getOperand(currentBB.varMap), repeatBB, BasicBlock.insNumber));
+            currentBB.add(new IntermediateInstruction(getBranchOperator((Relation) node.condition()), node.condition().getOperand(currentBB.varMap), repeatBB, BasicBlock.insNumber, new VoidType()));
         }
         else{
-            currentBB.add(new IntermediateInstruction(SSAOperator.BEQ, node.condition().getOperand(currentBB.varMap), repeatBB, BasicBlock.insNumber));
+            currentBB.add(new IntermediateInstruction(SSAOperator.BEQ, node.condition().getOperand(currentBB.varMap), repeatBB, BasicBlock.insNumber, new VoidType()));
         }
     
         currentBB.transitionList.add(currentBB.new Transitions(elseBB, "then"));
@@ -783,7 +790,7 @@ public class SSA implements NodeVisitor{
                 if (repeatBB.varMap.get(key).size() > 1){
                     //System.out.println("here");
                     Iterator<Symbol> it = repeatBB.varMap.get(key).iterator();
-                    IntermediateInstruction newIns = new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber);
+                    IntermediateInstruction newIns = new IntermediateInstruction(SSAOperator.PHI, it.next(), it.next(), BasicBlock.insNumber, new VoidType());
                     insNum = repeatBB.addFront(newIns);
                     HashSet<Symbol> newHash = new HashSet<Symbol>();
                     Symbol newSymbol = new Symbol(key.name() + "_" + insNum, key.type().toString(), "var", key.scope);
@@ -809,10 +816,10 @@ public class SSA implements NodeVisitor{
     public void visit(ReturnStatement node) {
         if (node.returnValue() != null){
             node.returnValue().accept(this);
-            currentBB.add(new IntermediateInstruction(SSAOperator.RET, node.returnValue().getOperand(currentBB.varMap), null, BasicBlock.insNumber));
+            currentBB.add(new IntermediateInstruction(SSAOperator.RET, node.returnValue().getOperand(currentBB.varMap), null, BasicBlock.insNumber, new VoidType()));
         }
         else{
-            currentBB.add(new IntermediateInstruction(SSAOperator.RET, null, null, BasicBlock.insNumber));
+            currentBB.add(new IntermediateInstruction(SSAOperator.RET, null, null, BasicBlock.insNumber, new VoidType()));
 
         }
 
@@ -910,7 +917,7 @@ public class SSA implements NodeVisitor{
         currentBB = mainBB;
         rootBB = mainBB;
         node.mainStatementSequence().accept(this);
-        currentBB.add(new IntermediateInstruction(SSAOperator.END, null, null, BasicBlock.insNumber));
+        currentBB.add(new IntermediateInstruction(SSAOperator.END, null, null, BasicBlock.insNumber, new VoidType()));
         
         endBB = currentBB;
     }

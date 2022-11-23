@@ -9,6 +9,8 @@ import ast.BoolLiteral;
 import ast.FloatLiteral;
 import ast.IntegerLiteral;
 import pl434.Symbol;
+import pl434.Token;
+import types.Type;
 
 public class IntermediateInstruction {
 
@@ -85,15 +87,16 @@ public class IntermediateInstruction {
 
     public Set<IntermediateInstruction> availableExpressions;
     public boolean branchHandled;
+    public String cmp;
     //blic boolean elim;
 
-    public IntermediateInstruction(SSAOperator operator, Operand operandOne, Operand operandTwo, int insNum){
+    public IntermediateInstruction(SSAOperator operator, Operand operandOne, Operand operandTwo, int insNum, Type type){
         this.operator = operator; 
         this.operandOne = operandOne; 
         this.operandTwo = operandTwo;
         // this.insNum = insNum;
         this.elim = false;
-        this.instNum = new InstructionNumber(insNum);
+        this.instNum = new InstructionNumber(insNum, type);
         this.liveVars = new HashSet<Operand>();
         this.returnReg = null;
         this.phiSymbol = null;
@@ -217,7 +220,7 @@ public class IntermediateInstruction {
     }
         
     public void setInsNum(int insNum){
-        this.instNum = new InstructionNumber(insNum);
+        this.instNum = new InstructionNumber(insNum, instNum.type());
     }
     public int insNum(){
         return instNum.getInstructionNumber();

@@ -5,9 +5,9 @@ int i, j;
 {
 	let i = 0;
 	let j = 0;
-	while (i < 1000) do
-		let j = 1;
-		let i = 1;
+	while (i < 10) do
+		let j += 2;
+		let i += 2;
 	od;
 	call printInt(j);
 	call printInt(i); 

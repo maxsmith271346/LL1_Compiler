@@ -1,14 +1,8 @@
 main
-
-int a, b, c, d, e;
-
-{
-    let a = call readInt(); 
-    let b = call readInt();
-    //let d = call readInt();
-    //let e = call readInt();
-    let c = a + b;
-    if (c == 2) then let c = 3; else let d = 5; fi;
-    call printInt(c);
-    call printInt(d);
+int y,z,a;
+bool x;
+{	
+    let y = call readInt();
+    let z = call readInt();
+    call printBool(y == z);
 }.

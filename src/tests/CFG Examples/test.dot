@@ -1,10 +1,10 @@
 digraph G { 
-BB3[shape=record, label="<b>BB3|{30 : MUL i_0 4 |31 : ADD GDB a |32 : ADDA (31) (30) |33 : LOAD (32) |34 : MUL i_0 4 |35 : ADD GDB a |36 : ADDA (35) (34) |37 : LOAD (36) |38 : ADD (33) (37) |39 : MOVE (38) k_39 |40 : MUL i_0 4 |41 : ADD GDB a |42 : ADDA (41) (40) |43 : ADD k_52 1 |44 : STORE (43) (42) |45 : MUL i_0 4 |46 : ADD GDB a |47 : ADDA (46) (45) |48 : LOAD (47) |49 : MOVE (48) z_49 |50 : WRITE z_53 |51 : BRA [2] }"];
-BB3:s -> BB2:n [label=""];
-BB4[shape=record, label="<b>BB4|{54 : WRITE |55 : MUL i_0 4 |56 : ADD GDB a |57 : ADDA (56) (55) |58 : LOAD (57) |59 : MOVE (58) w_59 |60 : WRITE w_59 |61 : END }"];
-BB2[shape=record, label="<b>BB2|{53 : PHI z_49 z_-1 |52 : PHI k_14 k_39 |20 : MUL i_0 4 |21 : ADD GDB a |22 : ADDA (21) (20) |23 : LOAD (22) |24 : MUL j_15 4 |25 : ADD GDB b |26 : ADDA (25) (24) |27 : LOAD (26) |28 : CMP (23) (27) |29 : BGE (28) [4] }"];
-BB2:s -> BB3:n [label="then"];
-BB2:s -> BB4:n [label="else"];
-BB1[shape=record, label="<b>main\nBB1|{0 : MOVE 1 i_0 |1 : MUL 1 4 |2 : ADD GDB a |3 : ADDA (2) (1) |4 : STORE 5 (3) |5 : MUL i_0 4 |6 : ADD GDB a |7 : ADDA (6) (5) |8 : LOAD (7) |9 : MOVE (8) x_9 |10 : MUL i_0 4 |11 : ADD GDB a |12 : ADDA (11) (10) |13 : LOAD (12) |14 : MOVE (13) k_14 |15 : MOVE 2 j_15 |16 : MUL j_15 4 |17 : ADD GDB b |18 : ADDA (17) (16) |19 : STORE 19 (18) }"];
-BB1:s -> BB2:n [label=""];
+BB2[shape=record, label="<b>BB2|{8 : MOVE 3 c_8 [0, c_8]|elim: 16 : MOVE c_8 c_11 [c_11, 0]|19 : MOVE 0 d_19 [c_11, d_19]|elim: 18 : MOVE d_19 d_12 [c_11, d_12]|9 : BRA [4] [c_11, d_12]}"];
+BB2:s -> BB4:n [label=""];
+BB4[shape=record, label="<b>BB4|{13 : WRITE c_11 [d_12]|14 : WRITE d_12 []|15 : END []}"];
+BB3[shape=record, label="<b>BB3|{10 : MOVE 5 d_10 [c_5, d_10]|elim: 16 : MOVE c_5 c_11 [c_11, d_10]|elim: 18 : MOVE d_10 d_12 [c_11, d_12]}"];
+BB3:s -> BB4:n [label=""];
+BB1[shape=record, label="<b>main\nBB1|{0 : R1 = READ_I [3, 0, (0), 5, 2]|elim: 1 : MOVE (0) a_1 [3, 0, a_1, 5, 2]|2 : R2 = READ_I [3, 0, a_1, 5, 2, (2)]|elim: 3 : MOVE (2) b_3 [3, 0, a_1, b_3, 5, 2]|4 : R1 = ADD a_1 b_3 [3, 0, 5, 2, (4)]|elim: 5 : MOVE (4) c_5 [3, 0, c_5, 5, 2]|6 : R2 = CMP c_5 2 [3, 0, c_5, 5, (6)]|7 : BNE (6) [3] [3, 0, c_5, 5]}"];
+BB1:s -> BB2:n [label="then"];
+BB1:s -> BB3:n [label="else"];
 }

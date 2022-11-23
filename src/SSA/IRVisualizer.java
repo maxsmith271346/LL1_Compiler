@@ -35,13 +35,9 @@ public class IRVisualizer {
                 if (intIns.isElim()) {
                     dotGraph.append("elim: ");
                 }
-                //dotGraph.append(intIns.instNum().getInstructionNumber() + " : " + intIns.toString() + "" + intIns.getLiveVars() + "|");
-                if (intIns.returnReg != null){
-                    dotGraph.append(intIns.insNum() + " : " + intIns.returnReg + " = " + intIns.toString() + "" + intIns.getLiveVars() +"|");
-                }
-                else {
-                    dotGraph.append(intIns.insNum() + " : "  + intIns.toString() + "" + intIns.getLiveVars() + "|");
-                }
+                dotGraph.append(intIns.instNum().getInstructionNumber() + " : " + intIns.toString() + intIns.availableExpressions +   "|");
+                //dotGraph.append(intIns.insNum() + " : "  + intIns.toString() + "" + intIns.getLiveVars() + "|");
+                
                 currentLineNum++;
             }
             exitBasicBlock();

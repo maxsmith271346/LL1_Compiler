@@ -10,6 +10,7 @@ import java.util.Set;
 import SSA.IntermediateInstruction.SSAOperator;
 import ast.IntegerLiteral;
 import pl434.Symbol;
+import types.*;
 
 public class BasicBlock implements Operand {
     private List<IntermediateInstruction> IntermediateInstructionList; 
@@ -30,9 +31,15 @@ public class BasicBlock implements Operand {
         //public BasicBlock fromBB, toBB;
         public BasicBlock toBB;
         public String label; 
+        public Boolean backEdge;
         public Transitions(BasicBlock to, String label){
             this.toBB = to; 
             this.label = label; 
+            backEdge = false;
+        }
+        public Transitions(BasicBlock to, String label, boolean backEdge){
+            this(to, label);
+            this.backEdge = backEdge;
         }
     }
 
@@ -149,7 +156,7 @@ public class BasicBlock implements Operand {
                             }
                         }
 
-                        return new IntermediateInstruction(SSAOperator.MOVE, new IntegerLiteral(0, 0, "0"), newSymbol, insNumber);
+                        return new IntermediateInstruction(SSAOperator.MOVE, new IntegerLiteral(0, 0, "0"), newSymbol, insNumber, new VoidType());
                     }  
                 }
             }
@@ -174,7 +181,7 @@ public class BasicBlock implements Operand {
                                 }
                             }
 
-                            return new IntermediateInstruction(SSAOperator.MOVE, new IntegerLiteral(0, 0, "0"), newSymbol, insNumber);
+                            return new IntermediateInstruction(SSAOperator.MOVE, new IntegerLiteral(0, 0, "0"), newSymbol, insNumber, new VoidType());
                         }  
                     }
                 }   
@@ -297,7 +304,8 @@ public class BasicBlock implements Operand {
         // determine liveness at entry and exit to BB
         for (int i = this.getIntInsList().size()-1; i >= 0; i--) {
             IntermediateInstruction ii = this.getIntInsList().get(i);
-            if (ii.isElim()){continue;}          
+            if (ii.isElim()){continue;}       
+         
             switch (ii.getOperator()) {
                 case ADDA:
                     break;
@@ -439,7 +447,7 @@ public class BasicBlock implements Operand {
                     break; 
             }
 
-            if (i == this.getIntInsList().size()-1 && i > 0) {
+            if (i == this.getIntInsList().size()-1 && i >= 0) {
                 change |= this.getIntInsList().get(i).setLiveVars(new HashSet<Operand>(lvExit));
             }
             if (i != 0) {

@@ -175,7 +175,7 @@ public class CompilerTester {
                  System.exit(-5);
              }
         }
-        /*
+        
         DLX.load(program);
         try {
             DLX.execute(in);
@@ -183,7 +183,7 @@ public class CompilerTester {
             e.printStackTrace();
             System.err.println("IOException inside DLX");
             System.exit(-6);
-        }*/
+        }
     }
 
 }

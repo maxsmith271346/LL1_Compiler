@@ -11,6 +11,7 @@ import java.util.stream.IntStream;
 import SSA.*;
 import SSA.BasicBlock.Transitions;
 import SSA.IntermediateInstruction.SSAOperator;
+import types.VoidType;
 
 public class RegisterAllocator {
     public SSA ssa;
@@ -32,21 +33,14 @@ public class RegisterAllocator {
         eliminatePhis();
 
         // need to clear out the previous liveness analysis because the graph has been changed after elimniating the phis
-        for (BasicBlock bb : ssa.getBasicBlockList()){
-            bb.lvEntry.clear();
-            bb.lvExit.clear();
-            for (IntermediateInstruction ii : bb.getIntInsList()){
-                ii.getLiveVars().clear();
-            }
-        }
-
+        
 
         buildInterferenceGraph();
         colorInterferenceGraph();
         
-        for (Operand o : colorMap.keySet()){
+        /*for (Operand o : colorMap.keySet()){
             System.out.println("o " + o + " color " + colorMap.get(o));
-        }
+        }*/
         
         insertRegisters();
         removeSillyMoves();
@@ -196,27 +190,29 @@ public class RegisterAllocator {
                     if (ii.getOperandOne() instanceof Symbol){
                         Symbol opOne = (Symbol) ii.getOperandOne();
                         int opOneInsNum = Integer.parseInt(opOne.name().substring(opOne.name().indexOf("_") + 1, opOne.name().length()));
+                        Symbol opTwo = (Symbol) ii.getOperandTwo();
+                        int opTwoInsNum = Integer.parseInt(opTwo.name().substring(opTwo.name().indexOf("_") + 1, opTwo.name().length()));
 
-                        IntermediateInstruction moveInsOne = new IntermediateInstruction(SSAOperator.MOVE, opOne, ii.phiSymbol, BasicBlock.insNumber);
-                        IntermediateInstruction moveInsTwo = new IntermediateInstruction(SSAOperator.MOVE, ii.getOperandTwo(), ii.phiSymbol, BasicBlock.insNumber);
+                        IntermediateInstruction moveInsOne = new IntermediateInstruction(SSAOperator.MOVE, opOne, ii.phiSymbol, BasicBlock.insNumber, new VoidType());
+                        IntermediateInstruction moveInsTwo = new IntermediateInstruction(SSAOperator.MOVE, ii.getOperandTwo(), ii.phiSymbol, BasicBlock.insNumber, new VoidType());
 
-                        if (bb.inList.get(0).hasInsNum(opOneInsNum)){
+                        if (bb.inList.get(0).hasInsNum(opOneInsNum) || bb.inList.get(1).hasInsNum(opTwoInsNum) ){
                             bb.inList.get(0).addEnd(moveInsOne);
                             bb.inList.get(1).addEnd(moveInsTwo);
                         }
-                        else{ 
+                        else { 
                             bb.inList.get(1).addEnd(moveInsOne);
                             bb.inList.get(0).addEnd(moveInsTwo);
                         }
-                        toRemove.add(ii);
+                        ii.eliminate();
                     }
                 }
             }
 
-            bb.getIntInsList().removeAll(toRemove);
+            //bb.getIntInsList().removeAll(toRemove);
         }
 
-        //System.out.println("After Eliminating PHIs " + ssa.asDotGraph());
+        System.out.println("After Eliminating PHIs " + ssa.asDotGraph());
     }
 
     public void insertRegisters(){
@@ -289,6 +285,6 @@ public class RegisterAllocator {
                 }
             }
         }
-        System.out.println("after removing silly moves " + ssa.asDotGraph());
+        //System.out.println("after removing silly moves " + ssa.asDotGraph());
     }
 }
