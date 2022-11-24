@@ -150,9 +150,6 @@ public class CodeGenerator {
                 spillResultLoadIns = -1;
                 resolveAnySpilledResults(ii);
 
-                if (ii.returnReg != null){
-                    registersInUse.add(ii.returnReg);
-                }
                 switch(ii.getOperator()){
                     case READ_I:
                         instructions.add(DLX.assemble(DLX.RDI, ii.returnReg));
@@ -323,6 +320,9 @@ public class CodeGenerator {
                 }
                 if (spillResultLoadIns != -1){
                     instructions.add(spillResultLoadIns);
+                }
+                if (ii.returnReg != null){
+                    registersInUse.add(ii.returnReg);
                 }
             }
         }
@@ -683,7 +683,7 @@ public class CodeGenerator {
             pushedRegisters.add(reg);
         }
         // push parameters 
-        if (intIns.getRegisterOne() != null){
+        if (intIns.getRegisterOne() != null && intIns.liveVars.contains(intIns.getOperandOne())){
             instructions.add(DLX.assemble(DLX.PSH, intIns.getRegisterOne(), SP, -4));
             pushedRegisters.add(intIns.getRegisterOne());
         }

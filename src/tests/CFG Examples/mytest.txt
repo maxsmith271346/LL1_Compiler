@@ -4,11 +4,13 @@ int x, y;
 function foo(int z): int 
 {
     call printInt(z); 
-    return 6;
+    let z = 6;
+    return z;
 };
 
 {
     let x = call readInt();
     let y = call foo(x);
     call printInt(y); 
+    call printInt(x);
 }.
