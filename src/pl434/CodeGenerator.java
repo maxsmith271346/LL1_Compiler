@@ -46,6 +46,7 @@ public class CodeGenerator {
     final int SP = 29; 
     final int FP = 28;
     Set<Integer> registersInUse;
+    int returnReg;
     
     public CodeGenerator(SSA ssa, int numRegs){
         this.ssa = ssa;
@@ -61,6 +62,7 @@ public class CodeGenerator {
         registersInUse.add(spillRegOne);
         registersInUse.add(spillRegTwo); 
         FunctionToFirstInstruction = new HashMap<Symbol, Integer>();
+        returnReg = 0;
 
         generateCodeForProcedures();
     }
@@ -68,22 +70,25 @@ public class CodeGenerator {
 
     public void generateCodeForProcedures(){
         procedureToBBList = getChildrenForProcedures();
+    
+        generatePrologue("main", procedureToBBList.get("main").get(0));
+        generateCode(procedureToBBList.get("main"));
+        generateEpilogue("main", 0);
+        
         for (String s : procedureToBBList.keySet()){
+            if (s.equals("main")){continue;}
+            int firstIns = instructions.size();
             generatePrologue(s, procedureToBBList.get(s).get(0));
-
-            if (!s.equals("main")){
-                FunctionToFirstInstruction.put(procedureToBBList.get(s).get(0).function, instructions.size() + 1);
+            if (!FunctionToFirstInstruction.containsKey(procedureToBBList.get("foo").get(0).function)){
+                FunctionToFirstInstruction.put(procedureToBBList.get("foo").get(0).function, instructions.size() + 1);
             }
-
+            else{ 
+                instructions.set(FunctionToFirstInstruction.get(procedureToBBList.get("foo").get(0).function), DLX.assemble(DLX.JSR, 4*firstIns));
+            }
             generateCode(procedureToBBList.get(s));
-
-            int numberParameters = 0;
-
-            if (!s.equals("main")){
-                numberParameters = procedureToBBList.get(s).get(0).function.getParamTypes().size();
-            }
+            int numberParameters = procedureToBBList.get(s).get(0).function.getParamTypes().size();
             generateEpilogue(s, numberParameters);
-        }     
+        }    
     }
 
     public HashMap<String, List<BasicBlock>> getChildrenForProcedures(){
@@ -119,6 +124,7 @@ public class CodeGenerator {
             instructions.add(DLX.assemble(DLX.ADD, SP, FP, 0));
             instructions.add(DLX.assemble(DLX.POP, FP, SP, 4));
             instructions.add(DLX.assemble(DLX.POP, BA, SP, 4 * numberParameters));
+            instructions.add(DLX.assemble(DLX.RET, BA));
         }
     }
 
@@ -294,7 +300,17 @@ public class CodeGenerator {
                     case CALL: 
                         generateCall(ii);
                         break; 
-                    case RET: 
+                    case RET: // TODO: fix this; only works in limited case
+                        if (ii.getOperandOne() != null){
+                            if (ii.getRegisterOne() != null){
+                                instructions.add(DLX.assemble(DLX.ADD, returnReg, 0, ii.getRegisterOne()));
+                            }
+                            else if (IntermediateInstruction.isConst(ii.getOperandOne())){
+                                if (ii.getOperandOne() instanceof IntegerLiteral){
+                                    instructions.add(DLX.assemble(DLX.ADDI, returnReg, 0, ((IntegerLiteral)ii.getOperandOne()).valueAsInt()));
+                                }
+                            }
+                        }
                         break;
                     default: 
                         break;
@@ -355,15 +371,31 @@ public class CodeGenerator {
     public void resolveAnySpilledOperands(IntermediateInstruction ii){
         if (ii.getOperandOne() != null && ii.getRegisterOne() == null){ // if the ins has an operand but no associated register
             if (!IntermediateInstruction.isConst(ii.getOperandOne()) && !(ii.getOperandOne() instanceof BasicBlock)){
-                ii.putRegisterOne(spillRegOne);
-                instructions.add(DLX.assemble(DLX.LDW, spillRegOne, 30, getOffset(ii.getOperandOne())));
+                if (ii.getOperandOne() instanceof Symbol){
+                    if (!((Symbol) ii.getOperandOne()).getSymbolType().equals("func")){
+                        ii.putRegisterOne(spillRegOne);
+                        instructions.add(DLX.assemble(DLX.LDW, spillRegOne, 30, getOffset(ii.getOperandOne())));
+                    }
+                }
+                else{ 
+                    ii.putRegisterOne(spillRegOne);
+                    instructions.add(DLX.assemble(DLX.LDW, spillRegOne, 30, getOffset(ii.getOperandOne())));
+                }
             }
         }
         if (ii.getOperandTwo() != null && ii.getRegisterTwo() == null){
             if (ii.getOperator() != SSAOperator.MOVE){
                 if (!IntermediateInstruction.isConst(ii.getOperandTwo()) && !(ii.getOperandTwo() instanceof BasicBlock)){
-                    ii.putRegisterTwo(spillRegTwo);
-                    instructions.add(DLX.assemble(DLX.LDW, spillRegTwo, 30, getOffset(ii.getOperandTwo())));
+                    if (ii.getOperandTwo() instanceof Symbol){
+                        if (!((Symbol) ii.getOperandTwo()).getSymbolType().equals("func")){
+                            ii.putRegisterTwo(spillRegTwo);
+                            instructions.add(DLX.assemble(DLX.LDW, spillRegTwo, 30, getOffset(ii.getOperandTwo())));
+                        }
+                    }
+                    else{ 
+                        ii.putRegisterTwo(spillRegTwo);
+                        instructions.add(DLX.assemble(DLX.LDW, spillRegTwo, 30, getOffset(ii.getOperandTwo())));
+                    }
                 }
             }
         }
@@ -641,28 +673,47 @@ public class CodeGenerator {
         List<Integer> pushedRegisters = new ArrayList<Integer>();
         // push registers
         for (int reg : registersInUse){
-            DLX.assemble(DLX.PSH, reg, SP, -4);
+            instructions.add(DLX.assemble(DLX.PSH, reg, SP, -4));
             pushedRegisters.add(reg);
         }
         // push parameters 
-        DLX.assemble(DLX.PSH, intIns.getRegisterOne(), SP, -4);
+        instructions.add(DLX.assemble(DLX.PSH, intIns.getRegisterOne(), SP, -4));
         pushedRegisters.add(intIns.getRegisterOne());
-
-        // jump to target function 
-        DLX.assemble(DLX.JSR, FunctionToFirstInstruction.get(intIns.getFunc()) * 4);
-
-
-        // unwind the saved registers 
-        for (int i = pushedRegisters.size() - 1; i > 0; i--){
-            DLX.assemble(DLX.POP, pushedRegisters.get(i), SP, 4);
-        }
 
         // need to connect the parameter caller register to the parameter callee register
         // could move the caller register into the parameter callee register 
             // know the caller register, need to find the parameter callee register
             // need to find an instruction with an operand that has "-3" -- this will only work for functions with one parameter
-    
+        for(BasicBlock bb : procedureToBBList.get(intIns.getFuncName())){
+            for (IntermediateInstruction ii : bb.getIntInsList()){
+                if (ii.getOperandOne().toString().contains("-3")){
+                    instructions.add(DLX.assemble(DLX.ADD, ii.getRegisterOne(), 0, intIns.getRegisterOne()));
+                    break;
+                }
+                else if (ii.getOperandTwo().toString().contains("-3")){
+                    instructions.add(DLX.assemble(DLX.ADD, ii.getRegisterTwo(), 0, intIns.getRegisterTwo()));
+                    break;
+                }
+            }
+        }
 
+        // jump to target function 
+        if (FunctionToFirstInstruction.containsKey(intIns.getFunc())){
+            instructions.add(DLX.assemble(DLX.JSR, FunctionToFirstInstruction.get(intIns.getFunc()) * 4));
+        }
+        else{ 
+            instructions.add(0);
+            FunctionToFirstInstruction.put(intIns.getFunc(), instructions.size() - 1);
+        }
+
+        // unwind the saved registers 
+        for (int i = pushedRegisters.size() - 1; i > 0; i--){
+            instructions.add(DLX.assemble(DLX.POP, pushedRegisters.get(i), SP, 4));
+        }
+
+        if (intIns.returnReg != null){
+            returnReg = intIns.returnReg;
+        }
     }
 }
 

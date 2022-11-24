@@ -3,16 +3,12 @@ int x, y;
 
 function foo(int z): int 
 {
-    int i, j;
     call printInt(z); 
-    let j = 4; 
-    return j; 
+    return 6;
 };
 
 {
-    let y = call readInt(); 
-    let x = call readInt(); 
-    let y = call foo(x); 
-    call printInt(y);
-    //if (x == y) then call printInt(1); else call printInt(2); fi;
+    let x = call readInt();
+    let y = call foo(x);
+    call printInt(y); 
 }.

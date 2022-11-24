@@ -38,9 +38,9 @@ public class RegisterAllocator {
         buildInterferenceGraph();
         colorInterferenceGraph();
         
-        for (Operand o : colorMap.keySet()){
+        /*for (Operand o : colorMap.keySet()){
             System.out.println("o " + o + " color " + colorMap.get(o));
-        }
+        }*/
         
         insertRegisters();
         removeSillyMoves();

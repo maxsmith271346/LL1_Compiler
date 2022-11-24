@@ -858,7 +858,7 @@ public class Optimization {
                             }
                         }
                         else if(iiAvail.getOperator() == SSAOperator.NONE){
-                            if (iiAvail.getOperandOne() instanceof Symbol){
+                            if (iiAvail.getOperandOne() instanceof Symbol || iiAvail.getOperandOne() instanceof InstructionNumber){
                                 if (ii.getOperator() == SSAOperator.MOVE){
                                     if (ii.getOperandOne() instanceof InstructionNumber){
                                         if (((InstructionNumber) ii.getOperandOne()).getInstructionNumber() == iiAvail.insNum()){
