@@ -57,7 +57,7 @@ public class SSA implements NodeVisitor{
 
     public List<Edge> edgeList; 
 
-    Boolean inFunc = false;
+    public static Boolean inFunc = false;
 
     public class Edge{ 
         BasicBlock BB1; 

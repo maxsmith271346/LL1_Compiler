@@ -35,8 +35,8 @@ public class IRVisualizer {
                 if (intIns.isElim()) {
                     dotGraph.append("elim: ");
                 }
-                //dotGraph.append(intIns.instNum().getInstructionNumber() + " : " + intIns.toString() + intIns.availableExpressions +   "|");
-                dotGraph.append(intIns.insNum() + " : "  + intIns.toString() + "" + intIns.getLiveVars() + "|");
+                dotGraph.append(intIns.instNum().getInstructionNumber() + " : " + intIns.toString() + intIns.getLiveVars()  +   "|");
+                //dotGraph.append(intIns.insNum() + " : "  + intIns.toString() + "" + intIns.availableExpressions + "|");
                 
                 currentLineNum++;
             }

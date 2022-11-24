@@ -118,14 +118,14 @@ public class IntermediateInstruction {
             return  operator + " " ;
         }
         else if (operandOne == null){
-            return operator + " " + operandTwo.toString() + " ";
+            return operator + " " + operandTwo.toString()  + " ";
         }
         else if (operandTwo == null){
             return operator + " " + operandOne.toString() + " ";
         }
 
         if (extraOperands == null){
-            return  operator + " " + operandOne.toString() + " " + operandTwo.toString() + " ";
+            return  operator + " " + operandOne.toString() +  " " + operandTwo.toString()  + " ";
         }
         else{ 
             String retStr = operator + " " + operandOne.toString() + " " + operandTwo.toString();
