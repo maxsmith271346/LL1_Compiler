@@ -833,7 +833,7 @@ public class Optimization {
                     for (IntermediateInstruction iiAvail : ii.availableExpressions){
                         if (iiAvail.isElim()){continue;}
                         if (iiAvail.getOperator() == SSAOperator.MOVE){
-                            if (iiAvail.getOperandOne() instanceof Symbol){
+                            if (iiAvail.getOperandOne() instanceof Symbol  || iiAvail.getOperandOne() instanceof InstructionNumber){
                                 // only replace the RHS of a MOVE!
                                 if (ii.getOperator() == SSAOperator.MOVE){
                                     if (ii.getOperandOne() instanceof Symbol){
