@@ -309,6 +309,12 @@ public class CodeGenerator {
                                 if (ii.getOperandOne() instanceof IntegerLiteral){
                                     instructions.add(DLX.assemble(DLX.ADDI, returnReg, 0, ((IntegerLiteral)ii.getOperandOne()).valueAsInt()));
                                 }
+                                else if (ii.getOperandOne() instanceof FloatLiteral){
+                                    instructions.add(DLX.assemble(DLX.ADDI, returnReg, 0, ((FloatLiteral)ii.getOperandOne()).valueAsFloat()));
+                                }
+                                if (ii.getOperandOne() instanceof BoolLiteral){
+                                    instructions.add(DLX.assemble(DLX.ADDI, returnReg, 0, (Boolean.parseBoolean(((BoolLiteral) ii.getOperandOne()).value()) ? 1 : 0)));
+                                }
                             }
                         }
                         break;
@@ -677,8 +683,11 @@ public class CodeGenerator {
             pushedRegisters.add(reg);
         }
         // push parameters 
-        instructions.add(DLX.assemble(DLX.PSH, intIns.getRegisterOne(), SP, -4));
-        pushedRegisters.add(intIns.getRegisterOne());
+        if (intIns.getRegisterOne() != null){
+            instructions.add(DLX.assemble(DLX.PSH, intIns.getRegisterOne(), SP, -4));
+            pushedRegisters.add(intIns.getRegisterOne());
+        }
+        
 
         // need to connect the parameter caller register to the parameter callee register
         // could move the caller register into the parameter callee register 
@@ -686,13 +695,48 @@ public class CodeGenerator {
             // need to find an instruction with an operand that has "-3" -- this will only work for functions with one parameter
         for(BasicBlock bb : procedureToBBList.get(intIns.getFuncName())){
             for (IntermediateInstruction ii : bb.getIntInsList()){
-                if (ii.getOperandOne().toString().contains("-3")){
-                    instructions.add(DLX.assemble(DLX.ADD, ii.getRegisterOne(), 0, intIns.getRegisterOne()));
-                    break;
+                if (ii.getOperandOne() != null){
+                    if (ii.getOperandOne().toString().contains("-3")){
+                        if (intIns.getRegisterOne() != null){
+                            instructions.add(DLX.assemble(DLX.ADD, ii.getRegisterOne(), 0, intIns.getRegisterOne()));
+                            break;
+                        }
+                        else if (IntermediateInstruction.isConst(intIns.getOperandOne())){
+                            if (intIns.getOperandOne() instanceof FloatLiteral){
+                                instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterOne(), 0, Float.parseFloat(((FloatLiteral) intIns.getOperandOne()).value())));
+                                break;
+                            }
+                            else if (intIns.getOperandOne() instanceof IntegerLiteral){
+                                instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterOne(), 0, Integer.parseInt(((IntegerLiteral) intIns.getOperandOne()).value())));
+                                break;
+                            }
+                            else if (intIns.getOperandTwo() instanceof BoolLiteral){
+                                instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterOne(), 0, (Boolean.parseBoolean(((BoolLiteral) intIns.getOperandTwo()).value()) ? 1 : 0)));
+                                break;
+                            }   
+                        }
+                    }
                 }
+                if(ii.getOperandTwo() == null){continue;}
                 else if (ii.getOperandTwo().toString().contains("-3")){
-                    instructions.add(DLX.assemble(DLX.ADD, ii.getRegisterTwo(), 0, intIns.getRegisterTwo()));
-                    break;
+                    if (intIns.getRegisterTwo() != null){
+                        instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterTwo(), 0, intIns.getRegisterOne()));
+                        break;
+                    }
+                    else if (IntermediateInstruction.isConst(intIns.getOperandTwo())){
+                        if (intIns.getOperandOne() instanceof FloatLiteral){
+                            instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterTwo(), 0, Float.parseFloat(((FloatLiteral) intIns.getOperandOne()).value())));
+                            break;
+                        }
+                        else if (intIns.getOperandOne() instanceof IntegerLiteral){
+                            instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterTwo(), 0, Integer.parseInt(((IntegerLiteral) intIns.getOperandOne()).value())));
+                            break;
+                        }
+                        else if (intIns.getOperandOne() instanceof BoolLiteral){
+                            instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterTwo(), 0, (Boolean.parseBoolean(((BoolLiteral) intIns.getOperandOne()).value()) ? 1 : 0)));
+                            break;
+                        }   
+                    }
                 }
             }
         }

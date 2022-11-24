@@ -1,6 +1,7 @@
 package SSA;
 
 import java.security.spec.EllipticCurve;
+import java.util.ArrayList;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -204,6 +205,22 @@ public class IntermediateInstruction {
             return getFunc().name();
         }
         return "";
+    }
+
+    public List<Operand> getParams(){
+        List<Operand> params = new ArrayList<Operand>(); 
+        if (operandOne != null){
+            params.add(operandOne);
+        }
+        if (operandTwo != null){
+            params.add(operandTwo);
+        }
+        if (extraOperands != null){
+            params.addAll(extraOperands);
+        }
+
+        params.remove(params.size() - 1);
+        return params;
     }
 
     // public String getFuncName(){
