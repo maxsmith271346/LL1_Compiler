@@ -1,16 +1,20 @@
 main 
-int x, y; 
+int x, y, z; 
 
 function foo(int z): int 
 {
+    if (2 == 3) then call printInt(x); else call printInt(y); fi;
     call printInt(z); 
+    call printInt(x);
     let z = 6;
     return z;
 };
 
 {
     let x = call readInt();
-    let y = call foo(x);
+    let y = call foo(5);
     call printInt(y); 
     call printInt(x);
+    call println();
+    let z = call foo(10);
 }.

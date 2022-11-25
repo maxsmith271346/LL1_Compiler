@@ -1170,11 +1170,25 @@ public class Optimization {
                     }
                 }
                 availableExpressions.removeAll(toRemove);
-
-                // Don't add move instructions with instruction numbers (for now - until CSE is implemented)
-
                 availableExpressions.add(new IntermediateInstruction(ii.getOperator(), ii.getOperandOne(), ii.getOperandTwo(), ii.insNum(), ii.instNum().type()));
             }// Add other instructions to the set
+            else if (ii.getOperator() == SSAOperator.CALL){
+                toRemove.clear();
+                for (IntermediateInstruction iiAvail : availableExpressions){
+                    if (iiAvail.isElim()){continue;}
+                    if (iiAvail.getOperandOne() instanceof Symbol){
+                        if (((Symbol) iiAvail.getOperandOne()).scope == 1){
+                            toRemove.add(iiAvail);
+                        }
+                    }
+                    if (iiAvail.getOperandTwo() instanceof Symbol){
+                        if (((Symbol) iiAvail.getOperandTwo()).scope == 1){
+                            toRemove.add(iiAvail);
+                        }
+                    }
+                }
+                availableExpressions.removeAll(toRemove);
+            }
             else{ 
                 if (opsToAdd.contains(ii.getOperator())){
                     availableExpressions.add(new IntermediateInstruction(ii.getOperator(), ii.getOperandOne(), ii.getOperandTwo(), ii.insNum(), ii.instNum().type()));

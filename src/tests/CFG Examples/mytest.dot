@@ -1,10 +1,5 @@
 digraph G { 
-BB2[shape=record, label="<b>BB2|{8 : MOVE 3 R1 [0, c_8]|elim: 16 : MOVE R1 R1 [c_11, 0]|19 : MOVE 0 R2 [c_11, d_19]|elim: 18 : MOVE R2 R2 [c_11, d_12]|9 : BRA [4] [c_11, d_12]}"];
-BB2:s -> BB4:n [label=""];
-BB4[shape=record, label="<b>BB4|{13 : WRITE R1 [d_12]|14 : WRITE R2 []|15 : END []}"];
-BB3[shape=record, label="<b>BB3|{10 : MOVE 5 R2 [c_5, d_10]|elim: 16 : MOVE R1 R1 [c_11, d_10]|elim: 18 : MOVE R2 R2 [c_11, d_12]}"];
-BB3:s -> BB4:n [label=""];
-BB1[shape=record, label="<b>main\nBB1|{0 : R1 = READ_I [3, 0, (0), 5, 2]|elim: 1 : MOVE R1 R1 [3, 0, a_1, 5, 2]|2 : R2 = READ_I [3, 0, a_1, 5, 2, (2)]|elim: 3 : MOVE R2 R2 [3, 0, a_1, b_3, 5, 2]|4 : R1 = ADD R1 R2 [3, 0, 5, 2, (4)]|elim: 5 : MOVE R1 R1 [3, 0, c_5, 5, 2]|6 : R2 = CMP R1 2 [3, 0, c_5, 5, (6)]|7 : BNE R2 [3] [3, 0, c_5, 5]}"];
-BB1:s -> BB2:n [label="then"];
-BB1:s -> BB3:n [label="else"];
+BB1[shape=record, label="<b>main\nBB1|{3 : READ_I []|elim: 4 : MOVE (3) y_4 []|5 : READ_I []|elim: 6 : MOVE (5) x_6 []|<cfoo7>7 : CALL x_6 foo []|8 : MOVE (7) y_8 []|9 : WRITE y_8 [MOVE (7) y_8 ]|10 : END [MOVE (7) y_8 ]}"];
+BB1:cfoo7 -> BB2:b [];
+BB2[shape=record, label="<b>foo\nBB2|{0 : WRITE z_-3 []|elim: 1 : MOVE 4 j_1 []|2 : RET 4 []}"];
 }

@@ -1,6 +1,5 @@
 package pl434;
 
-import java.beans.PropertyDescriptor;
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
@@ -39,6 +38,7 @@ public class CodeGenerator {
     private HashMap<String, Integer> operandsToOffset;
     private int spillResultLoadIns;
     private HashMap<BasicBlock, List<Integer>> branchesToFix;
+    private HashMap<Symbol, List<Integer>> jumpsToFix;
     private HashMap<String, List<BasicBlock>> procedureToBBList;
     private HashMap<Symbol, Integer> FunctionToFirstInstruction;
     final int BA = 31;
@@ -57,6 +57,7 @@ public class CodeGenerator {
         operandsToOffset = new HashMap<String, Integer>();
         spillResultLoadIns = -1;
         branchesToFix = new HashMap<BasicBlock, List<Integer>>();
+        jumpsToFix = new HashMap<Symbol, List<Integer>>();
         procedureToBBList = new HashMap<String, List<BasicBlock>>();
         registersInUse = new HashSet<Integer>();
         registersInUse.add(spillRegOne);
@@ -82,9 +83,12 @@ public class CodeGenerator {
             if (!FunctionToFirstInstruction.containsKey(procedureToBBList.get("foo").get(0).function)){
                 FunctionToFirstInstruction.put(procedureToBBList.get("foo").get(0).function, instructions.size() + 1);
             }
-            else{ 
-                instructions.set(FunctionToFirstInstruction.get(procedureToBBList.get("foo").get(0).function), DLX.assemble(DLX.JSR, 4*firstIns));
+            if (jumpsToFix.containsKey(procedureToBBList.get("foo").get(0).function)){
+                for (Integer i : jumpsToFix.get(procedureToBBList.get("foo").get(0).function)){
+                    instructions.set(i, DLX.assemble(DLX.JSR, 4*firstIns));
+                }
             }
+        
             generateCode(procedureToBBList.get(s));
             int numberParameters = procedureToBBList.get(s).get(0).function.getParamTypes().size();
             generateEpilogue(s, numberParameters);
@@ -96,10 +100,18 @@ public class CodeGenerator {
         for (BasicBlock bb : ssa.getBasicBlockList()){
             if (bb.name().contains("elim")){continue;}
             if (!bb.name().equals("")){
-                childrenForProcedures.put(bb.name(), getChildren(bb));
+                List<BasicBlock> children = getChildren(bb);
+                HashSet<BasicBlock> childrenSet = new HashSet<BasicBlock>(children);
+                while(children.size() > childrenSet.size()){
+                    for (BasicBlock block : ssa.getBasicBlockList()){
+                        if (Collections.frequency(children, block) > 1){
+                            children.remove(block);
+                        }
+                    }
+                }
+                childrenForProcedures.put(bb.name(), children);
             }
         }
-        System.out.println("childrenForProcedures " + childrenForProcedures);
         return childrenForProcedures;
     }
 
@@ -186,7 +198,7 @@ public class CodeGenerator {
                             }
                         }
 
-                        registersInUse.add(ii.getRegisterOne());
+                        //registersInUse.add(ii.getRegisterTwo());
                         break;
                     case WRITE: 
                         if (ii.getOperandOne() == null){
@@ -360,18 +372,6 @@ public class CodeGenerator {
             children.addAll(getChildren(otherBlock));
         }
 
-        if (bb.equals(ssa.rootBB)){
-            boolean change = true;
-            while(change){
-                change = false;
-                for (BasicBlock block : ssa.getBasicBlockList()){
-                    if (Collections.frequency(children, block) > 1){
-                        children.remove(block);
-                        change = true;
-                    }
-                }
-            }
-        }
         return children;
     }
 
@@ -748,7 +748,14 @@ public class CodeGenerator {
         }
         else{ 
             instructions.add(0);
-            FunctionToFirstInstruction.put(intIns.getFunc(), instructions.size() - 1);
+            if (jumpsToFix.containsKey(intIns.getFunc())){
+                jumpsToFix.get(intIns.getFunc()).add(instructions.size());
+            }
+            else{ 
+                List<Integer> insToFix = new ArrayList<Integer>();
+                insToFix.add(instructions.size());
+                jumpsToFix.put(intIns.getFunc(), insToFix);
+            }
         }
 
         // unwind the saved registers 

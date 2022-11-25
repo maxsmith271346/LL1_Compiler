@@ -102,7 +102,7 @@ public class BasicBlock implements Operand {
      * @return current instruction number
     */
     public InstructionNumber add(IntermediateInstruction intIns){
-        IntermediateInstruction uninitMoveIns = createMoveForUninitializedVars(intIns);
+        IntermediateInstruction uninitMoveIns = createMoveForUninitializedVars(intIns, SSA.inFunc);
         if (uninitMoveIns != null){
             this.IntermediateInstructionList.add(uninitMoveIns);
             insNumber++;
@@ -119,7 +119,7 @@ public class BasicBlock implements Operand {
     }
 
     public int addEnd(IntermediateInstruction intIns){
-        IntermediateInstruction uninitMoveIns = createMoveForUninitializedVars(intIns);
+        IntermediateInstruction uninitMoveIns = createMoveForUninitializedVars(intIns, SSA.inFunc);
         
         int index = this.IntermediateInstructionList.size();
         if (this.IntermediateInstructionList.get(index - 1).isBranch()){
@@ -136,13 +136,13 @@ public class BasicBlock implements Operand {
     }
 
 
-    public IntermediateInstruction createMoveForUninitializedVars(IntermediateInstruction intIns){
+    public IntermediateInstruction createMoveForUninitializedVars(IntermediateInstruction intIns, boolean inFunc){
         if (intIns.getOperator() != SSAOperator.PHI){
             if (intIns.getOperandOne() != null){
                 if (intIns.getOperandOne() instanceof Symbol){
                     Symbol operandOneSymbol = (Symbol) intIns.getOperandOne();
                     String opOneName = (operandOneSymbol).name();
-                    if (opOneName.contains("-1") || opOneName.contains("-2")){
+                    if ((opOneName.contains("-1") && !inFunc)|| opOneName.contains("-2")){
                         System.out.println("warning: variable " + opOneName.substring(0, opOneName.indexOf("_")) + " has not been initialized!");
                         Symbol newSymbol = new Symbol(operandOneSymbol.name().substring(0, opOneName.indexOf("_")) + "_" + insNumber, operandOneSymbol.type().toString(), "var", operandOneSymbol.scope);
                         intIns.putOperandOne(newSymbol);
@@ -167,7 +167,7 @@ public class BasicBlock implements Operand {
                     if (intIns.getOperandTwo() instanceof Symbol){
                         Symbol operandTwoSymbol = (Symbol) intIns.getOperandTwo();
                         String opTwoName = (operandTwoSymbol).name();
-                        if (opTwoName.contains("-1") || opTwoName.contains("-2")){
+                        if ((opTwoName.contains("-1") && !inFunc) || opTwoName.contains("-2")){
                             System.out.println("warning: variable " + opTwoName.substring(0, opTwoName.indexOf("_")) + " has not been initialized!");
                             Symbol newSymbol = new Symbol(operandTwoSymbol.name().substring(0, opTwoName.indexOf("_")) + "_" + insNumber, operandTwoSymbol.type().toString(), "var", operandTwoSymbol.scope);
                             intIns.putOperandTwo(newSymbol);
@@ -326,6 +326,11 @@ public class BasicBlock implements Operand {
                     live.addAll(ii.getParams());            
                     if (ii.getFunc().type().toString() != "void" && live.contains(ii.instNum())) {
                         live.remove(ii.instNum());
+                    }
+                    for (Symbol s : this.varMap.keySet()){
+                        if (s.scope == 1){
+                            live.addAll(varMap.get(s));
+                        }
                     }
                     // for (Transitions t : this.transitionList) {
                     //     BasicBlock successor = t.toBB;

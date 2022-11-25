@@ -16,16 +16,20 @@ import types.VoidType;
 public class RegisterAllocator {
     public SSA ssa;
     public int numRegs;
-    HashMap<Operand, Set<Operand>> interferenceGraph;
-    HashMap<Operand, Integer> colorMap;
+    //HashMap<Operand, Set<Operand>> interferenceGraph;
+    HashMap<String, Set<String>> interferenceGraph; // each var will be its name (without subscripts with its scope appended) - this became an issue for global vars in functions
+    //HashMap<Operand, Integer> colorMap;
+    HashMap<String, Integer> colorMap;
     List<Integer> allColors;
     //int spillOffset;
 
     public RegisterAllocator(SSA ssa, int numRegs){
         this.ssa = ssa;
         this.numRegs = numRegs;
-        interferenceGraph = new HashMap<Operand, Set<Operand>>();
-        colorMap = new HashMap<Operand, Integer>();
+        //interferenceGraph = new HashMap<Operand, Set<Operand>>();
+        interferenceGraph = new HashMap<String, Set<String>>();
+        //colorMap = new HashMap<Operand, Integer>();
+        colorMap = new HashMap<String, Integer>();
         allColors = new ArrayList<Integer>();
         //spillOffset = -4;
 
@@ -38,9 +42,9 @@ public class RegisterAllocator {
         buildInterferenceGraph();
         colorInterferenceGraph();
         
-        for (Operand o : colorMap.keySet()){
+        /*for (String o : colorMap.keySet()){
             System.out.println("o " + o + " color " + colorMap.get(o));
-        }
+        }*/
         
         insertRegisters();
         removeSillyMoves();
@@ -71,21 +75,34 @@ public class RegisterAllocator {
     public void addToInterferenceGraph(HashSet<Operand> liveVars){
         for (Operand o : liveVars){
             if (IntermediateInstruction.isConst(o)){continue;}
-            Set<Operand> adjSet;
+            //Set<Operand> adjSet;
+            Set<String> adjSet;
             if (interferenceGraph.containsKey(o)){
                 adjSet = interferenceGraph.get(o);
             }
             else{ 
-                adjSet = new HashSet<Operand>();
+                //adjSet = new HashSet<Operand>();
+                adjSet = new HashSet<String>();
             }
             for (Operand oAdj : liveVars){
                 if (IntermediateInstruction.isConst(oAdj)){continue;}
                 if (!o.equals(oAdj)){
-                    adjSet.add(oAdj);
+                    adjSet.add(getOpString(oAdj));
                 }
             }
-            interferenceGraph.put(o, adjSet);
+            interferenceGraph.put(getOpString(o), adjSet);
         }
+    }
+
+    public String getOpString(Operand op){
+        String opString = op.toString();
+        if (opString.contains("_")){
+            opString = opString.substring(0, opString.indexOf("_")); 
+        }
+        if (op instanceof Symbol){
+            opString += ((Symbol) op).scope;
+        }
+        return opString;
     }
 
     public void generateLivenessAnalysis(){
@@ -125,13 +142,13 @@ public class RegisterAllocator {
         }
 
         // Find a node with fewer than k outgoing edges 
-        Operand node = null;
-        for (Operand o : interferenceGraph.keySet()){
+        String node = null;
+        for (String o : interferenceGraph.keySet()){
             if (interferenceGraph.get(o).size() < numRegs){
                 node = o;
             }
         }
-        HashMap<Operand, Set<Operand>> beforeGraph = new HashMap<Operand, Set<Operand>>(interferenceGraph);
+        HashMap<String, Set<String>> beforeGraph = new HashMap<String, Set<String>>(interferenceGraph);
 
 
         // remove it from the graph
@@ -154,7 +171,7 @@ public class RegisterAllocator {
         // Assign the node a valid color
 
         // remove all the colors that have already been assigned to the neighboring nodes
-        for (Operand o : interferenceGraph.get(node)){
+        for (String o : interferenceGraph.get(node)){
             if (colorMap.containsKey(o)){
                 availColors.remove(colorMap.get(o));
             }
@@ -168,12 +185,12 @@ public class RegisterAllocator {
         }
     }
 
-    public void removeNode(HashMap<Operand, Set<Operand>> graph, Operand node){
-        Set<Operand> toRemove = new HashSet<Operand>();
+    public void removeNode(HashMap<String, Set<String>> graph, String node){
+        Set<String> toRemove = new HashSet<String>();
 
         graph.remove(node);
-        for (Operand o : graph.keySet()){
-            for (Operand oAdj : graph.get(o)){
+        for (String o : graph.keySet()){
+            for (String oAdj : graph.get(o)){
                 if (oAdj.equals(node)){
                     toRemove.add(oAdj);
                 }
@@ -218,7 +235,7 @@ public class RegisterAllocator {
             //bb.getIntInsList().removeAll(toRemove);
         }
 
-        System.out.println("After Eliminating PHIs " + ssa.asDotGraph());
+        //System.out.println("After Eliminating PHIs " + ssa.asDotGraph());
     }
 
     public void insertRegisters(){
@@ -229,14 +246,15 @@ public class RegisterAllocator {
                 if (ii.isElim()){continue;}
                 
                 if(ii.getOperandOne() != null){
-                    if (colorMap.containsKey(ii.getOperandOne())){
-                        if (colorMap.get(ii.getOperandOne()) > 0){
-                            ii.putRegisterOne(colorMap.get(ii.getOperandOne()));
+                    if (colorMap.containsKey(getOpString(ii.getOperandOne()))){
+                        if (colorMap.get(getOpString(ii.getOperandOne())) > 0){
+                            ii.putRegisterOne(colorMap.get(getOpString(ii.getOperandOne())));
+                            //System.out.println("put register into " + ii + " R1: " + ii.getRegisterOne());
                         }
                     }
                     else{
-                        for (Operand o : colorMap.keySet()){
-                            if (!IntermediateInstruction.checkOperand(o, ii.getOperandOne())){
+                        for (String o : colorMap.keySet()){
+                            if (o.equals(getOpString(ii.getOperandOne()))){
                                 if (colorMap.get(o) > 0){
                                     ii.putRegisterOne(colorMap.get(o));
                                 }
@@ -247,14 +265,14 @@ public class RegisterAllocator {
                 
 
                 if (ii.getOperandTwo() != null){
-                    if (colorMap.containsKey(ii.getOperandTwo())){
-                        if (colorMap.get(ii.getOperandTwo()) > 0){
-                            ii.putRegisterTwo(colorMap.get(ii.getOperandTwo()));
+                    if (colorMap.containsKey(getOpString(ii.getOperandTwo()))){
+                        if (colorMap.get(getOpString(ii.getOperandTwo())) > 0){
+                            ii.putRegisterTwo(colorMap.get(getOpString(ii.getOperandTwo())));
                         }
                     }
                     else{
-                        for (Operand o : colorMap.keySet()){
-                            if (!IntermediateInstruction.checkOperand(o, ii.getOperandTwo())){
+                        for (String o : colorMap.keySet()){
+                            if (o.equals(getOpString(ii.getOperandTwo()))){
                                 if (colorMap.get(o) > 0){
                                     ii.putRegisterTwo(colorMap.get(o));
                                 }
@@ -271,16 +289,16 @@ public class RegisterAllocator {
                     for (int i = 0; i < extraOperands.size()-1; i++) {
 
                         if (extraOperands.get(i) != null) {
-                            if (colorMap.containsKey(extraOperands.get(i))) {
-                                if (colorMap.get(extraOperands.get(i)) > 0) {
-                                    extraRegisters.add(colorMap.get(extraOperands.get(i)));
+                            if (colorMap.containsKey(getOpString(extraOperands.get(i)))) {
+                                if (colorMap.get(getOpString(extraOperands.get(i))) > 0) {
+                                    extraRegisters.add(colorMap.get(getOpString(extraOperands.get(i))));
                                 }
                             }
                             else{
-                                for (Operand o : colorMap.keySet()){
-                                    if (!IntermediateInstruction.checkOperand(o, extraOperands.get(i))) {
+                                for (String o : colorMap.keySet()){
+                                    if (o.equals(getOpString(extraOperands.get(i)))){
                                         if (colorMap.get(o) > 0){
-                                            extraRegisters.add(colorMap.get(o));
+                                            ii.putRegisterTwo(colorMap.get(o));
                                         }
                                     }
                                 }
@@ -290,10 +308,10 @@ public class RegisterAllocator {
                     ii.putExtraRegisters(extraRegisters);
                 }
                 
-                if (colorMap.containsKey(ii.instNum())){
+                if (colorMap.containsKey(getOpString(ii.instNum()))){
                     //ii.putOperandTwo(colorMap.get(ii.instNum()));
-                    ii.returnReg = colorMap.get(ii.instNum());
-                    if (colorMap.get(ii.instNum()) < 0){ 
+                    ii.returnReg = colorMap.get(getOpString(ii.instNum()));
+                    if (colorMap.get(getOpString(ii.instNum())) < 0){ 
                         // need to add a store instruction here
                     }
                 }
