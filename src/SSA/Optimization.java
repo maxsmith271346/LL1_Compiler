@@ -8,7 +8,6 @@ import java.util.Set;
 
 import SSA.BasicBlock.Transitions;
 import SSA.IntermediateInstruction.SSAOperator;
-import SSA.SSA.Edge;
 import ast.BoolLiteral;
 import ast.FloatLiteral;
 import ast.IntegerLiteral;
@@ -29,40 +28,33 @@ public class Optimization {
                 // run all of them
                 // maybe have each of them return a boolean value that indicates whether or not there were code changes? 
                 change |= constantPropagation();
-                /*if (change) {
-                    System.out.println("CP");
-                    System.out.println(ssa.asDotGraph());
-                }*/
+                if (change) {
+                    ////System.out.println("CP");
+                }
                 change |= constantFolding();
-                /*if (change) {
-                    System.out.println("CF");
-                    System.out.println(ssa.asDotGraph());
-                }*/
+                if (change) {
+                    //System.out.println("CF");
+                }
                 change |= copyPropagation();
-                /*if (change) {
-                    System.out.println("CPP");
-                    System.out.println(ssa.asDotGraph());
-                }*/
+                if (change) {
+                    //System.out.println("CPP");
+                }
                 change |= commonSubexpressionElimination();
-                /*if (change) {
-                    System.out.println("CSE");
-                    System.out.println(ssa.asDotGraph());
-                }*/
+                if (change) {
+                    //System.out.println("CSE");
+                }
                 change |= deadCodeElimination(); 
-                /*if (change) {
-                    System.out.println("DCE");
-                    System.out.println(ssa.asDotGraph());
-                }*/
+                if (change) {
+                    //System.out.println("DCE");
+                }
                 change |= orphanFunctionElimination();
-                /*if (change) {
-                   System.out.println("OFE");
-                   System.out.println(ssa.asDotGraph());
-                }*/
+                if (change) {
+                   //System.out.println("OFE");
+                }
                 change |= arithmeticSimplification();
-                /*if (change) {
-                    System.out.println("AS");
-                    System.out.println(ssa.asDotGraph());
-                }*/
+                if (change) {
+                    //System.out.println("AS");
+                }
                 //break; 
             }
 
@@ -833,7 +825,7 @@ public class Optimization {
                     for (IntermediateInstruction iiAvail : ii.availableExpressions){
                         if (iiAvail.isElim()){continue;}
                         if (iiAvail.getOperator() == SSAOperator.MOVE){
-                            if (iiAvail.getOperandOne() instanceof Symbol  || iiAvail.getOperandOne() instanceof InstructionNumber){
+                            if (iiAvail.getOperandOne() instanceof Symbol){
                                 // only replace the RHS of a MOVE!
                                 if (ii.getOperator() == SSAOperator.MOVE){
                                     if (ii.getOperandOne() instanceof Symbol){
@@ -843,7 +835,9 @@ public class Optimization {
                                         String operandName = ((Symbol) iiAvail.getOperandTwo()).name();
                                         operandName = operandName.substring(0, operandName.indexOf("_"));
                                         if (operandName.equals(operandOneName)){
+                                            System.out.println("ii before " + ii );
                                             ii.setOperandOne(iiAvail.getOperandOne());
+                                            System.out.println("ii after " + ii);
                                             change = true;
                                         }
                                     }
@@ -870,6 +864,8 @@ public class Optimization {
                                 else{ 
                                     if (ii.getOperator() != SSAOperator.PHI){
                                         if (ii.getOperandOne() instanceof InstructionNumber){
+                                            System.out.println("ii " + ii);
+                                            System.out.println("iiAvil " + iiAvail);
                                             if (((InstructionNumber) ii.getOperandOne()).getInstructionNumber() == iiAvail.insNum()){
                                                 ii.setOperandOne(iiAvail.getOperandOne());
                                                 change = true;
@@ -1207,13 +1203,14 @@ public class Optimization {
         List<BasicBlock> bbList = new ArrayList<BasicBlock>();
         List<BasicBlock> visited = new ArrayList<BasicBlock>();
         visited.addAll(ssa.getBasicBlockList());
+        visited.addAll(ssa.getBasicBlockList());
 
         bbList.add(ssa.rootBB);
         BasicBlock bb; 
-        boolean change = true; 
+        //boolean change = true; 
 
-        while ((bbList.size() != 0 && change) || visited.size() != 0) { 
-            change = false; 
+        while (visited.size() != 0) { 
+            //change = false; 
             if (bbList.size() != 0){
                 bb = bbList.get(0);
                 bbList.remove(bb);
@@ -1226,7 +1223,7 @@ public class Optimization {
     
             if (bb.getIntInsList().size() != 0){
                 if (bb.getIntInsList().get(bb.getIntInsList().size() - 1).availableExpressions.size() == 0){
-                    change = true;
+                    //change = true;
                     generateAvailableExpressionForBB(bb.getIntInsList().get(bb.getIntInsList().size() - 1).availableExpressions, bb);
                 }
             }
@@ -1248,7 +1245,7 @@ public class Optimization {
 
                 if (t.toBB.getIntInsList().get(0).availableExpressions.size() == 0){
                     // If not, then just instantiate it with the avail expression set of the parent's last instruction 
-                    change = true;
+                    //change = true;
                     generateAvailableExpressionForBB(bb.exitAvailableExpression, t.toBB);
                     bbList.add(t.toBB);
                 }
@@ -1269,7 +1266,7 @@ public class Optimization {
                         //bbList.remove(bb);
                         bbList.add(0, bb);
                         bbList.add(0, t.toBB);
-                        change = true;
+                        //change = true;
                     }
                     t.toBB.getIntInsList().get(0).availableExpressions.clear();
                     t.toBB.getIntInsList().get(0).availableExpressions.addAll(intersection);

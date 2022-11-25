@@ -80,11 +80,11 @@ public class CodeGenerator {
             if (s.equals("main")){continue;}
             int firstIns = instructions.size();
             generatePrologue(s, procedureToBBList.get(s).get(0));
-            if (!FunctionToFirstInstruction.containsKey(procedureToBBList.get("foo").get(0).function)){
-                FunctionToFirstInstruction.put(procedureToBBList.get("foo").get(0).function, instructions.size() + 1);
+            if (!FunctionToFirstInstruction.containsKey(procedureToBBList.get(s).get(0).function)){
+                FunctionToFirstInstruction.put(procedureToBBList.get(s).get(0).function, instructions.size() + 1);
             }
-            if (jumpsToFix.containsKey(procedureToBBList.get("foo").get(0).function)){
-                for (Integer i : jumpsToFix.get(procedureToBBList.get("foo").get(0).function)){
+            if (jumpsToFix.containsKey(procedureToBBList.get(s).get(0).function)){
+                for (Integer i : jumpsToFix.get(procedureToBBList.get(s).get(0).function)){
                     instructions.set(i, DLX.assemble(DLX.JSR, 4*firstIns));
                 }
             }
@@ -172,8 +172,32 @@ public class CodeGenerator {
                     case READ_B:
                         instructions.add(DLX.assemble(DLX.RDB, ii.returnReg));
                         break;
+                    case NONE: 
+                        if (ii.returnReg != null){
+                            if (IntermediateInstruction.isConst(ii.getOperandOne())){ 
+                                if (ii.getOperandOne() instanceof FloatLiteral){
+                                    instructions.add(DLX.assemble(DLX.fADDI, ii.returnReg, 0, Float.parseFloat(((FloatLiteral) ii.getOperandOne()).value())));
+                                }
+                                else if (ii.getOperandOne() instanceof IntegerLiteral){
+                                    instructions.add(DLX.assemble(DLX.ADDI, ii.returnReg, 0, Integer.parseInt(((IntegerLiteral) ii.getOperandOne()).value())));
+                                }
+                                else{
+                                    instructions.add(DLX.assemble(DLX.ADDI, ii.returnReg, 0, (Boolean.parseBoolean(((BoolLiteral) ii.getOperandOne()).value()) ? 1 : 0)));
+                                }
+                            }
+
+                            else if (ii.getOperandTwo() instanceof Symbol){
+                                if (ii.instNum().type() instanceof FloatType){
+                                    instructions.add(DLX.assemble(DLX.fADD, ii.returnReg, 0, ii.getRegisterOne()));
+                                } 
+                                else {
+                                    instructions.add(DLX.assemble(DLX.ADD, ii.returnReg, 0, ii.getRegisterOne()));
+                                }
+                            }
+                        }
+                        //registersInUse.add(ii.getRegisterTwo());
+                        break;
                     case MOVE: 
-                        if (ii.getOperator() == SSAOperator.MOVE){
                             // if there is no register allocated to the lhs, then we will need to have a store instruction after the ADD
                             if (IntermediateInstruction.isConst(ii.getOperandOne())){ 
                                 if (ii.getOperandOne() instanceof FloatLiteral){
@@ -195,7 +219,6 @@ public class CodeGenerator {
                                     instructions.add(DLX.assemble(DLX.ADD, ii.getRegisterTwo(), 0, ii.getRegisterOne()));
                                 }
                             }
-                        }
 
                         //registersInUse.add(ii.getRegisterTwo());
                         break;
@@ -693,6 +716,7 @@ public class CodeGenerator {
         // could move the caller register into the parameter callee register 
             // know the caller register, need to find the parameter callee register
             // need to find an instruction with an operand that has "-3" -- this will only work for functions with one parameter
+        System.out.println("ssa " + ssa.asDotGraph());
         for(BasicBlock bb : procedureToBBList.get(intIns.getFuncName())){
             for (IntermediateInstruction ii : bb.getIntInsList()){
                 if (ii.getOperandOne() != null){
@@ -719,8 +743,8 @@ public class CodeGenerator {
                 }
                 if(ii.getOperandTwo() == null){continue;}
                 else if (ii.getOperandTwo().toString().contains("-3")){
-                    if (intIns.getRegisterTwo() != null){
-                        instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterTwo(), 0, intIns.getRegisterOne()));
+                    if (intIns.getRegisterOne() != null){
+                        instructions.add(DLX.assemble(DLX.ADD, ii.getRegisterTwo(), 0, intIns.getRegisterOne()));
                         break;
                     }
                     else if (IntermediateInstruction.isConst(intIns.getOperandTwo())){

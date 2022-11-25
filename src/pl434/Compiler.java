@@ -103,6 +103,7 @@ public class Compiler {
 
         if (cmd.hasOption("max")){
             optimization.runUntilConvergence(optArguments);
+            System.out.println(ssa.asDotGraph());
             return ssa.asDotGraph();
         }
         for (String opt : optArguments){
@@ -131,6 +132,7 @@ public class Compiler {
             }
         }
         //Optimizer.copyPropagation(ssa);
+        System.out.println(ssa.asDotGraph());
         return ssa.asDotGraph();
     }
 

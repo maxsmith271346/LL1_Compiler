@@ -1,0 +1,23 @@
+main
+int a, b, c, max;
+// max
+{
+
+    let a = call readInt(); // 2
+    let b = call readInt(); // 3
+    let c = call readInt(); // 4
+    if ( a > b ) then  // false
+        if( a > c ) then
+            let max = a;
+        else
+            let max = c;
+        fi;
+    else                // true
+        if( b > c ) then  // false
+            let max = b;
+        else           // true
+            let max = c; // max = 4
+        fi;
+    fi;
+    call printInt(max);
+}.

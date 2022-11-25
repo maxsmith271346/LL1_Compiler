@@ -18,6 +18,7 @@ public class RegisterAllocator {
     public int numRegs;
     //HashMap<Operand, Set<Operand>> interferenceGraph;
     HashMap<String, Set<String>> interferenceGraph; // each var will be its name (without subscripts with its scope appended) - this became an issue for global vars in functions
+    HashMap<String, Set<String>> tempInterferenceGraph;
     //HashMap<Operand, Integer> colorMap;
     HashMap<String, Integer> colorMap;
     List<Integer> allColors;
@@ -28,6 +29,7 @@ public class RegisterAllocator {
         this.numRegs = numRegs;
         //interferenceGraph = new HashMap<Operand, Set<Operand>>();
         interferenceGraph = new HashMap<String, Set<String>>();
+
         //colorMap = new HashMap<Operand, Integer>();
         colorMap = new HashMap<String, Integer>();
         allColors = new ArrayList<Integer>();
@@ -42,9 +44,9 @@ public class RegisterAllocator {
         buildInterferenceGraph();
         colorInterferenceGraph();
         
-        /*for (String o : colorMap.keySet()){
+        for (String o : colorMap.keySet()){
             System.out.println("o " + o + " color " + colorMap.get(o));
-        }*/
+        }
         
         insertRegisters();
         removeSillyMoves();
@@ -65,23 +67,21 @@ public class RegisterAllocator {
                 addToInterferenceGraph(ii.liveVars);
             }
         }
-        /*
-        for (Operand o : interferenceGraph.keySet()){
+    
+        for (String o : interferenceGraph.keySet()){
             System.out.println("key: " + o + " value " + interferenceGraph.get(o));
         }
-        */
+        
     }
 
     public void addToInterferenceGraph(HashSet<Operand> liveVars){
         for (Operand o : liveVars){
             if (IntermediateInstruction.isConst(o)){continue;}
-            //Set<Operand> adjSet;
             Set<String> adjSet;
-            if (interferenceGraph.containsKey(o)){
-                adjSet = interferenceGraph.get(o);
+            if (interferenceGraph.containsKey(getOpString(o))){
+                adjSet = interferenceGraph.get(getOpString(o));
             }
             else{ 
-                //adjSet = new HashSet<Operand>();
                 adjSet = new HashSet<String>();
             }
             for (Operand oAdj : liveVars){
@@ -148,8 +148,14 @@ public class RegisterAllocator {
                 node = o;
             }
         }
-        HashMap<String, Set<String>> beforeGraph = new HashMap<String, Set<String>>(interferenceGraph);
-
+        HashMap<String, Set<String>> beforeGraph = new HashMap<String, Set<String>>();
+        for (String s : interferenceGraph.keySet()){
+            Set<String> newSet = new HashSet<String>();
+            for (String sAdj : interferenceGraph.get(s)){
+                newSet.add(sAdj);
+            }
+            beforeGraph.put(s, newSet);
+        }
 
         // remove it from the graph
         if (node != null){
@@ -165,11 +171,9 @@ public class RegisterAllocator {
         // recursively color the rest of the graph
         colorInterferenceGraph();
 
-        // add the node back in 
         interferenceGraph = beforeGraph;
 
         // Assign the node a valid color
-
         // remove all the colors that have already been assigned to the neighboring nodes
         for (String o : interferenceGraph.get(node)){
             if (colorMap.containsKey(o)){
@@ -198,6 +202,7 @@ public class RegisterAllocator {
             graph.get(o).removeAll(toRemove);
         }
     }
+
     public void eliminatePhis(){
         // need this for inList
         generateLivenessAnalysis();

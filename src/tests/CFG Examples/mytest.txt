@@ -1,20 +1,6 @@
 main 
-int x, y, z; 
-
-function foo(int z): int 
+float c; 
 {
-    if (2 == 3) then call printInt(x); else call printInt(y); fi;
-    call printInt(z); 
-    call printInt(x);
-    let z = 6;
-    return z;
-};
-
-{
-    let x = call readInt();
-    let y = call foo(5);
-    call printInt(y); 
-    call printInt(x);
-    call println();
-    let z = call foo(10);
+    let c = call readFloat() * 1.0 * 2.0; 
+    call printFloat(c);
 }.

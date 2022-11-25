@@ -5,10 +5,9 @@ import java.util.*;
 import types.*;
 import ast.*;
 
-
+// You need to put jar files in lib/ in your classpath
 import org.apache.commons.cli.*;
 
-//PA 7 generates 2 digraphs, one un-optimized, one optimized.
 public class CompilerTester {
 
     public static void main(String[] args) {
@@ -146,17 +145,17 @@ public class CompilerTester {
         //PA 7
         try {
             dotgraph_text = c.optimization(optArguments, cmd);
-            System.out.println(dotgraph_text);
+//            System.out.println(dotgraph_text);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Error caught - see stderr for stack trace " + e.getMessage());
             System.exit(-6);
         }
 
-         //PA 8
+        //PA 8
         c.regAlloc(numRegs);
 
-         //PA 9
+        //PA 9
         int[] program = c.genCode();
         if (c.hasError()) {
             System.err.println("Error compiling file");
@@ -165,17 +164,18 @@ public class CompilerTester {
         }
 
         if (cmd.hasOption("asm")) {
+
             String asmFile = sourceFile.substring(0, sourceFile.lastIndexOf('.')) + "_asm.txt";
             try (PrintStream out = new PrintStream(asmFile)) {
-                 for (int i = 0; i < program.length; i++) {
-                     out.print(i + ":\t" + DLX.instrString(program[i])); // \newline included in DLX.instrString()
-                 }
-             } catch (IOException e) {
-                 System.err.println("Error accessing the asm file: \"" + asmFile + "\"");
-                 System.exit(-5);
-             }
+                for (int i = 0; i < program.length; i++) {
+                    out.print(i + ":\t" + DLX.instrString(program[i])); // \newline included in DLX.instrString()
+                }
+            } catch (IOException e) {
+                System.err.println("Error accessing the asm file: \"" + asmFile + "\"");
+                System.exit(-5);
+            }
         }
-        
+
         DLX.load(program);
         try {
             DLX.execute(in);
@@ -184,6 +184,7 @@ public class CompilerTester {
             System.err.println("IOException inside DLX");
             System.exit(-6);
         }
-    }
 
+
+    }
 }
