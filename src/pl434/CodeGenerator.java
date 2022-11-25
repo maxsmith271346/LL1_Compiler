@@ -124,6 +124,7 @@ public class CodeGenerator {
             instructions.add(DLX.assemble(DLX.ADD, SP, FP, 0));
             instructions.add(DLX.assemble(DLX.POP, FP, SP, 4));
             instructions.add(DLX.assemble(DLX.POP, BA, SP, 4 * numberParameters));
+            // instructions.add(DLX.assemble(DLX.PSH, ))
             instructions.add(DLX.assemble(DLX.RET, BA));
         }
     }

@@ -263,6 +263,33 @@ public class RegisterAllocator {
                     }
                 }
                 
+
+                if (ii.getExtraOperands() != null) {
+                    // assign registers to extra operands
+                    List<Integer> extraRegisters = new ArrayList<Integer>();
+                    List<Operand> extraOperands = ii.getExtraOperands();
+                    for (int i = 0; i < extraOperands.size()-1; i++) {
+
+                        if (extraOperands.get(i) != null) {
+                            if (colorMap.containsKey(extraOperands.get(i))) {
+                                if (colorMap.get(extraOperands.get(i)) > 0) {
+                                    extraRegisters.add(colorMap.get(extraOperands.get(i)));
+                                }
+                            }
+                            else{
+                                for (Operand o : colorMap.keySet()){
+                                    if (!IntermediateInstruction.checkOperand(o, extraOperands.get(i))) {
+                                        if (colorMap.get(o) > 0){
+                                            extraRegisters.add(colorMap.get(o));
+                                        }
+                                    }
+                                }
+                            }
+                        }
+                    }
+                    ii.putExtraRegisters(extraRegisters);
+                }
+                
                 if (colorMap.containsKey(ii.instNum())){
                     //ii.putOperandTwo(colorMap.get(ii.instNum()));
                     ii.returnReg = colorMap.get(ii.instNum());
@@ -292,6 +319,6 @@ public class RegisterAllocator {
                 }
             }
         }
-        //System.out.println("after removing silly moves " + ssa.asDotGraph());
+        System.out.println("after removing silly moves " + ssa.asDotGraph());
     }
 }

@@ -79,6 +79,7 @@ public class IntermediateInstruction {
     private Operand operandTwo; 
     private Integer registerOne; 
     private Integer registerTwo;
+    private List<Integer> extraRegisters;
     // private int insNum;
     private List<Operand> extraOperands; // In the case of function calls there can be more than two operands, so this will keep track of the extras
     private Boolean elim;
@@ -265,6 +266,10 @@ public class IntermediateInstruction {
         return operandTwo;
     }
 
+    public List<Operand> getExtraOperands() {
+        return extraOperands;
+    }
+
     public void putOperator(SSAOperator operator){
         this.operator = operator;
     }
@@ -295,6 +300,10 @@ public class IntermediateInstruction {
 
     public void putRegisterTwo(Integer newReg){
         this.registerTwo = newReg;
+    }
+
+    public List<Integer> getExtraRegisters() {
+        return this.extraRegisters;
     }
 
     public void addLiveVars(HashSet<Operand> liveVars) {
@@ -488,7 +497,7 @@ public class IntermediateInstruction {
 
     public boolean conflicts(IntermediateInstruction intIns){
         boolean conflict = true;
-        if (intIns.getOperator() == operator && intIns.numberOperators() == this.numberOperators()){
+        if (intIns.getOperator() == operator && intIns.numberOperands() == this.numberOperands()){
             //System.out.println("one " + intIns);
             //System.out.println("two " + this);
             conflict = false; 
@@ -519,7 +528,7 @@ public class IntermediateInstruction {
         return conflict;
     }
 
-    public int numberOperators(){
+    public int numberOperands(){
         int number = 0;
         if (operandOne != null){
             number++;
@@ -531,5 +540,17 @@ public class IntermediateInstruction {
             number += extraOperands.size();
         }
         return number;
+    }
+
+    public boolean operandOneIsFunc() {
+        return operator == SSAOperator.CALL && numberOperands() == 1;
+    }
+
+    public boolean operandTwoIsFunc() {
+        return operator == SSAOperator.CALL && numberOperands() == 2;
+    }
+
+    public void putExtraRegisters(List<Integer> extraRegisters){
+        this.extraRegisters = extraRegisters;
     }
 }
