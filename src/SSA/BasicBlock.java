@@ -309,8 +309,6 @@ public class BasicBlock implements Operand {
             if (ii.isElim()){continue;}       
          
             switch (ii.getOperator()) {
-                case ADDA:
-                    break;
                 case BEQ:
                 case BGE:
                 case BGT:
@@ -358,8 +356,6 @@ public class BasicBlock implements Operand {
                 case END:
                     break;
                 case LOAD:
-                    break;
-
                 case NEG:
                     if (live.contains(ii.instNum())) {
                         live.remove(ii.instNum());
@@ -380,8 +376,8 @@ public class BasicBlock implements Operand {
                         live.add(ii.getOperandOne());
                     }
                     break;
-                case STORE:
-                    break;
+                //case STORE:
+                //    break;
 
                 case PHI:
                     String varName = ii.getOperandOne().toString();
@@ -405,7 +401,8 @@ public class BasicBlock implements Operand {
                         live.add(ii.getOperandTwo());
                     }
                     break;
-
+                case STORE:
+                case ADDA:
                 case ADD:
                 case AND:
                 case CMP:
@@ -434,7 +431,7 @@ public class BasicBlock implements Operand {
                     }
                     break;
 
-                case WRITE:
+                case WRITE_I:
                 case WRITE_B:
                 case WRITE_F:
                     if (ii.getOperandOne() != null) {

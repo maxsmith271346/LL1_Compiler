@@ -17,7 +17,6 @@ function maxFromInput (int n) : int
             let max = curr;
         fi;
         let i++;
-        //call printInt(i);
     od;
     return max;
 };

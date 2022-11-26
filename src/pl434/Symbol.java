@@ -17,6 +17,7 @@ public class Symbol implements Expression, Operand {
     private String symbolType; // function, variable, etc TODO enum here - maybe we want to make classes that extend symbol for the different kinds? 
     // ^ var, func, param, arr?
     private List<Type> paramTypes;
+    public List<Symbol> paramList;
     public ArrayIndex arrayIndex;
     public List<String> dimList; // for var[2][3], will store [2, 3]
     public int scope;
@@ -30,6 +31,7 @@ public class Symbol implements Expression, Operand {
         this.symbolType = symbolType; 
         this.paramTypes = new ArrayList<Type>();
         this.dimList = new ArrayList<String>(); 
+        this.paramList = new ArrayList<Symbol>();
 
         switch (returnType){
             case "int": 
@@ -116,7 +118,7 @@ public class Symbol implements Expression, Operand {
             };
     }
 
-    public void addParams (List<String> paramTypes) {
+    public void addParamTypes (List<String> paramTypes) {
         this.paramTypes = new ArrayList<Type>();
         for (String pt : paramTypes) {
             switch (pt){
@@ -134,6 +136,10 @@ public class Symbol implements Expression, Operand {
                     break;
                 };
         }
+    }
+
+    public void addParams(List<Symbol> params){
+        this.paramList = params;
     }
 
 

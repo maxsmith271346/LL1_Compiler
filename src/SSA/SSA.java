@@ -561,10 +561,16 @@ public class SSA implements NodeVisitor{
             }
             else{
                 if (preFuncMatch.name().equals("println")){
-                    currentBB.add(new IntermediateInstruction(SSAOperator.WRITE, null, null, BasicBlock.insNumber, new VoidType()));
+                    currentBB.add(new IntermediateInstruction(SSAOperator.WRITE_NL, null, null, BasicBlock.insNumber, new VoidType()));
                 }
-                else{
-                    currentBB.add(new IntermediateInstruction(SSAOperator.WRITE, node.argList.argList.get(0).getOperand(currentBB.varMap), null, BasicBlock.insNumber, new VoidType()));
+                else if (preFuncMatch.name().equals("printFloat")){
+                    currentBB.add(new IntermediateInstruction(SSAOperator.WRITE_F, node.argList.argList.get(0).getOperand(currentBB.varMap), null, BasicBlock.insNumber, new VoidType()));
+                }
+                else if (preFuncMatch.name().equals("printInt")){
+                    currentBB.add(new IntermediateInstruction(SSAOperator.WRITE_I, node.argList.argList.get(0).getOperand(currentBB.varMap), null, BasicBlock.insNumber, new VoidType()));
+                }
+                else {
+                    currentBB.add(new IntermediateInstruction(SSAOperator.WRITE_B, node.argList.argList.get(0).getOperand(currentBB.varMap), null, BasicBlock.insNumber, new VoidType()));
                 }
             }
         }
@@ -759,7 +765,7 @@ public class SSA implements NodeVisitor{
         BBNumber++;
         BasicBlockList.add(elseBB);
 
-        currentBB.transitionList.add(currentBB.new Transitions(repeatBB, "", true));
+        currentBB.transitionList.add(currentBB.new Transitions(repeatBB, ""));
         currentBB = repeatBB; 
         node.statementSeq().accept(this);
         repeatBB.addFullMap(currentBB.varMap);
@@ -770,7 +776,7 @@ public class SSA implements NodeVisitor{
         currentBB.transitionList.add(currentBB.new Transitions(conditionBB, ""));
 
         currentBB = conditionBB;
-        currentBB.transitionList.add(currentBB.new Transitions(repeatBB, "else"));
+        currentBB.transitionList.add(currentBB.new Transitions(repeatBB, "else", true));
 
         node.condition().accept(this);
 

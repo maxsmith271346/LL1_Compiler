@@ -68,14 +68,15 @@ public class RegisterAllocator {
             }
         }
     
-        for (String o : interferenceGraph.keySet()){
+        /*for (String o : interferenceGraph.keySet()){
             System.out.println("key: " + o + " value " + interferenceGraph.get(o));
-        }
+        }*/
         
     }
 
     public void addToInterferenceGraph(HashSet<Operand> liveVars){
         for (Operand o : liveVars){
+            if (o instanceof GDB){continue;}
             if (IntermediateInstruction.isConst(o)){continue;}
             Set<String> adjSet;
             if (interferenceGraph.containsKey(getOpString(o))){
@@ -86,7 +87,7 @@ public class RegisterAllocator {
             }
             for (Operand oAdj : liveVars){
                 if (IntermediateInstruction.isConst(oAdj)){continue;}
-                if (!o.equals(oAdj)){
+                if (!o.equals(oAdj) && !(oAdj instanceof GDB)){
                     adjSet.add(getOpString(oAdj));
                 }
             }
@@ -250,8 +251,12 @@ public class RegisterAllocator {
             for (IntermediateInstruction ii : bb.getIntInsList()){
                 if (ii.isElim()){continue;}
                 
+               // System.out.println("ii " + ii);
                 if(ii.getOperandOne() != null){
-                    if (colorMap.containsKey(getOpString(ii.getOperandOne()))){
+                    if (ii.getOperandOne() instanceof GDB){
+                        ii.putRegisterOne(30);
+                    }
+                    else if (colorMap.containsKey(getOpString(ii.getOperandOne()))){
                         if (colorMap.get(getOpString(ii.getOperandOne())) > 0){
                             ii.putRegisterOne(colorMap.get(getOpString(ii.getOperandOne())));
                             //System.out.println("put register into " + ii + " R1: " + ii.getRegisterOne());
@@ -270,7 +275,10 @@ public class RegisterAllocator {
                 
 
                 if (ii.getOperandTwo() != null){
-                    if (colorMap.containsKey(getOpString(ii.getOperandTwo()))){
+                    if (ii.getOperandTwo() instanceof GDB){
+                        ii.putRegisterTwo(30);
+                    }
+                    else if (colorMap.containsKey(getOpString(ii.getOperandTwo()))){
                         if (colorMap.get(getOpString(ii.getOperandTwo())) > 0){
                             ii.putRegisterTwo(colorMap.get(getOpString(ii.getOperandTwo())));
                         }
@@ -314,11 +322,12 @@ public class RegisterAllocator {
                 }
                 
                 if (colorMap.containsKey(getOpString(ii.instNum()))){
+                    //System.out.println("here");
                     //ii.putOperandTwo(colorMap.get(ii.instNum()));
                     ii.returnReg = colorMap.get(getOpString(ii.instNum()));
-                    if (colorMap.get(getOpString(ii.instNum())) < 0){ 
+                    /*if (colorMap.get(getOpString(ii.instNum())) < 0){ 
                         // need to add a store instruction here
-                    }
+                    }*/
                 }
             }
         }

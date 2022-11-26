@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Set;
 
 import SSA.BasicBlock;
+import SSA.GDB;
 import SSA.InstructionNumber;
 import SSA.IntermediateInstruction;
 import SSA.Operand;
@@ -15,6 +16,7 @@ import SSA.SSA;
 import SSA.BasicBlock.Transitions;
 import SSA.IntermediateInstruction.SSAOperator;
 import ast.*;
+import types.ArrayType;
 import types.BoolType;
 import types.FloatType;
 import types.IntType;
@@ -41,6 +43,7 @@ public class CodeGenerator {
     private HashMap<Symbol, List<Integer>> jumpsToFix;
     private HashMap<String, List<BasicBlock>> procedureToBBList;
     private HashMap<Symbol, Integer> FunctionToFirstInstruction;
+    private HashMap<BasicBlock, Integer> firstInsOfBBs;
     final int BA = 31;
     final int GDB = 30; 
     final int SP = 29; 
@@ -51,8 +54,8 @@ public class CodeGenerator {
     public CodeGenerator(SSA ssa, int numRegs){
         this.ssa = ssa;
         instructions = new ArrayList<Integer>();
-        spillRegOne = numRegs - 1;
-        spillRegTwo = numRegs - 2;
+        spillRegOne = numRegs;
+        spillRegTwo = numRegs - 1;
         globalVarOffset = -4;
         operandsToOffset = new HashMap<String, Integer>();
         spillResultLoadIns = -1;
@@ -63,6 +66,7 @@ public class CodeGenerator {
         registersInUse.add(spillRegOne);
         registersInUse.add(spillRegTwo); 
         FunctionToFirstInstruction = new HashMap<Symbol, Integer>();
+        firstInsOfBBs = new HashMap<BasicBlock, Integer>();
         returnReg = 0;
 
         generateCodeForProcedures();
@@ -71,6 +75,7 @@ public class CodeGenerator {
 
     public void generateCodeForProcedures(){
         procedureToBBList = getChildrenForProcedures();
+        System.out.println("procedureToBBList " + procedureToBBList);
     
         generatePrologue("main", procedureToBBList.get("main").get(0));
         generateCode(procedureToBBList.get("main"));
@@ -144,7 +149,7 @@ public class CodeGenerator {
     public void generateCode(List<BasicBlock> BBList){
         for (BasicBlock bb : BBList){ // NEED TO TRAVERSE THESE IN ORDER
             if (bb.name().contains("elim")){continue;}
-            
+            firstInsOfBBs.put(bb, instructions.size());
             if (branchesToFix.containsKey(bb)){
                 fixBranchInstruction(branchesToFix.get(bb));
             }
@@ -223,47 +228,44 @@ public class CodeGenerator {
 
                         //registersInUse.add(ii.getRegisterTwo());
                         break;
-                    case WRITE: 
-                        if (ii.getOperandOne() == null){
-                            instructions.add(DLX.assemble(DLX.WRL));
-                        }
-                        else if (IntermediateInstruction.isConst(ii.getOperandOne())){
-                            if (ii.getOperandOne() instanceof FloatLiteral){
-                                instructions.add(DLX.assemble(DLX.fADDI, spillRegOne, 0, Float.parseFloat(((FloatLiteral) ii.getOperandOne()).value())));
-                                instructions.add(DLX.assemble(DLX.WRF, spillRegOne));
-                            }
-                            else if (ii.getOperandOne() instanceof IntegerLiteral){
-                                instructions.add(DLX.assemble(DLX.ADDI, spillRegOne, 0, Integer.parseInt(((IntegerLiteral) ii.getOperandOne()).value())));
-                                instructions.add(DLX.assemble(DLX.WRI, spillRegOne));
-                            }
-                            else{
-                                instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterTwo(), 0, (Boolean.parseBoolean(((BoolLiteral) ii.getOperandOne()).value()) ? 1 : 0)));
-                                instructions.add(DLX.assemble(DLX.WRB, spillRegOne));
-                            }
+                    case WRITE_I:
+                        if (ii.getOperandOne() instanceof IntegerLiteral){
+                            instructions.add(DLX.assemble(DLX.ADDI, spillRegOne, 0, Integer.parseInt(((IntegerLiteral) ii.getOperandOne()).value())));
+                            instructions.add(DLX.assemble(DLX.WRI, spillRegOne));
                         }
                         else if (ii.getOperandOne() instanceof Symbol){ 
-                            if (((Symbol)ii.getOperandOne()).type() instanceof FloatType){
-                                instructions.add(DLX.assemble(DLX.WRF, ii.getRegisterOne()));
-                            }
-                            else if (((Symbol)ii.getOperandOne()).type() instanceof IntType){
-                                instructions.add(DLX.assemble(DLX.WRI, ii.getRegisterOne()));
-                            }
-                            else{
-                                instructions.add(DLX.assemble(DLX.WRB, ii.getRegisterOne()));
-                            }
+                            instructions.add(DLX.assemble(DLX.WRI, ii.getRegisterOne()));
                         }
-                        
                         else if (ii.getOperandOne() instanceof InstructionNumber){
-                            if (((InstructionNumber)ii.getOperandOne()).type() instanceof FloatType){
-                                instructions.add(DLX.assemble(DLX.WRF, ii.getRegisterOne()));
-                            }
-                            else if (((InstructionNumber)ii.getOperandOne()).type() instanceof IntType){
-                                instructions.add(DLX.assemble(DLX.WRI, ii.getRegisterOne()));
-                            }
-                            else{
-                                instructions.add(DLX.assemble(DLX.WRB, ii.getRegisterOne()));
-                            }
+                            instructions.add(DLX.assemble(DLX.WRI, ii.getRegisterOne()));
                         }
+                        break;
+                    case WRITE_F:
+                        if (ii.getOperandOne() instanceof FloatLiteral){
+                            instructions.add(DLX.assemble(DLX.fADDI, spillRegOne, 0, Float.parseFloat(((FloatLiteral) ii.getOperandOne()).value())));
+                            instructions.add(DLX.assemble(DLX.WRF, spillRegOne));
+                        }
+                        else if (ii.getOperandOne() instanceof Symbol){ 
+                            instructions.add(DLX.assemble(DLX.WRF, ii.getRegisterOne()));
+                        }
+                        else if (ii.getOperandOne() instanceof InstructionNumber){
+                           instructions.add(DLX.assemble(DLX.WRF, ii.getRegisterOne()));
+                        }
+                        break;
+                    case WRITE_B:
+                        if (ii.getOperandOne() instanceof BoolLiteral){
+                            instructions.add(DLX.assemble(DLX.ADDI, spillRegOne, 0, (Boolean.parseBoolean(((BoolLiteral) ii.getOperandOne()).value()) ? 1 : 0)));
+                            instructions.add(DLX.assemble(DLX.WRB, spillRegOne));
+                        }
+                        else if (ii.getOperandOne() instanceof Symbol){ 
+                            instructions.add(DLX.assemble(DLX.WRB, ii.getRegisterOne()));
+                        }
+                        else if (ii.getOperandOne() instanceof InstructionNumber){
+                            instructions.add(DLX.assemble(DLX.WRB, ii.getRegisterOne()));
+                        }
+                        break;
+                    case WRITE_NL: 
+                        instructions.add(DLX.assemble(DLX.WRL));
                         break;
                     case DIV: 
                         handleArithmeticOperations(ii, DLX.DIV, DLX.DIVI, DLX.fDIV, DLX.fDIVI, false);
@@ -271,6 +273,7 @@ public class CodeGenerator {
                     case MUL: 
                         handleArithmeticOperations(ii, DLX.MUL, DLX.MULI, DLX.fMUL, DLX.fMULI, true);
                         break;
+                    case ADDA:
                     case ADD: 
                         handleArithmeticOperations(ii, DLX.ADD, DLX.ADDI, DLX.fADD, DLX.fADDI, true);
                         break;
@@ -296,7 +299,14 @@ public class CodeGenerator {
                         handleArithmeticOperations(ii, DLX.POW, DLX.POWI, false);
                         break;
                     case NOT: 
-                        //TODO
+                        if (IntermediateInstruction.isConst(ii.getOperandOne())){ 
+                            if (ii.getOperandOne() instanceof BoolLiteral){
+                                instructions.add(DLX.assemble(DLX.ADDI, ii.returnReg, 0, (Boolean.parseBoolean(((BoolLiteral) ii.getOperandOne()).value()) ? 0 : 1)));
+                            }
+                        }
+                        else{
+                            instructions.add(DLX.assemble(DLX.XORI, ii.returnReg, ii.getRegisterOne(), (Integer.parseInt("0001",16))));
+                        }
                         break;
                     case BRA: 
                         if (branchesToFix.containsKey((BasicBlock) ii.getOperandOne())){
@@ -351,14 +361,29 @@ public class CodeGenerator {
                             }
                         }
                         break;
+                    case STORE: 
+                        System.out.println("in store");
+                        if (IntermediateInstruction.isConst(ii.getOperandOne())){ 
+                            if (ii.getOperandOne() instanceof FloatLiteral){
+                                instructions.add(DLX.assemble(DLX.fADDI, spillRegOne, 0, Float.parseFloat(((FloatLiteral) ii.getOperandOne()).value())));
+                            }
+                            else if (ii.getOperandOne() instanceof IntegerLiteral){
+                                instructions.add(DLX.assemble(DLX.ADDI, spillRegOne, 0, Integer.parseInt(((IntegerLiteral) ii.getOperandOne()).value())));
+                            }
+                            else{
+                                instructions.add(DLX.assemble(DLX.ADDI, spillRegOne, 0, (Boolean.parseBoolean(((BoolLiteral) ii.getOperandOne()).value()) ? 1 : 0)));
+                            }
+                            instructions.add(DLX.assemble(DLX.STW, spillRegOne, ii.getRegisterTwo(), 0));
+                        }
+                        else{ 
+                            instructions.add(DLX.assemble(DLX.STW, ii.getRegisterOne(), ii.getRegisterTwo(), 0));
+                        }
+                        break;
                     default: 
                         break;
                 }
                 if (spillResultLoadIns != -1){
                     instructions.add(spillResultLoadIns);
-                }
-                if (ii.returnReg != null){
-                    registersInUse.add(ii.returnReg);
                 }
             }
         }
@@ -377,6 +402,9 @@ public class CodeGenerator {
                 thenBlock = t.toBB;
             }
             else if (t.label.contains("else")){ 
+                if(t.backEdge){
+                    continue;
+                }
                 elseBlock = t.toBB;
             }
             else if (!t.label.contains("call")){ 
@@ -386,8 +414,11 @@ public class CodeGenerator {
             }
         }
 
-        if (thenBlock != null && elseBlock != null){
+        if (thenBlock != null){
             children.addAll(getChildren(thenBlock));
+        }
+
+        if (elseBlock != null){
             children.addAll(getChildren(elseBlock));
         }
 
@@ -439,6 +470,10 @@ public class CodeGenerator {
                     spillResultLoadIns = DLX.assemble(DLX.STW, spillRegTwo, 30, getOffset(ii.getOperandTwo()));
                 }
             }
+            else{ 
+                ii.putRegisterTwo(spillRegTwo);    
+                spillResultLoadIns = DLX.assemble(DLX.STW, spillRegTwo, 30, getOffset(ii.getOperandTwo()));
+            }
         }
 
         if (ii.returnReg == null){
@@ -486,7 +521,7 @@ public class CodeGenerator {
     // generic function to handle arithmetic operations given the four different potential operands 
     public void handleArithmeticOperations(IntermediateInstruction intIns, int intRegOp, int intConstOp, int floatRegOp, int floatConstOp, boolean commutative){
         // both are constant, each needs to be stored in a register 
-        if (IntermediateInstruction.isConst(intIns.getOperandOne()) && IntermediateInstruction.isConst(intIns.getOperandTwo())){
+        if ((IntermediateInstruction.isConst(intIns.getOperandOne()) || intIns.getOperandOne() instanceof GDB) && IntermediateInstruction.isConst(intIns.getOperandTwo())){
             if (intIns.getOperandOne() instanceof FloatLiteral){
                 instructions.add(DLX.assemble(DLX.fADDI, spillRegOne, 0, Float.parseFloat(((FloatLiteral) intIns.getOperandOne()).value())));
                 instructions.add(DLX.assemble(DLX.fADDI, spillRegTwo, 0, Float.parseFloat(((FloatLiteral) intIns.getOperandTwo()).value())));
@@ -546,7 +581,7 @@ public class CodeGenerator {
             if (((Symbol) intIns.getOperandTwo()).type() instanceof FloatType){
                 instructions.add(DLX.assemble(floatRegOp, intIns.returnReg, intIns.getRegisterOne(), intIns.getRegisterTwo()));
             }
-            else if (((Symbol) intIns.getOperandTwo()).type() instanceof IntType){
+            else if (((Symbol) intIns.getOperandTwo()).type() instanceof IntType || ((Symbol) intIns.getOperandTwo()).type() instanceof ArrayType){
                 instructions.add(DLX.assemble(intRegOp, intIns.returnReg, intIns.getRegisterOne(), intIns.getRegisterTwo()));
             }
         }
@@ -619,6 +654,11 @@ public class CodeGenerator {
     }
 
     public void generateBranchIns(IntermediateInstruction ii, int op){
+        //System.out.println("firstInsOfBBs " + firstInsOfBBs);
+        if (firstInsOfBBs.containsKey((BasicBlock) ii.getOperandTwo())){
+            instructions.add(DLX.assemble(DLX.BLT, ii.getRegisterOne(), firstInsOfBBs.get((BasicBlock) ii.getOperandTwo()) - instructions.size()));
+            return;
+        }
         List<Integer> instructionPieces = new ArrayList<Integer>();
         instructions.add(0);
         instructionPieces.add(op); 
@@ -700,6 +740,8 @@ public class CodeGenerator {
     }
 
     public void generateCall(IntermediateInstruction intIns){
+        System.out.println("instruction count one " + instructions.size());
+
         List<Integer> pushedRegisters = new ArrayList<Integer>();
         // push registers
         for (int reg : registersInUse){
@@ -717,55 +759,60 @@ public class CodeGenerator {
         // could move the caller register into the parameter callee register 
             // know the caller register, need to find the parameter callee register
             // need to find an instruction with an operand that has "-3" -- this will only work for functions with one parameter
-        System.out.println("ssa " + ssa.asDotGraph());
+        System.out.println("instruction count one and a half " + instructions.size());
         for(BasicBlock bb : procedureToBBList.get(intIns.getFuncName())){
             for (IntermediateInstruction ii : bb.getIntInsList()){
                 if (ii.getOperandOne() != null){
-                    if (ii.getOperandOne().toString().contains("-3")){
-                        if (intIns.getRegisterOne() != null){
-                            instructions.add(DLX.assemble(DLX.ADD, ii.getRegisterOne(), 0, intIns.getRegisterOne()));
-                            break;
-                        }
-                        else if (IntermediateInstruction.isConst(intIns.getOperandOne())){
-                            if (intIns.getOperandOne() instanceof FloatLiteral){
-                                instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterOne(), 0, Float.parseFloat(((FloatLiteral) intIns.getOperandOne()).value())));
+                    for (Symbol param : intIns.getFunc().paramList){
+                        if (ii.getOperandOne().toString().contains(param.toString() + "_-3")){
+                            resolveAnySpilledOperands(ii);
+                            if (intIns.getRegisterOne() != null){
+                                instructions.add(DLX.assemble(DLX.ADD, ii.getRegisterOne(), 0, intIns.getRegisterOne()));
                                 break;
                             }
-                            else if (intIns.getOperandOne() instanceof IntegerLiteral){
-                                instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterOne(), 0, Integer.parseInt(((IntegerLiteral) intIns.getOperandOne()).value())));
+                            else if (IntermediateInstruction.isConst(intIns.getOperandOne())){
+                                if (intIns.getOperandOne() instanceof FloatLiteral){
+                                    instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterOne(), 0, Float.parseFloat(((FloatLiteral) intIns.getOperandOne()).value())));
+                                    break;
+                                }
+                                else if (intIns.getOperandOne() instanceof IntegerLiteral){
+                                    instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterOne(), 0, Integer.parseInt(((IntegerLiteral) intIns.getOperandOne()).value())));
+                                    break;
+                                }
+                                else if (intIns.getOperandTwo() instanceof BoolLiteral){
+                                    instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterOne(), 0, (Boolean.parseBoolean(((BoolLiteral) intIns.getOperandTwo()).value()) ? 1 : 0)));
+                                    break;
+                                }   
+                            }
+                        }
+                        if(ii.getOperandTwo() == null){continue;}
+                        else if (ii.getOperandTwo().toString().contains(param.toString() + "_-3")){
+                            resolveAnySpilledOperands(ii);
+                            if (intIns.getRegisterOne() != null){
+                                instructions.add(DLX.assemble(DLX.ADD, ii.getRegisterTwo(), 0, intIns.getRegisterOne()));
                                 break;
                             }
-                            else if (intIns.getOperandTwo() instanceof BoolLiteral){
-                                instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterOne(), 0, (Boolean.parseBoolean(((BoolLiteral) intIns.getOperandTwo()).value()) ? 1 : 0)));
-                                break;
-                            }   
+                            else if (IntermediateInstruction.isConst(intIns.getOperandTwo())){
+                                if (intIns.getOperandOne() instanceof FloatLiteral){
+                                    instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterTwo(), 0, Float.parseFloat(((FloatLiteral) intIns.getOperandOne()).value())));
+                                    break;
+                                }
+                                else if (intIns.getOperandOne() instanceof IntegerLiteral){
+                                    instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterTwo(), 0, Integer.parseInt(((IntegerLiteral) intIns.getOperandOne()).value())));
+                                    break;
+                                }
+                                else if (intIns.getOperandOne() instanceof BoolLiteral){
+                                    instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterTwo(), 0, (Boolean.parseBoolean(((BoolLiteral) intIns.getOperandOne()).value()) ? 1 : 0)));
+                                    break;
+                                }   
+                            }
                         }
-                    }
-                }
-                if(ii.getOperandTwo() == null){continue;}
-                else if (ii.getOperandTwo().toString().contains("-3")){
-                    if (intIns.getRegisterOne() != null){
-                        instructions.add(DLX.assemble(DLX.ADD, ii.getRegisterTwo(), 0, intIns.getRegisterOne()));
-                        break;
-                    }
-                    else if (IntermediateInstruction.isConst(intIns.getOperandTwo())){
-                        if (intIns.getOperandOne() instanceof FloatLiteral){
-                            instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterTwo(), 0, Float.parseFloat(((FloatLiteral) intIns.getOperandOne()).value())));
-                            break;
-                        }
-                        else if (intIns.getOperandOne() instanceof IntegerLiteral){
-                            instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterTwo(), 0, Integer.parseInt(((IntegerLiteral) intIns.getOperandOne()).value())));
-                            break;
-                        }
-                        else if (intIns.getOperandOne() instanceof BoolLiteral){
-                            instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterTwo(), 0, (Boolean.parseBoolean(((BoolLiteral) intIns.getOperandOne()).value()) ? 1 : 0)));
-                            break;
-                        }   
                     }
                 }
             }
         }
 
+        System.out.println("instruction count two " + instructions.size());
         // jump to target function 
         if (FunctionToFirstInstruction.containsKey(intIns.getFunc())){
             instructions.add(DLX.assemble(DLX.JSR, FunctionToFirstInstruction.get(intIns.getFunc()) * 4));
@@ -773,17 +820,17 @@ public class CodeGenerator {
         else{ 
             instructions.add(0);
             if (jumpsToFix.containsKey(intIns.getFunc())){
-                jumpsToFix.get(intIns.getFunc()).add(instructions.size());
+                jumpsToFix.get(intIns.getFunc()).add(instructions.size() - 1);
             }
             else{ 
                 List<Integer> insToFix = new ArrayList<Integer>();
-                insToFix.add(instructions.size());
+                insToFix.add(instructions.size() - 1);
                 jumpsToFix.put(intIns.getFunc(), insToFix);
             }
         }
 
         // unwind the saved registers 
-        for (int i = pushedRegisters.size() - 1; i > 0; i--){
+        for (int i = pushedRegisters.size() - 1; i >= 0; i--){
             instructions.add(DLX.assemble(DLX.POP, pushedRegisters.get(i), SP, 4));
         }
 

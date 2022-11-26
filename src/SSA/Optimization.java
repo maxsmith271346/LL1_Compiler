@@ -864,15 +864,17 @@ public class Optimization {
                                 else{ 
                                     if (ii.getOperator() != SSAOperator.PHI){
                                         if (ii.getOperandOne() instanceof InstructionNumber){
-                                            System.out.println("ii " + ii);
-                                            System.out.println("iiAvil " + iiAvail);
-                                            if (((InstructionNumber) ii.getOperandOne()).getInstructionNumber() == iiAvail.insNum()){
-                                                ii.setOperandOne(iiAvail.getOperandOne());
-                                                change = true;
+                                            if (ii.getOperandOne() != null){
+                                                if (((InstructionNumber) ii.getOperandOne()).getInstructionNumber() == iiAvail.insNum()){
+                                                    ii.setOperandOne(iiAvail.getOperandOne());
+                                                    change = true;
+                                                }
                                             }
-                                            else if (((InstructionNumber) ii.getOperandTwo()).getInstructionNumber() == iiAvail.insNum()){
-                                                ii.putOperandTwo(iiAvail.getOperandOne());
-                                                change = true;
+                                            else if (ii.getOperandTwo() != null){
+                                                if (((InstructionNumber) ii.getOperandTwo()).getInstructionNumber() == iiAvail.insNum()){
+                                                    ii.putOperandTwo(iiAvail.getOperandOne());
+                                                    change = true;
+                                                }
                                             }
                                         }
                                     }
@@ -957,6 +959,13 @@ public class Optimization {
     }
 
     public Boolean deadCodeElimination(){
+        for (BasicBlock bb : ssa.getBasicBlockList()){
+            bb.lvEntry.clear();
+            bb.lvExit.clear();
+            for (IntermediateInstruction ii : bb.getIntInsList()){
+                ii.getLiveVars().clear();
+            }
+        }
         // liveness analysis
         Boolean globalChange = false;
         HashMap<BasicBlock, Integer> exitSetCount = new HashMap<BasicBlock, Integer>();
@@ -1025,8 +1034,8 @@ public class Optimization {
                         break;
                     case NEG:
                         break;
-                    case NONE:
-                        break;
+                    //case NONE:
+                    //    break;
                     case NOT:
                         break;
                     case PHI:
@@ -1034,7 +1043,7 @@ public class Optimization {
                     
                     case STORE:
                         break;
-
+                    case NONE:
                     case ADD:
                     case AND:
                     case CMP:
@@ -1059,7 +1068,7 @@ public class Optimization {
                         }
                         break;
                     
-                    case WRITE:
+                    case WRITE_I:
                     case WRITE_B:
                     case WRITE_F:
                         break;

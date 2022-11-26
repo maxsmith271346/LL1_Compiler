@@ -1,0 +1,12 @@
+main
+bool i, j; 
+
+{ 
+    let i = true; 
+    let j = false; 
+
+    call printBool(i);
+    call printBool(j);
+    call printBool(not i);
+    call printBool(not j );
+}.

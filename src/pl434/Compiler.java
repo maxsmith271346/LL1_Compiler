@@ -817,31 +817,49 @@ public class Compiler {
     }
 
     // paramDecl = paramType ident
-    private String paramDecl() {
-        String pType = paramType();
+    private Symbol paramDecl(String pType) {
+        //String pType = paramType();
         Token ident = expectRetrieve(Kind.IDENT);
 
         Symbol symbol = new Symbol(ident.lexeme(), pType, "param", 3);
 
         tryDeclareVariable(ident, symbol);
 
-        return pType;
+        return symbol;
     }
 
     // formalParam = "(" [ paramDecl { "," paramDecl } ] ")"
-    private ArrayList<String> formalParam() {
+    /*private ArrayList<String> formalParam() {
         expect(Kind.OPEN_PAREN);
         ArrayList<String> paramTypes = new ArrayList<String>();
         if (have(NonTerminal.PARAM_DECL)) {
             do {
                 //paramDecl();
                 // Add parameter types to the paramTypes list
+                //paramTypes.add(paramDecl());
                 paramTypes.add(paramDecl());
             } while (accept(Kind.COMMA));
         }
         expect(Kind.CLOSE_PAREN);
 
         return paramTypes;
+    }*/
+
+    private HashMap<Symbol, String> formalParam(){
+        expect(Kind.OPEN_PAREN);
+        HashMap<Symbol, String> formalParam = new HashMap<Symbol, String>();
+        if (have(NonTerminal.PARAM_DECL)) {
+            do {
+                //paramDecl();
+                // Add parameter types to the paramTypes list
+                //paramTypes.add(paramDecl());
+                String paramType = paramType();
+                formalParam.put(paramDecl(paramType), paramType);
+            } while (accept(Kind.COMMA));
+        }
+        expect(Kind.CLOSE_PAREN);
+
+        return formalParam;
     }
 
     // funcBody = "{" { varDecl } statSeq "}" ";"
@@ -891,9 +909,11 @@ public class Compiler {
         // Enter function scope
         enterScope(identTok.lexeme());
 
-        ArrayList<String> paramTypes = formalParam();
+        HashMap<Symbol, String> formalParam = formalParam();
+        ArrayList<String> paramTypes = new ArrayList<String>(formalParam.values());
 
-        func.addParams(paramTypes);
+        func.addParamTypes(paramTypes);
+        func.addParams(new ArrayList<Symbol>(formalParam.keySet()));
 
         expect(Kind.COLON);
 

@@ -4,22 +4,31 @@ main
 int n1, n2;
 int[10][10] a;
 
-function init_and_print (int x, int y) : void
-{
-    int i,j;
-    let i = 0;
-    while(i < x) do
-        let j = 0;
-        repeat
-            let a[i][j] = i+j;
-            call printInt(a[i][j]);
-            let j++;
-        until (j >= y);
-        let i++;
-    od;
-    return;
-};
+//function init_and_print (int x, int y) : void
+//{
+    //int i,j;
+    //let i = 0;
+    //call printInt(x);
+    //call printInt(y);
+    //while(i < x) do
+    //    let j = 0;
+    //    repeat
+    //        let a[i][j] = i+j;
+    //        call printInt(a[i][j]);
+    //        //call printInt(j);
+    //        let j++;
+    //    until (j >= y);
+    //   let i++;
+    //    call printInt(i);
+    //    call println();
+    //od;
+    //let a[0][0] = 3; 
+    //call printInt(a[0][0]);
+    //return;
+//};
 
 {
-    call init_and_print(10, 10);
+    //call init_and_print(0, 0);
+    let a[0][0] = 3; 
+    call printInt(a[0][0]);
 }.

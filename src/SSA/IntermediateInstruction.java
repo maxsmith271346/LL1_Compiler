@@ -44,7 +44,7 @@ public class IntermediateInstruction {
         BGT("BGT"),
 
         READ_I("READ_I"),
-        WRITE("WRITE"),
+        WRITE_I("WRITE_I"),
         READ_B("READ_B"),
         WRITE_B("WRITE_B"),
         READ_F("READ_F"),

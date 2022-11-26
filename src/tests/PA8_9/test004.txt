@@ -13,11 +13,14 @@ bool flag;
     if (n > 1) then
         repeat
             let i+=1;
+            call printInt(i);
             if (n % i == 0) then
                 let flag = true;
             fi;
         until (i >= (n - 1));
+        call printInt(n);
     fi;
 
-    call printBool((not flag));
+    //call printInt(i);
+    call printBool((flag));
 }.
