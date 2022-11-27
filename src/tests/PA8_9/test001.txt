@@ -11,6 +11,7 @@ function maxFromInput (int n) : int
     let max = 0;
     let i = 0;
 
+    call printInt(n);
     while (i < n) do
         let curr = call readInt();
         if (curr > max) then

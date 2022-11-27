@@ -21,9 +21,12 @@ int a, b, c, d, e;
             let d = a + b;
             call printInt(d);
         fi;
-        call println();
+        call printInt(1);
     od;
 
+    call printInt(c);
+    call printInt(a);
+    call printInt(b);
     let e = c - a + b;
     call printInt(e); // 4
     let a = a + b;

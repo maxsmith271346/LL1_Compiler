@@ -22,5 +22,5 @@ bool flag;
     fi;
 
     //call printInt(i);
-    call printBool((flag));
+    call printBool((not flag));
 }.

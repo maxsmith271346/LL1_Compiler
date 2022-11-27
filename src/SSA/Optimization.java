@@ -959,13 +959,13 @@ public class Optimization {
     }
 
     public Boolean deadCodeElimination(){
-        for (BasicBlock bb : ssa.getBasicBlockList()){
+        /*for (BasicBlock bb : ssa.getBasicBlockList()){
             bb.lvEntry.clear();
             bb.lvExit.clear();
             for (IntermediateInstruction ii : bb.getIntInsList()){
                 ii.getLiveVars().clear();
             }
-        }
+        }*/
         // liveness analysis
         Boolean globalChange = false;
         HashMap<BasicBlock, Integer> exitSetCount = new HashMap<BasicBlock, Integer>();
