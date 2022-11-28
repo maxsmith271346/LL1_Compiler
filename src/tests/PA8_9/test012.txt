@@ -1,0 +1,26 @@
+main
+
+int a, b;
+
+function fibonacci(int a) : int {
+    if (a <= 0) then
+        return 0;
+    else
+        if (a <= 2) then
+            call printInt(1);
+            return 1;
+        else
+            call printInt(3);
+            return call fibonacci(a - 1) + call fibonacci(a - 2);
+            //call printInt(3);
+            //return call fibonacci(a - 1);
+        fi;
+    fi;
+};
+
+{
+    let a = call fibonacci(5);
+    //let b = call fibonacci(3);
+    call printInt(a);
+
+}.

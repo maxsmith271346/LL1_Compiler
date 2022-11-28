@@ -145,7 +145,7 @@ public class CompilerTester {
         //PA 7
         try {
             dotgraph_text = c.optimization(optArguments, cmd);
-//            System.out.println(dotgraph_text);
+            System.out.println(dotgraph_text);
         } catch (Exception e) {
             e.printStackTrace();
             System.out.println("Error caught - see stderr for stack trace " + e.getMessage());

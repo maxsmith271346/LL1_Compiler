@@ -335,10 +335,10 @@ public class IntermediateInstruction {
         if (operandOne != null){
             if (operandOne instanceof Symbol && operand instanceof Symbol){
                 String operandOneName = ((Symbol) operandOne).name();
-                operandOneName = operandOneName.substring(0, operandOneName.indexOf("_"));
+                operandOneName = operandOneName.substring(0, operandOneName.lastIndexOf("_"));
 
                 String operandName = ((Symbol) operand).name();
-                operandName = operandName.substring(0, operandName.indexOf("_"));
+                operandName = operandName.substring(0, operandName.lastIndexOf("_"));
 
                 if(operandOneName.equals(operandName)){
                     return true;
@@ -354,12 +354,12 @@ public class IntermediateInstruction {
             if (operandTwo instanceof Symbol && operand instanceof Symbol){
                 String operandTwoName = ((Symbol) operandTwo).name();
                 if (operandTwoName.contains("_")){
-                    operandTwoName = operandTwoName.substring(0, operandTwoName.indexOf("_"));
+                    operandTwoName = operandTwoName.substring(0, operandTwoName.lastIndexOf("_"));
                 }
 
                 String operandName = ((Symbol) operand).name();
                 if (operandName.contains("_")){
-                    operandName = operandName.substring(0, operandName.indexOf("_"));
+                    operandName = operandName.substring(0, operandName.lastIndexOf("_"));
                 }
                 
                 if(operandTwoName.equals(operandName)){
@@ -388,12 +388,12 @@ public class IntermediateInstruction {
             if (operandOne instanceof Symbol){
                 String operandOneName = ((Symbol) operandOne).name();
                 if (operandOneName.contains("_")){
-                    operandOneName = operandOneName.substring(0, operandOneName.indexOf("_"));
+                    operandOneName = operandOneName.substring(0, operandOneName.lastIndexOf("_"));
                 }
 
                 String operandName = ((Symbol) matchingOperand).name();
                 if (operandName.contains("_")){
-                    operandName = operandName.substring(0, operandName.indexOf("_"));
+                    operandName = operandName.substring(0, operandName.lastIndexOf("_"));
                 }
 
                 if(operandOneName.equals(operandName)){
@@ -406,12 +406,12 @@ public class IntermediateInstruction {
             if (operandTwo instanceof Symbol){
                 String operandTwoName = ((Symbol) operandTwo).name();
                 if (operandTwoName.contains("_")){
-                    operandTwoName = operandTwoName.substring(0, operandTwoName.indexOf("_"));
+                    operandTwoName = operandTwoName.substring(0, operandTwoName.lastIndexOf("_"));
                 }
 
                 String operandName = ((Symbol) matchingOperand).name();
                 if (operandName.contains("_")){
-                    operandName = operandName.substring(0, operandName.indexOf("_"));
+                    operandName = operandName.substring(0, operandName.lastIndexOf("_"));
                 }
                 
                 if(operandTwoName.equals(operandName)){
@@ -438,12 +438,12 @@ public class IntermediateInstruction {
         if (opTwo instanceof Symbol && opOne instanceof Symbol){
             String operandOneName = ((Symbol) opOne).name();
             if (operandOneName.contains("_")){
-                operandOneName = operandOneName.substring(0, operandOneName.indexOf("_"));
+                operandOneName = operandOneName.substring(0, operandOneName.lastIndexOf("_"));
             }
 
             String operandName = ((Symbol) opTwo).name();
             if (operandName.contains("_")){
-                operandName = operandName.substring(0, operandName.indexOf("_"));
+                operandName = operandName.substring(0, operandName.lastIndexOf("_"));
             }
 
             if(!operandOneName.equals(operandName)){

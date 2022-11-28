@@ -89,6 +89,7 @@ public abstract class Type {
             }
         }
         if(!(((this instanceof FloatType) && (that instanceof FloatType)) || ((this instanceof IntType) && (that instanceof IntType)))){
+        //if(!((this instanceof FloatType) || (this instanceof IntType)) || !((that instanceof FloatType) || (that instanceof IntType))){
             return new ErrorType("Cannot raise " + this + " to " + that + ".");
         }
         else{ 

@@ -118,8 +118,11 @@ public class BasicBlock implements Operand {
         return insNumber++;
     }
 
-    public int addEnd(IntermediateInstruction intIns){
-        IntermediateInstruction uninitMoveIns = createMoveForUninitializedVars(intIns, SSA.inFunc);
+    public int addEnd(IntermediateInstruction intIns, boolean checkUnit){
+        IntermediateInstruction uninitMoveIns = null;
+        if (checkUnit){
+            uninitMoveIns = createMoveForUninitializedVars(intIns, SSA.inFunc);
+        }
         
         int index = this.IntermediateInstructionList.size();
         if (this.IntermediateInstructionList.get(index - 1).isBranch()){
@@ -143,8 +146,9 @@ public class BasicBlock implements Operand {
                     Symbol operandOneSymbol = (Symbol) intIns.getOperandOne();
                     String opOneName = (operandOneSymbol).name();
                     if ((opOneName.contains("-1") && !inFunc)|| opOneName.contains("-2")){
-                        System.out.println("warning: variable " + opOneName.substring(0, opOneName.indexOf("_")) + " has not been initialized!");
-                        Symbol newSymbol = new Symbol(operandOneSymbol.name().substring(0, opOneName.indexOf("_")) + "_" + insNumber, operandOneSymbol.type().toString(), "var", operandOneSymbol.scope);
+                        System.out.println("intIns " + intIns);
+                        System.out.println("warning: variable " + opOneName.substring(0, opOneName.lastIndexOf("_")) + " has not been initialized!");
+                        Symbol newSymbol = new Symbol(operandOneSymbol.name().substring(0, opOneName.lastIndexOf("_")) + "_" + insNumber, operandOneSymbol.type().toString(), "var", operandOneSymbol.scope);
                         intIns.putOperandOne(newSymbol);
                         //this.IntermediateInstructionList.add(new IntermediateInstruction(SSAOperator.MOVE, new IntegerLiteral(0, 0, "0"), newSymbol, insNumber));
                         //insNumber++; 
@@ -153,7 +157,7 @@ public class BasicBlock implements Operand {
                         newHash.add(newSymbol);
                         for(Symbol s : varMap.keySet()){
                             //update varMap:
-                            if (s.name().equals(opOneName.substring(0, opOneName.indexOf("_")))){
+                            if (s.name().equals(opOneName.substring(0, opOneName.lastIndexOf("_")))){
                                 varMap.put(s, newHash);
                             }
                         }
@@ -168,8 +172,9 @@ public class BasicBlock implements Operand {
                         Symbol operandTwoSymbol = (Symbol) intIns.getOperandTwo();
                         String opTwoName = (operandTwoSymbol).name();
                         if ((opTwoName.contains("-1") && !inFunc) || opTwoName.contains("-2")){
-                            System.out.println("warning: variable " + opTwoName.substring(0, opTwoName.indexOf("_")) + " has not been initialized!");
-                            Symbol newSymbol = new Symbol(operandTwoSymbol.name().substring(0, opTwoName.indexOf("_")) + "_" + insNumber, operandTwoSymbol.type().toString(), "var", operandTwoSymbol.scope);
+                            System.out.println("intIns " + intIns);
+                            System.out.println("warning: variable " + opTwoName.substring(0, opTwoName.lastIndexOf("_")) + " has not been initialized!");
+                            Symbol newSymbol = new Symbol(operandTwoSymbol.name().substring(0, opTwoName.lastIndexOf("_")) + "_" + insNumber, operandTwoSymbol.type().toString(), "var", operandTwoSymbol.scope);
                             intIns.putOperandTwo(newSymbol);
                             //this.IntermediateInstructionList.add(new IntermediateInstruction(SSAOperator.MOVE, new IntegerLiteral(0, 0, "0"), newSymbol, insNumber));
                             //insNumber++;
@@ -178,7 +183,7 @@ public class BasicBlock implements Operand {
                             newHash.add(newSymbol);
                             for(Symbol s : varMap.keySet()){
                                 //update varMap:
-                                if (s.name().equals(opTwoName.substring(0, opTwoName.indexOf("_")))){
+                                if (s.name().equals(opTwoName.substring(0, opTwoName.lastIndexOf("_")))){
                                     varMap.put(s, newHash);
                                 }
                             }
@@ -356,6 +361,7 @@ public class BasicBlock implements Operand {
                 case END:
                     break;
                 case LOAD:
+                case NONE:// this used to be a break statement 
                 case NEG:
                     if (live.contains(ii.instNum())) {
                         live.remove(ii.instNum());
@@ -363,9 +369,6 @@ public class BasicBlock implements Operand {
                     if (ii.getOperandOne() != null) {
                         live.add(ii.getOperandOne());
                     }
-                    break;
-
-                case NONE:
                     break;
 
                 case NOT:

@@ -1,12 +1,11 @@
 main
-bool i, j; 
 
-{ 
-    let i = true; 
-    let j = false; 
-
-    call printBool(i);
-    call printBool(j);
-    call printBool(not i);
-    call printBool(not j );
+int x, y; 
+{
+    let x = 10; 
+    let y = 0; 
+    while(x > y) do 
+        let y += 1; 
+        call printInt(y);
+    od;
 }.

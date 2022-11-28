@@ -98,12 +98,11 @@ public class Compiler {
     }
 
     public String optimization(List<String> optArguments, CommandLine cmd){
-        System.out.println("optArguments " + optArguments); 
         Optimization optimization = new Optimization(ssa);
 
         if (cmd.hasOption("max")){
             optimization.runUntilConvergence(optArguments);
-            System.out.println(ssa.asDotGraph());
+            //System.out.println(ssa.asDotGraph());
             return ssa.asDotGraph();
         }
         for (String opt : optArguments){
@@ -132,7 +131,7 @@ public class Compiler {
             }
         }
         //Optimizer.copyPropagation(ssa);
-        System.out.println(ssa.asDotGraph());
+        //System.out.println(ssa.asDotGraph());
         return ssa.asDotGraph();
     }
 

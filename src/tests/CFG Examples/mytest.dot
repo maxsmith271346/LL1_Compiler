@@ -1,5 +1,17 @@
 digraph G { 
-BB1[shape=record, label="<b>main\nBB1|{3 : READ_I []|elim: 4 : MOVE (3) y_4 []|5 : READ_I []|elim: 6 : MOVE (5) x_6 []|<cfoo7>7 : CALL x_6 foo []|8 : MOVE (7) y_8 []|9 : WRITE y_8 [MOVE (7) y_8 ]|10 : END [MOVE (7) y_8 ]}"];
-BB1:cfoo7 -> BB2:b [];
-BB2[shape=record, label="<b>foo\nBB2|{0 : WRITE z_-3 []|elim: 1 : MOVE 4 j_1 []|2 : RET 4 []}"];
+BB3[shape=record, label="<b>BB3|{8 : ADD a_0 5 [a_15, (8), d_17, a_0, c_2, d_3, 1, 4, 6, b_1, 5, d_22]|9 : SUB (8) b_1 [a_15, d_17, a_0, c_2, d_3, (9), 1, 4, 6, b_1, 5, d_22]|10 : MUL b_1 6 [a_15, d_17, a_0, c_2, d_3, (9), 1, 4, 6, b_1, 5, d_22, (10)]|11 : CMP (9) (10) [a_15, d_17, a_0, c_2, d_3, (11), 1, 4, 6, b_1, 5, d_22]|12 : BLE (11) [6] [a_15, 1, d_17, 4, a_0, c_2, 6, b_1, 5, d_3, d_22]}"];
+BB3:s -> BB5:n [label="then"];
+BB3:s -> BB6:n [label="else"];
+BB4[shape=record, label="<b>BB4|{28 : SUB c_2 a_0 [a_0, b_1, (28)]|29 : ADD (28) b_1 [a_0, b_1, (29)]|30 : MOVE (29) e_30 [a_0, b_1, e_30]|31 : WRITE_I e_30 [a_0, b_1]|32 : ADD a_0 b_1 [(32)]|33 : MOVE (32) a_33 []|34 : END []}"];
+BB1[shape=record, label="<b>main\nBB1|{0 : MOVE 1 a_0 [a_15, d_17, 4, a_0, 5, 3, 1, 4, 2, 6, 5, d_22]|1 : MOVE 2 b_1 [a_15, d_17, 4, a_0, 5, 3, 1, 4, 6, b_1, 5, d_22]|2 : MOVE 3 c_2 [a_15, d_17, 4, a_0, c_2, 5, 1, 4, 6, b_1, 5, d_22]|3 : MOVE 4 d_3 [a_15, d_17, a_0, c_2, 5, d_3, 1, 4, 6, b_1, 5, d_22]|4 : MOVE 5 e_4 [a_15, 1, d_17, 4, a_0, 6, c_2, b_1, 5, d_3, d_22]}"];
+BB1:s -> BB2:n [label=""];
+BB6[shape=record, label="<b>BB6|{21 : ADD a_0 b_1 [a_15, d_17, 1, 4, a_0, 6, c_2, b_1, 5, d_3, (21)]|22 : MOVE (21) d_22 [a_15, d_17, 1, 4, a_0, 6, c_2, b_1, 5, d_3, d_22]|23 : WRITE_I d_3 [a_15, d_17, 1, 4, a_0, 6, c_2, b_1, 5, d_3, d_22]|35 : MOVE a_0 a_24 [a_15, d_17, 1, 4, a_0, 6, c_2, b_1, 5, d_3, d_22]|37 : MOVE d_22 d_25 [a_15, d_17, 1, 4, a_0, 6, c_2, b_1, 5, d_3, d_22]}"];
+BB6:s -> BB7:n [label=""];
+BB2[shape=record, label="<b>BB2|{5 : ADD c_2 4 [a_15, d_17, a_0, c_2, d_3, 1, 4, 6, b_1, 5, (5), d_22]|6 : CMP (5) d_3 [a_15, d_17, a_0, c_2, d_3, 1, 4, 6, (6), b_1, 5, d_22]|7 : BGE (6) [4] [a_15, 1, d_17, 4, a_0, 6, c_2, b_1, 5, d_3, d_22]}"];
+BB2:s -> BB3:n [label="then"];
+BB2:s -> BB4:n [label="else"];
+BB5[shape=record, label="<b>BB5|{13 : DIV a_0 c_2 [1, 4, a_0, 6, c_2, b_1, 5, d_3, d_22, (13)]|14 : MUL (13) d_3 [1, 4, a_0, 6, c_2, b_1, 5, d_3, (14), d_22]|15 : MOVE (14) a_15 [a_15, 1, 4, a_0, 6, c_2, b_1, 5, d_3, d_22]|16 : SUB d_3 1 [a_15, 1, 4, a_0, 6, c_2, b_1, 5, d_3, (16), d_22]|17 : MOVE (16) d_17 [a_15, d_17, 1, 4, a_0, 6, c_2, b_1, 5, d_3, d_22]|18 : WRITE_I a_0 [a_15, d_17, 1, 4, a_0, 6, c_2, b_1, 5, d_3, d_22]|19 : WRITE_I d_3 [a_15, d_17, 1, 4, a_0, 6, c_2, b_1, 5, d_3, d_22]|35 : MOVE a_15 a_24 [a_15, d_17, 1, 4, a_0, 6, c_2, b_1, 5, d_3, d_22]|37 : MOVE d_17 d_25 [a_15, d_17, 1, 4, a_0, 6, c_2, b_1, 5, d_3, d_22]|20 : BRA [7] [a_15, d_17, 1, 4, a_0, 6, c_2, b_1, 5, d_3, d_22]}"];
+BB5:s -> BB7:n [label=""];
+BB7[shape=record, label="<b>BB7|{elim: 24 : PHI a_15 a_0 [a_15, 1, d_17, 4, a_0, 6, c_2, b_1, 5, d_3, d_22]|elim: 25 : PHI d_17 d_22 [a_15, 1, d_17, 4, a_0, 6, c_2, b_1, 5, d_3, d_22]|26 : WRITE_NL [a_15, 1, d_17, 4, a_0, 6, c_2, b_1, 5, d_3, d_22]|27 : BRA [2] [a_15, 1, d_17, 4, a_0, 6, c_2, b_1, 5, d_3, d_22]}"];
+BB7:s -> BB2:n [label=""];
 }

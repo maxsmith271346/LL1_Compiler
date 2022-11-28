@@ -306,10 +306,10 @@ public class Optimization {
                                 if (ii.getOperator() == SSAOperator.MOVE){
                                     if (ii.getOperandOne() instanceof Symbol){
                                         String operandOneName = ((Symbol) ii.getOperandOne()).name();
-                                        operandOneName = operandOneName.substring(0, operandOneName.indexOf("_"));
+                                        operandOneName = operandOneName.substring(0, operandOneName.lastIndexOf("_"));
     
                                         String operandName = ((Symbol) iiAvail.getOperandTwo()).name();
-                                        operandName = operandName.substring(0, operandName.indexOf("_"));
+                                        operandName = operandName.substring(0, operandName.lastIndexOf("_"));
                                         if (operandName.equals(operandOneName)){
                                             ii.setOperandOne(iiAvail.getOperandOne());
                                             change = true;
@@ -830,10 +830,10 @@ public class Optimization {
                                 if (ii.getOperator() == SSAOperator.MOVE){
                                     if (ii.getOperandOne() instanceof Symbol){
                                         String operandOneName = ((Symbol) ii.getOperandOne()).name();
-                                        operandOneName = operandOneName.substring(0, operandOneName.indexOf("_"));
+                                        operandOneName = operandOneName.substring(0, operandOneName.lastIndexOf("_"));
     
                                         String operandName = ((Symbol) iiAvail.getOperandTwo()).name();
-                                        operandName = operandName.substring(0, operandName.indexOf("_"));
+                                        operandName = operandName.substring(0, operandName.lastIndexOf("_"));
                                         if (operandName.equals(operandOneName)){
                                             System.out.println("ii before " + ii );
                                             ii.setOperandOne(iiAvail.getOperandOne());
