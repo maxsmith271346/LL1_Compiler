@@ -54,6 +54,7 @@ public class CodeGenerator {
     String procedureName; 
     int numberParameters;
     boolean epilogueGenerated;
+    int returnSTWIns;
     
     public CodeGenerator(SSA ssa, int numRegs){
         this.ssa = ssa;
@@ -74,6 +75,7 @@ public class CodeGenerator {
         returnReg = 0;
         inFunc = false;
         epilogueGenerated = false;
+        returnSTWIns = -1;
 
         generateCodeForProcedures();
     }
@@ -360,23 +362,28 @@ public class CodeGenerator {
                     case RET: 
                         if (ii.getOperandOne() != null){
                             if (ii.getRegisterOne() != null){
-                                instructions.add(DLX.assemble(DLX.ADD, returnReg, 0, ii.getRegisterOne()));
+                                instructions.add(DLX.assemble(DLX.ADD, ii.returnReg, 0, ii.getRegisterOne()));
                             }
                             else if (IntermediateInstruction.isConst(ii.getOperandOne())){
                                 if (ii.getOperandOne() instanceof IntegerLiteral){
-                                    instructions.add(DLX.assemble(DLX.ADDI, returnReg, 0, ((IntegerLiteral)ii.getOperandOne()).valueAsInt()));
+                                    instructions.add(DLX.assemble(DLX.ADDI, ii.returnReg, 0, ((IntegerLiteral)ii.getOperandOne()).valueAsInt()));
                                 }
                                 else if (ii.getOperandOne() instanceof FloatLiteral){
-                                    instructions.add(DLX.assemble(DLX.ADDI, returnReg, 0, ((FloatLiteral)ii.getOperandOne()).valueAsFloat()));
+                                    instructions.add(DLX.assemble(DLX.ADDI, ii.returnReg, 0, ((FloatLiteral)ii.getOperandOne()).valueAsFloat()));
                                 }
                                 if (ii.getOperandOne() instanceof BoolLiteral){
-                                    instructions.add(DLX.assemble(DLX.ADDI, returnReg, 0, (Boolean.parseBoolean(((BoolLiteral) ii.getOperandOne()).value()) ? 1 : 0)));
+                                    instructions.add(DLX.assemble(DLX.ADDI, ii.returnReg, 0, (Boolean.parseBoolean(((BoolLiteral) ii.getOperandOne()).value()) ? 1 : 0)));
                                 }
                             }
                         }
 
+                        if (returnSTWIns != -1){
+                            instructions.add(returnSTWIns);
+                        }
+
                         if (inFunc){
                             generateEpilogue(procedureName, numberParameters);
+                            epilogueGenerated = true;
                         }
                         break;
                     case STORE: 
@@ -822,12 +829,40 @@ public class CodeGenerator {
         for (int i = pushedRegisters.size() - 1; i >= 0; i--){
             instructions.add(DLX.assemble(DLX.POP, pushedRegisters.get(i), SP, 4));
         }
-
+        
+        returnSTWIns = -1;
         if (intIns.returnReg != null){
-            returnReg = intIns.returnReg;
+            //returnReg = intIns.returnReg;
+            returnReg = getRetRegForFunc(intIns);
+            //returnReg = getRetRegForFunc(intIns);
+            //System.out.println("nine");
+            //System.out.println(intIns.returnReg);
+            //System.out.println(returnReg);
+
+            instructions.add(DLX.assemble(DLX.LDW, intIns.returnReg, GDB, returnReg));
+            
         }
     }
 
+    public int getRetRegForFunc(IntermediateInstruction intIns){
+        for(IntermediateInstruction ii : procedureToBBList.get(intIns.getFuncName()).get(procedureToBBList.get(intIns.getFuncName()).size() - 1).getIntInsList()){
+            if (ii.getOperator() == SSAOperator.RET){
+                /*if (ii.returnReg == null){
+                    return 0;
+                }
+                else if (ii.returnReg < 0){*/
+                    ii.returnReg = spillRegOne;
+                    int offset = getOffset(ii.instNum());
+                    //System.out.println("intIns " + intIns.getFuncName());
+                    //System.out.println("offset " + offset);
+                    returnSTWIns = DLX.assemble(DLX.STW, spillRegOne, GDB, offset);
+                    return offset;
+                /* }
+                return ii.returnReg;*/
+            }
+        }
+        return 0;
+    }
 
     public void callerRegisterIntoCalleeRegister(IntermediateInstruction intIns){
         outerloop:

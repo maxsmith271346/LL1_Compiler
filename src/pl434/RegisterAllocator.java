@@ -48,7 +48,7 @@ public class RegisterAllocator {
         }*/
 
         buildInterferenceGraph();
-
+        //System.out.println("ssa " + ssa.asDotGraph());
         colorInterferenceGraph();
         
         /*for (String o : colorMap.keySet()){
@@ -172,7 +172,7 @@ public class RegisterAllocator {
         else{ 
             // if we cannot find a node with fewer than k neighbors
             // choose and remove an arbitrary node & mark it as "troublesome"
-            node = interferenceGraph.keySet().iterator().next();
+            node = interferenceGraph.keySet().iterator().next(); // should base this selection on heuristic (maybe with most neighbors?)
             removeNode(interferenceGraph, node);
         }
 
