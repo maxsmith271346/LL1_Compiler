@@ -39,11 +39,14 @@ function df(float x_val) : float {
     let x = 0.2;
     let next_x = x;
 
-    while ((call abs(call f(x)) > tolerance) or (current_itr > max_itr)) do
-        let current_itr += 1;
-        let next_x = x - (call f(x) / call df(x));
-        let x = next_x;
-    od;
+    //while ((call abs(call f(x)) > tolerance) or (current_itr > max_itr)) do
+    //    let current_itr += 1;
+    //    let next_x = x - (call f(x) / call df(x));
+    //    let x = next_x;
+    //od;
+
+    call printFloat(call f(x));
+    call printFloat(call df(x));
 
     call printFloat(x);
 }.

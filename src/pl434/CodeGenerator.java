@@ -54,7 +54,9 @@ public class CodeGenerator {
     String procedureName; 
     int numberParameters;
     boolean epilogueGenerated;
-    int returnOffset;
+    Symbol currentFunc;
+    //int returnOffset;
+    //HashMap<Symbol, Integer> funcToReturnOffset;
     
     public CodeGenerator(SSA ssa, int numRegs){
         this.ssa = ssa;
@@ -75,7 +77,8 @@ public class CodeGenerator {
         returnReg = 0;
         inFunc = false;
         epilogueGenerated = false;
-        returnOffset = -1;
+        //returnOffset = -1;
+        //funcToReturnOffset = new HashMap<Symbol, Integer>();
 
         generateCodeForProcedures();
     }
@@ -93,6 +96,7 @@ public class CodeGenerator {
             epilogueGenerated = false;
             inFunc = true;
             int firstIns = instructions.size();
+            currentFunc = procedureToBBList.get(s).get(0).function;
             generatePrologue(s, procedureToBBList.get(s).get(0));
             if (!FunctionToFirstInstruction.containsKey(procedureToBBList.get(s).get(0).function)){
                 FunctionToFirstInstruction.put(procedureToBBList.get(s).get(0).function, firstIns);
@@ -378,9 +382,7 @@ public class CodeGenerator {
                             }
                         }
 
-                        if (returnOffset != -1){
-                            instructions.add(DLX.assemble(DLX.STW, ii.returnReg, 30, returnOffset));
-                        }
+                        instructions.add(DLX.assemble(DLX.STW, ii.returnReg, 30, getOffset(currentFunc) ));
 
                         if (inFunc){
                             generateEpilogue(procedureName, numberParameters);
@@ -866,10 +868,11 @@ public class CodeGenerator {
         }
         
         //returnSTWIns = -1;
-        returnOffset = -1;
         if (intIns.returnReg != null){
             //getRetRegForFunc(intIns);
-            returnOffset = getOffset(intIns.getFunc());
+
+            //funcToReturnOffset.put(intIns.getFunc(), getOffset(intIns.getFunc()));
+            //returnOffset = getOffset(intIns.getFunc());
             instructions.add(DLX.assemble(DLX.LDW, intIns.returnReg, GDB, getOffset(intIns.getFunc())));
             
         }

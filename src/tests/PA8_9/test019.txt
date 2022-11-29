@@ -7,29 +7,25 @@ int a, b, c, d;
 
 function foo(int x) : int {
     let a = x + call bar(x); 
-    call printInt(1);
     return a;
 };
 
 function bar(int y) : int {
-    let b = y * call boo(y); 
-    call printInt(2);
-    call printInt(b);
+    let b = y * call boo(y);
+   // call printInt(b);
     return b;
 };
 
 function boo(int z) : int {
     let c = z;
-    call printInt(3);
-    call printInt(c);
-    return c; 
+    return c;
 };
 
 {
-    //call printInt( call foo(1) );
-    call printInt( call bar(2) );
-    call printInt( call boo(3) );
+    call printInt( call foo(1) ); // 1 + bar(1) -> bar(1) = 1 * boo(1) -> boo(1) = 1
+    call printInt( call bar(2) ); // 2 * boo(2) -> boo(2) = 2
+    call printInt( call boo(3) ); // 3
 
-    //let d = a + b + c;
-    //call printInt(d);
+    let d = a + b + c;
+    call printInt(d);
 }.
