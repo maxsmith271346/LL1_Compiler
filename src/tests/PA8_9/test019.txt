@@ -22,6 +22,9 @@ function boo(int z) : int {
 };
 
 {
+    //let a = 0; 
+    //let b = 0; 
+    //let c = 0;
     call printInt( call foo(1) ); // 1 + bar(1) -> bar(1) = 1 * boo(1) -> boo(1) = 1
     call printInt( call bar(2) ); // 2 * boo(2) -> boo(2) = 2
     call printInt( call boo(3) ); // 3

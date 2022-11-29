@@ -158,7 +158,8 @@ public class CodeGenerator {
         else{ 
             instructions.add(DLX.assemble(DLX.ADD, SP, FP, 0));
             instructions.add(DLX.assemble(DLX.POP, FP, SP, 4));
-            instructions.add(DLX.assemble(DLX.POP, BA, SP, 4 * numberParameters));
+            //instructions.add(DLX.assemble(DLX.POP, BA, SP, 4 *(1 + numberParameters)));
+            instructions.add(DLX.assemble(DLX.POP, BA, SP, 4 * (numberParameters)));
             //instructions.add(DLX.assemble(DLX.POP, BA, SP, 4));
             // instructions.add(DLX.assemble(DLX.PSH, ))
             //instructions.add(DLX.assemble(DLX.WRI, BA));
@@ -181,7 +182,7 @@ public class CodeGenerator {
 
             for (IntermediateInstruction ii : bb.getIntInsList()){
                 if (ii.isElim()){continue;}
-
+                //System.out.println("ii " + ii);
                 //instructions.add(DLX.assemble(DLX.WRI, 31));
                 List<Integer> instructionPieces;
 
@@ -222,7 +223,14 @@ public class CodeGenerator {
                                 }
                             }
                         }
-                        registersInUse.add(ii.getRegisterTwo());
+                        /*if (ii.getOperandTwo() instanceof Symbol){
+                            if (((Symbol) ii.getOperandTwo()).scope != 1){
+                                registersInUse.add(ii.returnReg);
+                            }
+                        }
+                        else{*/
+                            registersInUse.add(ii.returnReg);
+                        //}
                         break;
                     case MOVE: 
                             // if there is no register allocated to the lhs, then we will need to have a store instruction after the ADD
@@ -247,7 +255,14 @@ public class CodeGenerator {
                                 }
                             }
 
-                        registersInUse.add(ii.getRegisterTwo());
+                            /*if (ii.getOperandTwo() instanceof Symbol){
+                                if (((Symbol) ii.getOperandTwo()).scope != 1){
+                                    registersInUse.add(ii.getRegisterTwo());
+                                }
+                            }
+                            else{*/
+                                registersInUse.add(ii.getRegisterTwo());
+                            //}
                         break;
                     case WRITE_I:
                         if (ii.getOperandOne() instanceof IntegerLiteral){
@@ -374,7 +389,7 @@ public class CodeGenerator {
                                     instructions.add(DLX.assemble(DLX.ADDI, ii.returnReg, 0, ((IntegerLiteral)ii.getOperandOne()).valueAsInt()));
                                 }
                                 else if (ii.getOperandOne() instanceof FloatLiteral){
-                                    instructions.add(DLX.assemble(DLX.ADDI, ii.returnReg, 0, ((FloatLiteral)ii.getOperandOne()).valueAsFloat()));
+                                    instructions.add(DLX.assemble(DLX.fADDI, ii.returnReg, 0, ((FloatLiteral)ii.getOperandOne()).valueAsFloat()));
                                 }
                                 if (ii.getOperandOne() instanceof BoolLiteral){
                                     instructions.add(DLX.assemble(DLX.ADDI, ii.returnReg, 0, (Boolean.parseBoolean(((BoolLiteral) ii.getOperandOne()).value()) ? 1 : 0)));

@@ -925,7 +925,23 @@ public class Optimization {
                     for (IntermediateInstruction iiAvail : ii.availableExpressions){
                         if (iiAvail.isElim()){continue;}
                         if (!iiAvail.conflicts(ii)){
-                            if (iiAvail.getOperator() != SSAOperator.MOVE){
+                            if (iiAvail.getOperator() == SSAOperator.CMP && ii.getOperator() == SSAOperator.CMP){
+                                //System.out.println("iiAvail " + iiAvail.cmp);
+                                //System.out.println("ii " + ii.cmp);
+                                if (iiAvail.cmp.equals(ii.cmp)){
+                                    if (ii.insNum() > iiAvail.insNum()){
+                                        if (toReplace.keySet().contains(ii.insNum())){
+                                            if (iiAvail.insNum() < toReplace.get(ii.insNum())){
+                                                toReplace.put(ii.insNum(), iiAvail.insNum());
+                                            }
+                                        }
+                                        else{ 
+                                            toReplace.put(ii.insNum(), iiAvail.insNum());
+                                        }
+                                    }
+                                }
+                            }
+                            else if (iiAvail.getOperator() != SSAOperator.MOVE){
                                 if (ii.insNum() > iiAvail.insNum()){
                                     if (toReplace.keySet().contains(ii.insNum())){
                                         if (iiAvail.insNum() < toReplace.get(ii.insNum())){
@@ -1175,7 +1191,9 @@ public class Optimization {
                     }
                 }
                 availableExpressions.removeAll(toRemove);
-                availableExpressions.add(new IntermediateInstruction(ii.getOperator(), ii.getOperandOne(), ii.getOperandTwo(), ii.insNum(), ii.instNum().type()));
+                IntermediateInstruction newII = new IntermediateInstruction(ii.getOperator(), ii.getOperandOne(), ii.getOperandTwo(), ii.insNum(), ii.instNum().type());
+                newII.cmp = ii.cmp;
+                availableExpressions.add(newII);
             }// Add other instructions to the set
             else if (ii.getOperator() == SSAOperator.CALL){
                 toRemove.clear();
@@ -1196,7 +1214,10 @@ public class Optimization {
             }
             else{ 
                 if (opsToAdd.contains(ii.getOperator())){
-                    availableExpressions.add(new IntermediateInstruction(ii.getOperator(), ii.getOperandOne(), ii.getOperandTwo(), ii.insNum(), ii.instNum().type()));
+                    //availableExpressions.add(new IntermediateInstruction(ii.getOperator(), ii.getOperandOne(), ii.getOperandTwo(), ii.insNum(), ii.instNum().type()));
+                    IntermediateInstruction newII = new IntermediateInstruction(ii.getOperator(), ii.getOperandOne(), ii.getOperandTwo(), ii.insNum(), ii.instNum().type());
+                    newII.cmp = ii.cmp;
+                    availableExpressions.add(newII);
                 }
             }
         }

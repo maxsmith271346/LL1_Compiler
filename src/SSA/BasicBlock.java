@@ -104,8 +104,9 @@ public class BasicBlock implements Operand {
     public InstructionNumber add(IntermediateInstruction intIns){
         IntermediateInstruction uninitMoveIns = createMoveForUninitializedVars(intIns, SSA.inFunc);
         if (uninitMoveIns != null){
-            this.IntermediateInstructionList.add(uninitMoveIns);
-            insNumber++;
+            //this.IntermediateInstructionList.add(uninitMoveIns);
+            this.addFront(uninitMoveIns);
+            //insNumber++;
         }
         this.IntermediateInstructionList.add(intIns);
         intIns.setInsNum(insNumber);

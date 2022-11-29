@@ -1,12 +1,15 @@
 main
 
-bool x;
+int x, y;
+
+function foo () : void
+{
+    let x = 2;
+};
 
 {
-    let x = true;
-    if (x == true) then 
-        call printInt(1);
-    else
-        call printInt(2);
-    fi;
+    let x = 10;
+    call printInt(x); 
+    call foo();
+    call printInt(x); 
 }.
