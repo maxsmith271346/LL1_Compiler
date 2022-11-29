@@ -54,7 +54,7 @@ public class CodeGenerator {
     String procedureName; 
     int numberParameters;
     boolean epilogueGenerated;
-    int returnSTWIns;
+    int returnOffset;
     
     public CodeGenerator(SSA ssa, int numRegs){
         this.ssa = ssa;
@@ -68,14 +68,14 @@ public class CodeGenerator {
         jumpsToFix = new HashMap<Symbol, List<Integer>>();
         procedureToBBList = new HashMap<String, List<BasicBlock>>();
         registersInUse = new HashSet<Integer>();
-        registersInUse.add(spillRegOne);
-        registersInUse.add(spillRegTwo); 
+        //registersInUse.add(spillRegOne);
+        //registersInUse.add(spillRegTwo); 
         FunctionToFirstInstruction = new HashMap<Symbol, Integer>();
         firstInsOfBBs = new HashMap<BasicBlock, Integer>();
         returnReg = 0;
         inFunc = false;
         epilogueGenerated = false;
-        returnSTWIns = -1;
+        returnOffset = -1;
 
         generateCodeForProcedures();
     }
@@ -95,7 +95,7 @@ public class CodeGenerator {
             int firstIns = instructions.size();
             generatePrologue(s, procedureToBBList.get(s).get(0));
             if (!FunctionToFirstInstruction.containsKey(procedureToBBList.get(s).get(0).function)){
-                FunctionToFirstInstruction.put(procedureToBBList.get(s).get(0).function, instructions.size() + 1);
+                FunctionToFirstInstruction.put(procedureToBBList.get(s).get(0).function, firstIns);
             }
             if (jumpsToFix.containsKey(procedureToBBList.get(s).get(0).function)){
                 for (Integer i : jumpsToFix.get(procedureToBBList.get(s).get(0).function)){
@@ -143,7 +143,7 @@ public class CodeGenerator {
             //instructions.add(DLX.assemble(DLX.WRI, BA));
             instructions.add(DLX.assemble(DLX.PSH, FP, SP, -4));
             instructions.add(DLX.assemble(DLX.ADD, FP, 0, SP));
-            instructions.add(DLX.assemble(DLX.SUBI, SP, SP, 4 * getNumberOfVars(2, rootBB)));
+            instructions.add(DLX.assemble(DLX.SUBI, SP, SP, 4 * (getNumberOfVars(2, rootBB) + 1)));
         }
     }
 
@@ -154,7 +154,8 @@ public class CodeGenerator {
         else{ 
             instructions.add(DLX.assemble(DLX.ADD, SP, FP, 0));
             instructions.add(DLX.assemble(DLX.POP, FP, SP, 4));
-            instructions.add(DLX.assemble(DLX.POP, BA, SP, 4 * numberParameters));
+            //instructions.add(DLX.assemble(DLX.POP, BA, SP, 4 * numberParameters));
+            instructions.add(DLX.assemble(DLX.POP, BA, SP, 4));
             // instructions.add(DLX.assemble(DLX.PSH, ))
             //instructions.add(DLX.assemble(DLX.WRI, BA));
             instructions.add(DLX.assemble(DLX.RET, BA));
@@ -217,7 +218,7 @@ public class CodeGenerator {
                                 }
                             }
                         }
-                        //registersInUse.add(ii.getRegisterTwo());
+                        registersInUse.add(ii.getRegisterTwo());
                         break;
                     case MOVE: 
                             // if there is no register allocated to the lhs, then we will need to have a store instruction after the ADD
@@ -242,7 +243,7 @@ public class CodeGenerator {
                                 }
                             }
 
-                        //registersInUse.add(ii.getRegisterTwo());
+                        registersInUse.add(ii.getRegisterTwo());
                         break;
                     case WRITE_I:
                         if (ii.getOperandOne() instanceof IntegerLiteral){
@@ -377,8 +378,8 @@ public class CodeGenerator {
                             }
                         }
 
-                        if (returnSTWIns != -1){
-                            instructions.add(returnSTWIns);
+                        if (returnOffset != -1){
+                            instructions.add(DLX.assemble(DLX.STW, ii.returnReg, 30, returnOffset));
                         }
 
                         if (inFunc){
@@ -408,6 +409,9 @@ public class CodeGenerator {
                 }
                 if (spillResultLoadIns != -1){
                     instructions.add(spillResultLoadIns);
+                }
+                if (ii.returnReg != null){
+                    registersInUse.add(ii.returnReg);
                 }
             }
         }
@@ -555,7 +559,7 @@ public class CodeGenerator {
     public int getNumberOfVars(int scope, BasicBlock rootBB){
         int varCount = 0;
         for (Symbol s : rootBB.varMap.keySet()){
-            if (s.scope == 1){
+            if (s.scope == scope){
                 varCount++;
             }
         }
@@ -830,38 +834,14 @@ public class CodeGenerator {
             instructions.add(DLX.assemble(DLX.POP, pushedRegisters.get(i), SP, 4));
         }
         
-        returnSTWIns = -1;
+        //returnSTWIns = -1;
+        returnOffset = -1;
         if (intIns.returnReg != null){
-            //returnReg = intIns.returnReg;
-            returnReg = getRetRegForFunc(intIns);
-            //returnReg = getRetRegForFunc(intIns);
-            //System.out.println("nine");
-            //System.out.println(intIns.returnReg);
-            //System.out.println(returnReg);
-
-            instructions.add(DLX.assemble(DLX.LDW, intIns.returnReg, GDB, returnReg));
+            //getRetRegForFunc(intIns);
+            returnOffset = getOffset(intIns.getFunc());
+            instructions.add(DLX.assemble(DLX.LDW, intIns.returnReg, GDB, getOffset(intIns.getFunc())));
             
         }
-    }
-
-    public int getRetRegForFunc(IntermediateInstruction intIns){
-        for(IntermediateInstruction ii : procedureToBBList.get(intIns.getFuncName()).get(procedureToBBList.get(intIns.getFuncName()).size() - 1).getIntInsList()){
-            if (ii.getOperator() == SSAOperator.RET){
-                /*if (ii.returnReg == null){
-                    return 0;
-                }
-                else if (ii.returnReg < 0){*/
-                    ii.returnReg = spillRegOne;
-                    int offset = getOffset(ii.instNum());
-                    //System.out.println("intIns " + intIns.getFuncName());
-                    //System.out.println("offset " + offset);
-                    returnSTWIns = DLX.assemble(DLX.STW, spillRegOne, GDB, offset);
-                    return offset;
-                /* }
-                return ii.returnReg;*/
-            }
-        }
-        return 0;
     }
 
     public void callerRegisterIntoCalleeRegister(IntermediateInstruction intIns){
@@ -879,19 +859,23 @@ public class CodeGenerator {
                                 }
                                 if (intIns.getRegisterOne() != null){
                                     instructions.add(DLX.assemble(DLX.ADD, ii.getRegisterOne(), 0, intIns.getRegisterOne()));
+                                    registersInUse.add(ii.getRegisterOne());
                                     found = true;
                                 }
                                 else if (IntermediateInstruction.isConst(intIns.getOperandOne())){
                                     if (intIns.getOperandOne() instanceof FloatLiteral){
                                         instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterOne(), 0, Float.parseFloat(((FloatLiteral) intIns.getOperandOne()).value())));
+                                        registersInUse.add(ii.getRegisterOne());
                                         found = true;
                                     }
                                     else if (intIns.getOperandOne() instanceof IntegerLiteral){
                                         instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterOne(), 0, Integer.parseInt(((IntegerLiteral) intIns.getOperandOne()).value())));
+                                        registersInUse.add(ii.getRegisterOne());
                                         found = true;
                                     }
                                     else if (intIns.getOperandTwo() instanceof BoolLiteral){
                                         instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterOne(), 0, (Boolean.parseBoolean(((BoolLiteral) intIns.getOperandTwo()).value()) ? 1 : 0)));
+                                        registersInUse.add(ii.getRegisterOne());
                                         found = true;
                                     }   
                                 }
@@ -904,19 +888,23 @@ public class CodeGenerator {
                                     }
                                     if (intIns.getRegisterOne() != null){
                                         instructions.add(DLX.assemble(DLX.ADD, ii.getRegisterTwo(), 0, intIns.getRegisterOne()));
+                                        registersInUse.add(ii.getRegisterTwo());
                                         found = true;
                                     }
                                     else if (IntermediateInstruction.isConst(intIns.getOperandTwo())){
                                         if (intIns.getOperandOne() instanceof FloatLiteral){
                                             instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterTwo(), 0, Float.parseFloat(((FloatLiteral) intIns.getOperandOne()).value())));
+                                            registersInUse.add(ii.getRegisterTwo());
                                             found = true;
                                         }
                                         else if (intIns.getOperandOne() instanceof IntegerLiteral){
                                             instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterTwo(), 0, Integer.parseInt(((IntegerLiteral) intIns.getOperandOne()).value())));
+                                            registersInUse.add(ii.getRegisterTwo());
                                             found = true;
                                         }
                                         else if (intIns.getOperandOne() instanceof BoolLiteral){
                                             instructions.add(DLX.assemble(DLX.ADDI, ii.getRegisterTwo(), 0, (Boolean.parseBoolean(((BoolLiteral) intIns.getOperandOne()).value()) ? 1 : 0)));
+                                            registersInUse.add(ii.getRegisterTwo());
                                             found = true;
                                         }   
                                     }

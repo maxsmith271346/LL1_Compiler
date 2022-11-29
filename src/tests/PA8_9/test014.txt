@@ -1,0 +1,32 @@
+// Justin Herring
+// recursive function that calls itself 5 times
+
+main
+
+int x, z;
+
+function foo(int depth): int {
+    int y;
+
+    let y = 2 + 2 * depth;
+    //call printInt(y);
+
+    if (depth <= 0) then
+        return depth;
+    else
+        return call foo(depth - 1) + y;
+        //return call foo(depth - 1);
+    fi;
+};
+
+{
+    let z = call foo(-92);
+    let x = call foo(5); // foo(4) + 12 -> 28 + 12
+    // foo(4) -> foo(3) + 10 -> 18 + 10
+    // foo(3) -> foo(2) + 8 -> 10 + 8 
+    // foo(2) -> foo(1) + 6 -> 4 + 6
+    // foo(1) -> foo(0) + 4 -> 0 + 4
+    // foo(0) -> 0
+    call printInt(x);
+    call printInt(z);
+}.

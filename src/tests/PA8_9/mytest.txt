@@ -1,11 +1,15 @@
 main
 
-int x, y; 
+int x, y;
+
+function foo () : void
 {
-    let x = 10; 
-    let y = 0; 
-    while(x > y) do 
-        let y += 1; 
-        call printInt(y);
-    od;
+    let x = 2;
+};
+
+{
+    let x = 10;
+    call printInt(x); 
+    call foo();
+    call printInt(x); 
 }.
