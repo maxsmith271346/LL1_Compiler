@@ -154,8 +154,8 @@ public class CodeGenerator {
         else{ 
             instructions.add(DLX.assemble(DLX.ADD, SP, FP, 0));
             instructions.add(DLX.assemble(DLX.POP, FP, SP, 4));
-            //instructions.add(DLX.assemble(DLX.POP, BA, SP, 4 * numberParameters));
-            instructions.add(DLX.assemble(DLX.POP, BA, SP, 4));
+            instructions.add(DLX.assemble(DLX.POP, BA, SP, 4 * numberParameters));
+            //instructions.add(DLX.assemble(DLX.POP, BA, SP, 4));
             // instructions.add(DLX.assemble(DLX.PSH, ))
             //instructions.add(DLX.assemble(DLX.WRI, BA));
             instructions.add(DLX.assemble(DLX.RET, BA));
@@ -581,6 +581,11 @@ public class CodeGenerator {
                 instructions.add(DLX.assemble(DLX.ADDI, spillRegTwo, 0, Integer.parseInt(((IntegerLiteral) intIns.getOperandTwo()).value())));
                 instructions.add(DLX.assemble(intRegOp, intIns.returnReg, spillRegOne, spillRegTwo));
             }
+            else if (intIns.getOperandOne() instanceof BoolLiteral){
+                instructions.add(DLX.assemble(DLX.ADDI, spillRegOne, 0, (Boolean.parseBoolean(((BoolLiteral) intIns.getOperandOne()).value()) ? 1 : 0)));
+                instructions.add(DLX.assemble(DLX.ADDI, spillRegTwo, 0, (Boolean.parseBoolean(((BoolLiteral) intIns.getOperandTwo()).value()) ? 1 : 0)));
+                instructions.add(DLX.assemble(intRegOp, intIns.returnReg, spillRegOne, spillRegTwo));
+            }
         }
 
         // only the first is constant, can use the operation with the constant c ONLY if the operation is commutative 
@@ -591,6 +596,10 @@ public class CodeGenerator {
             else if (intIns.getOperandOne() instanceof IntegerLiteral){
                 instructions.add(DLX.assemble(intConstOp, intIns.returnReg, intIns.getRegisterTwo(), Integer.parseInt(((IntegerLiteral) intIns.getOperandOne()).value())));
             }
+            else if (intIns.getOperandOne() instanceof BoolLiteral){
+                instructions.add(DLX.assemble(intConstOp, intIns.returnReg, intIns.getRegisterTwo(), (Boolean.parseBoolean(((BoolLiteral) intIns.getOperandOne()).value()) ? 1 : 0)));
+            }
+
         }
 
 
@@ -604,6 +613,11 @@ public class CodeGenerator {
                 instructions.add(DLX.assemble(DLX.ADDI, spillRegOne, 0, Integer.parseInt(((IntegerLiteral) intIns.getOperandOne()).value())));
                 instructions.add(DLX.assemble(intRegOp, intIns.returnReg, spillRegOne, intIns.getRegisterTwo()));
             }
+            else if (intIns.getOperandOne() instanceof BoolLiteral){
+                instructions.add(DLX.assemble(DLX.ADDI, spillRegOne, 0, (Boolean.parseBoolean(((BoolLiteral) intIns.getOperandOne()).value()) ? 1 : 0)));
+                instructions.add(DLX.assemble(intRegOp, intIns.returnReg, spillRegOne, intIns.getRegisterTwo()));
+            }
+            
         }
 
         // If the second operand is constant, can use the constant operation, do not have to worry about commutative property here
@@ -613,6 +627,9 @@ public class CodeGenerator {
             }
             else if (intIns.getOperandTwo() instanceof IntegerLiteral){
                 instructions.add(DLX.assemble(intConstOp, intIns.returnReg, intIns.getRegisterOne(), Integer.parseInt(((IntegerLiteral) intIns.getOperandTwo()).value())));
+            }
+            else if (intIns.getOperandTwo() instanceof BoolLiteral){
+                instructions.add(DLX.assemble(intConstOp, intIns.returnReg, intIns.getRegisterOne(), (Boolean.parseBoolean(((BoolLiteral) intIns.getOperandTwo()).value()) ? 1 : 0)));
             }
         }
 
@@ -624,6 +641,9 @@ public class CodeGenerator {
             else if (((Symbol) intIns.getOperandOne()).type() instanceof IntType){
                 instructions.add(DLX.assemble(intRegOp, intIns.returnReg, intIns.getRegisterOne(), intIns.getRegisterTwo()));
             }
+            else if (((Symbol) intIns.getOperandOne()).type() instanceof BoolType){
+                instructions.add(DLX.assemble(intRegOp, intIns.returnReg, intIns.getRegisterOne(), intIns.getRegisterTwo()));
+            }
         }
 
         else if (intIns.getOperandTwo() instanceof Symbol){
@@ -631,6 +651,9 @@ public class CodeGenerator {
                 instructions.add(DLX.assemble(floatRegOp, intIns.returnReg, intIns.getRegisterOne(), intIns.getRegisterTwo()));
             }
             else if (((Symbol) intIns.getOperandTwo()).type() instanceof IntType || ((Symbol) intIns.getOperandTwo()).type() instanceof ArrayType){
+                instructions.add(DLX.assemble(intRegOp, intIns.returnReg, intIns.getRegisterOne(), intIns.getRegisterTwo()));
+            }
+            else if (((Symbol) intIns.getOperandTwo()).type() instanceof BoolType){
                 instructions.add(DLX.assemble(intRegOp, intIns.returnReg, intIns.getRegisterOne(), intIns.getRegisterTwo()));
             }
         }
@@ -641,6 +664,9 @@ public class CodeGenerator {
                 instructions.add(DLX.assemble(floatRegOp, intIns.returnReg, intIns.getRegisterOne(), intIns.getRegisterTwo()));
             }
             else if (((InstructionNumber) intIns.getOperandOne()).type() instanceof IntType){
+                instructions.add(DLX.assemble(intRegOp, intIns.returnReg, intIns.getRegisterOne(), intIns.getRegisterTwo()));
+            }
+            else if (((InstructionNumber) intIns.getOperandOne()).type() instanceof BoolType){
                 instructions.add(DLX.assemble(intRegOp, intIns.returnReg, intIns.getRegisterOne(), intIns.getRegisterTwo()));
             }
         }
@@ -711,7 +737,12 @@ public class CodeGenerator {
         List<Integer> instructionPieces = new ArrayList<Integer>();
         instructions.add(0);
         instructionPieces.add(op); 
-        instructionPieces.add(ii.getRegisterOne());
+        if (ii.getRegisterOne() != null){
+            instructionPieces.add(ii.getRegisterOne());
+        }
+        else if (IntermediateInstruction.isConst(ii.getOperandOne())){ 
+            instructionPieces.add((Boolean.parseBoolean(((BoolLiteral) ii.getOperandOne()).value()) ? 1 : 0));
+        }
         instructionPieces.add(instructions.size() - 1);
         branchesToFix.put((BasicBlock) ii.getOperandTwo(), instructionPieces);        
     }
