@@ -1,6 +1,3 @@
-// Macy Drew
-// Repeat, nested if statements, num init to 0, dce (else stat)
-
 main
 
 int i, num, total;

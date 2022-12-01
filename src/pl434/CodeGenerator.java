@@ -752,14 +752,15 @@ public class CodeGenerator {
             return;
         }
         List<Integer> instructionPieces = new ArrayList<Integer>();
-        instructions.add(0);
         instructionPieces.add(op); 
         if (ii.getRegisterOne() != null){
             instructionPieces.add(ii.getRegisterOne());
         }
         else if (IntermediateInstruction.isConst(ii.getOperandOne())){ 
-            instructionPieces.add((Boolean.parseBoolean(((BoolLiteral) ii.getOperandOne()).value()) ? 1 : 0));
+            instructions.add(DLX.assemble(DLX.ADDI, spillRegOne, 0, (Boolean.parseBoolean(((BoolLiteral) ii.getOperandOne()).value()) ? 1 : 0)));
+            instructionPieces.add(spillRegOne);
         }
+        instructions.add(0);
         instructionPieces.add(instructions.size() - 1);
         branchesToFix.put((BasicBlock) ii.getOperandTwo(), instructionPieces);        
     }

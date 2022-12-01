@@ -331,11 +331,12 @@ public class BasicBlock implements Operand {
                     if (ii.getFunc().type().toString() != "void" && live.contains(ii.instNum())) {
                         live.remove(ii.instNum());
                     }
-                    for (Symbol s : this.varMap.keySet()){
+                    /*for (Symbol s : this.varMap.keySet()){
                         if (s.scope == 1){
                             live.addAll(varMap.get(s));
                         }
-                    }
+                    }*/
+                    live.addAll(getPreviousGlobalVars(i));
                     // for (Transitions t : this.transitionList) {
                     //     BasicBlock successor = t.toBB;
                     //     if (t.label.contains("call") && successor.name().equals(ii.getOperandOne().toString())) {
@@ -470,8 +471,82 @@ public class BasicBlock implements Operand {
         
         return change;
     }
+    
+    public Set<Operand> getPreviousGlobalVars(int i ){
+        Set<Operand> newSet = new HashSet<Operand>();
+        Boolean found = true;
+        for (int j = 0; j < i; j++){
+            if (this.getIntInsList().get(j).getOperandOne() != null){
+                if (this.getIntInsList().get(j).getOperandOne() instanceof Symbol){
+                    if (((Symbol) this.getIntInsList().get(j).getOperandOne()).scope == 1 && !((Symbol) this.getIntInsList().get(j).getOperandOne()).getSymbolType().equals("func")){
+                        Set<Operand> toRemove = new HashSet<Operand>();
+                        Set<Operand> toAdd = new HashSet<Operand>();
+                        found = false;
+                        for (Operand o : newSet){
+                            if (getBaseString(o).equals(getBaseString(this.getIntInsList().get(j).getOperandOne()))){
+                               // System.out.println("one " + o + " two " + this.getIntInsList().get(j).getOperandOne());
+                                if (getNumber(o) < getNumber(this.getIntInsList().get(j).getOperandOne())){
+                                    toRemove.add(o);
+                                    toAdd.add(this.getIntInsList().get(j).getOperandOne());
+                                }
+                                found = true;
+                            }
+                        }
+                        if (!found){
+                            newSet.add(this.getIntInsList().get(j).getOperandOne());
+                        }
 
+                        newSet.addAll(toAdd);
+                        newSet.removeAll(toRemove);
+                        //System.out.println("new Set " + newSet );
+                    }
+                }
+            }
 
+            if (this.getIntInsList().get(j).getOperandTwo() != null){
+                if (this.getIntInsList().get(j).getOperandTwo() instanceof Symbol ){
+                    if (((Symbol) this.getIntInsList().get(j).getOperandTwo()).scope == 1 && !((Symbol) this.getIntInsList().get(j).getOperandTwo()).getSymbolType().equals("func")){
+                        Set<Operand> toRemove = new HashSet<Operand>();
+                        Set<Operand> toAdd = new HashSet<Operand>();
+                        found = false;
+                        for (Operand o : newSet){
+                            if (getBaseString(o).equals(getBaseString(this.getIntInsList().get(j).getOperandTwo()))){
+                                //System.out.println("one " + o + " two " + this.getIntInsList().get(j).getOperandTwo());
+
+                                if (getNumber(o) < getNumber(this.getIntInsList().get(j).getOperandTwo())){
+                                    toRemove.add(o);
+                                    toAdd.add(this.getIntInsList().get(j).getOperandTwo());
+                                }
+                                found = true;
+                            }
+                        }
+                        if (!found){
+                            newSet.add(this.getIntInsList().get(j).getOperandTwo());
+                        }
+                        newSet.addAll(toAdd);
+                        newSet.removeAll(toRemove);
+                       // System.out.println("new Set " + newSet );
+                    }
+                }
+            } 
+        }
+
+        return newSet;
+    }
+
+    public String getBaseString(Operand o){
+        if (o instanceof Symbol && o.toString().contains("_")){
+            return o.toString().substring(0, o.toString().lastIndexOf("_"));
+        }
+        return o.toString();
+    }
+
+    public int getNumber(Operand o ){
+        if (o instanceof Symbol && o.toString().contains("_")){
+            return Integer.parseInt(o.toString().substring(o.toString().lastIndexOf("_") + 1, o.toString().length()));
+        }
+        return 0;
+    }
 }
 
 
