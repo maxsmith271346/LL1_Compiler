@@ -15,5 +15,5 @@ function foo () : int {
 };
 
 {
-    call printInt(call foo());
+    call printInt(1);
 }.

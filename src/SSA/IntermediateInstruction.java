@@ -258,6 +258,18 @@ public class IntermediateInstruction {
         return operandOne;
     }
 
+    public Operand getOp(int opNum){
+        if (opNum == 1){
+            return operandOne;
+        }
+        if (opNum == 2){
+            return operandTwo;
+        }
+        else{
+            return extraOperands.get(opNum - 3);
+        }
+    }
+
     public void setOperandOne(Operand newOp){
         this.operandOne = newOp;
     }

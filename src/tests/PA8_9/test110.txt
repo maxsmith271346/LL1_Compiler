@@ -10,28 +10,27 @@ int r, v, u, t;
     let s = 0;
     let i = 0;
     while (i <= n)  do
-        //let j = i;
+        let j = i;
         let m = n;
         let p = m;
-        //let f = 1;
-        let p = 5;
+        let f = 1;
         while (p > 1) do
-            //let f *= p;
+            let f *= p;
             let p--;
         od;
 
-        //let a = f;
-        //let p = m - j;
+        let a = f;
+        let p = m - j;
 
-        //let f = 1;
-        //while (p > 1) do
-        //    let f *= p;
-        //    let p--;
-        //od;
+        let f = 1;
+        while (p > 1) do
+            let f *= p;
+            let p--;
+        od;
 
-        //let b = f;
-        //let c = a + b;
-        //let s += c;
+        let b = f;
+        let c = a + b;
+        let s += c;
         let i++;
     od;
 

@@ -10,14 +10,16 @@ int r, v, u, t;
     let s = 0;
     let i = 0;
     while (i <= n)  do
-        //let j = i;
+        let j = i;
         let m = n;
         let p = m;
-        //let f = 1;
-        let p = 5;
+        let f = 1;
         while (p > 1) do
-            //let f *= p;
+            let f *= p;
             let p--;
+            //call printInt(p);
+            //x = call readInt();
+            //call printInt(x);
         od;
 
         //let a = f;

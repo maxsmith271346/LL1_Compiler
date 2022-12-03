@@ -11,7 +11,9 @@ import SSA.IntermediateInstruction.SSAOperator;
 import ast.BoolLiteral;
 import ast.FloatLiteral;
 import ast.IntegerLiteral;
+import pl434.CodeGenerator;
 import pl434.Symbol;
+import types.IntType;
 
 public class Optimization { 
     private SSA ssa;
@@ -29,31 +31,38 @@ public class Optimization {
                 // maybe have each of them return a boolean value that indicates whether or not there were code changes? 
                 change |= constantPropagation();
                 if (change) {
-                    ////System.out.println("CP");
+                    //System.out.println("CP");
+                    //System.out.println(ssa.asDotGraph());
                 }
                 change |= constantFolding();
                 if (change) {
                     //System.out.println("CF");
+                    //System.out.println(ssa.asDotGraph());
                 }
                 change |= copyPropagation();
                 if (change) {
                     //System.out.println("CPP");
+                    //System.out.println(ssa.asDotGraph());
                 }
                 change |= commonSubexpressionElimination();
                 if (change) {
                     //System.out.println("CSE");
+                    //System.out.println(ssa.asDotGraph());
                 }
                 change |= deadCodeElimination(); 
                 if (change) {
                     //System.out.println("DCE");
+                    //System.out.println(ssa.asDotGraph());
                 }
                 change |= orphanFunctionElimination();
                 if (change) {
                    //System.out.println("OFE");
+                   //System.out.println(ssa.asDotGraph());
                 }
                 change |= arithmeticSimplification();
                 if (change) {
-                    //System.out.println("AS");
+                   //System.out.println("AS");
+                   //System.out.println(ssa.asDotGraph());
                 }
                 //break; 
             }
@@ -70,42 +79,49 @@ public class Optimization {
                             change |= constantPropagation();
                             if (change) {
                                 //System.out.println("CP");
+                                //System.out.println(ssa.asDotGraph());
                             }
                             break;
                         case "cf":
                             change |= constantFolding();
                             if (change) {
                                 //System.out.println("CF");
+                                //System.out.println(ssa.asDotGraph());
                             }
                             break;
                         case "cpp": 
                             change |= copyPropagation();
                             if (change) {
                                 //System.out.println("CPP");
+                                //System.out.println(ssa.asDotGraph());
                             }
                             break;
                         case "cse": 
                             change |= commonSubexpressionElimination();
                             if (change) {
                                 //System.out.println("CSE");
+                                //System.out.println(ssa.asDotGraph());
                             }
                             break;
                         case "dce":
                             change |= deadCodeElimination(); 
                             if (change) {
                                 //System.out.println("DCE");
+                                //System.out.println(ssa.asDotGraph());
                             }
                             break;
                         case "ofe": 
                             change |= orphanFunctionElimination();
                             if (change) {
-                                //System.out.println("OPE");
+                               // System.out.println("OPE");
+                               // System.out.println(ssa.asDotGraph());
                             }
                             break; 
                         case "as": 
                             change |= arithmeticSimplification();
                             if (change) {
                                 //System.out.println("AS");
+                                //System.out.println(ssa.asDotGraph());
                             }
                             break; 
                         case "max":
@@ -124,6 +140,21 @@ public class Optimization {
     
     public Boolean isIntLit(Operand opnd) {
         return opnd instanceof IntegerLiteral;
+    }
+
+    public Boolean isIntType(Operand opnd) {
+        if (opnd instanceof Symbol){
+            if (((Symbol) opnd).type() instanceof IntType){ 
+                return true;
+            }
+        }
+        if (opnd instanceof InstructionNumber){
+            if (((InstructionNumber) opnd).type() instanceof IntType){ 
+                return true;
+            }
+        }
+
+        return false;
     }
 
     public Boolean isFloatLit(Operand opnd) {
@@ -203,7 +234,7 @@ public class Optimization {
                         // }
                         else if (!isConst(opnd1) && !isConst(opnd2) && opnd1 == opnd2) {
                             i.putOperator(SSAOperator.NONE);
-                            Operand newOpnd = isIntLit(opnd1) ? (new IntegerLiteral(-1, -1, "0")) : (new FloatLiteral(-1, -1, "0.0"));
+                            Operand newOpnd = isIntType(opnd1) ? (new IntegerLiteral(-1, -1, "0")) : (new FloatLiteral(-1, -1, "0.0"));
                             i.putOperandOne(newOpnd);
                             i.putOperandTwo(null);
                             change = true;
@@ -254,7 +285,7 @@ public class Optimization {
                         }
                         else if (!isConst(opnd1) && !isConst(opnd2) && opnd1 == opnd2) {
                             i.putOperator(SSAOperator.NONE);
-                            Operand newOpnd = isIntLit(opnd1) ? (new IntegerLiteral(-1, -1, "1")) : (new FloatLiteral(-1, -1, "1.0"));
+                            Operand newOpnd = isIntType(opnd1) ? (new IntegerLiteral(-1, -1, "1")) : (new FloatLiteral(-1, -1, "1.0"));
                             i.putOperandOne(newOpnd);
                             i.putOperandTwo(null);
                             change = true;
@@ -456,7 +487,7 @@ public class Optimization {
         }
 
         if (thenBlock != null){
-            toCheck.add(thenBlock);
+            /*toCheck.add(thenBlock);
             while(toCheck.size() != 0){
                 check = toCheck.get(0);
                 for (Transitions t : check.transitionList){
@@ -467,6 +498,12 @@ public class Optimization {
                 }
                 ssa.removeBB(check);
                 toCheck.remove(check);
+            }*/
+            for (BasicBlock bbChild : CodeGenerator.getChildren(thenBlock)){
+                //System.out.println(bbChild);
+                if (bbChild.BBNumber != thenBlock.BBNumber - 1){
+                    ssa.removeBB(bbChild);
+                }
             }
         }
 
@@ -661,7 +698,14 @@ public class Optimization {
                 }
 
                 // continue if either operands is non-constant
-                if (!(isConst(opnd1) && opnd2 != null && isConst(opnd2))) { continue; }
+                if (!(isConst(opnd1) && opnd2 != null && isConst(opnd2))) { 
+                    if (i.getOperator() != SSAOperator.NOT){
+                        continue; 
+                    }
+                    else if (!isConst(opnd1)){
+                        continue;
+                    }
+                }
                 switch (i.getOperator()) {
                     case NOT:
                         if (isBoolLit(opnd1)){
@@ -686,17 +730,22 @@ public class Optimization {
                             change = true;
                             i.putOperandOne(boolLit);
                         }
+                        i.putOperator(SSAOperator.NONE);
+                        i.putOperandTwo(null);
                         break;
                     case OR:
                         if (isBoolLit(opnd1)){
-                            Boolean or = ((BoolLiteral) opnd1).valueAsBool() && ((BoolLiteral) opnd2).valueAsBool();
+                            Boolean or = ((BoolLiteral) opnd1).valueAsBool() || ((BoolLiteral) opnd2).valueAsBool();
                             BoolLiteral boolLit = new BoolLiteral(-1, -1, or.toString());
                             change = true;
                             i.putOperandOne(boolLit);
                         }
+                        i.putOperator(SSAOperator.NONE);
+                        i.putOperandTwo(null);
                         break;
 
                     case ADD:
+                        //System.out.println(i.insNum() + " " + i);
                         if (isIntLit(opnd1)) {
                             Integer sum = ((IntegerLiteral) opnd1).valueAsInt() + ((IntegerLiteral) opnd2).valueAsInt();
                             IntegerLiteral intLit = new IntegerLiteral(-1, -1, Integer.toString(sum));
@@ -975,15 +1024,17 @@ public class Optimization {
     }
 
     public Boolean deadCodeElimination(){
-        /*for (BasicBlock bb : ssa.getBasicBlockList()){
+        for (BasicBlock bb : ssa.getBasicBlockList()){
             bb.lvEntry.clear();
             bb.lvExit.clear();
             for (IntermediateInstruction ii : bb.getIntInsList()){
                 ii.getLiveVars().clear();
             }
-        }*/
+        }
         // liveness analysis
-        Boolean globalChange = false;
+        //Boolean globalChange = false;
+        Boolean globalChange = true;
+        int count = 0;
         HashMap<BasicBlock, Integer> exitSetCount = new HashMap<BasicBlock, Integer>();
 
         Set<BasicBlock> bbList = ssa.getBasicBlockList();
@@ -997,112 +1048,127 @@ public class Optimization {
         }
 
         // Ensure proper visiting order for global liveness analysis
-        
-        Boolean change = false;
-
-         do {
-            // System.out.println("print");
-            change = false;
-            for (BasicBlock block: bbList) {
-                if (block.name().contains("elim")){continue;}
-                change |= block.liveAnalysis();
-            }
-        } while (change);
-
-        // DCE
-        for (BasicBlock block: bbList) {
-            if (block.name().contains("elim")){continue;}
-            for (int i = block.getIntInsList().size()-1; i >= 0; i--) {
-                IntermediateInstruction ii = block.getIntInsList().get(i);
-                if (ii.isElim()){continue;}
-                HashSet<Operand> live = ii.getLiveVars();
-                switch (ii.getOperator()) {
-                    case ADDA:
-                        break;
-                    case BEQ:
-                    case BGE:
-                    case BGT:
-                    case BLE:
-                    case BLT:
-                    case BNE:
-                    case BRA:
-                        break;
-
-                    case CALL:  //TODO:
-                        if (ii.getFunc().type().toString() != "void" && !live.contains(ii.instNum())) {  // result not used later
-                            ii.eliminate();
-                            globalChange = true;
-                        }
-                        break;
-                    
-                    case RET:
-                        for (int j = i + 1; j < block.getIntInsList().size(); j++) {
-                            if (!block.getIntInsList().get(j).isElim()){
-                                block.getIntInsList().get(j).eliminate();
-                                globalChange = true;
-                            }   
-                        }
-                        break;
-                        
-                    case END:
-                        break;
-                    case LOAD:
-                        break;
-                    case NEG:
-                        break;
-                    //case NONE:
-                    //    break;
-                    case NOT:
-                        break;
-                    case PHI:
-                        break;
-                    
-                    case STORE:
-                        break;
-                    case NONE:
-                    case ADD:
-                    case AND:
-                    case CMP:
-                    case DIV:
-                    case MOD:
-                    case MUL:
-                    case OR:
-                    case POW:
-                    case SUB:
-                        if (!live.contains(ii.instNum())) {  // result not used later
-                            ii.eliminate();
-                            globalChange = true;
-                        }
-                        break;
-
-                    case READ_I:
-                    case READ_B:
-                    case READ_F:
-                        if (!live.contains(ii.instNum())) {  // result not used later
-                            ii.eliminate();
-                            globalChange = true;
-                        }
-                        break;
-                    
-                    case WRITE_I:
-                    case WRITE_B:
-                    case WRITE_F:
-                        break;
-
-                    case MOVE:
-                        if (!live.contains(ii.getOperandTwo())) {  // result not used later
-                            ii.eliminate();
-                            globalChange = true;
-                        }
-                        break;
-                    
-                    default:
-                        break;
-                    
+        while(globalChange){
+            for (BasicBlock bb : ssa.getBasicBlockList()){
+                bb.lvEntry.clear();
+                bb.lvExit.clear();
+                for (IntermediateInstruction ii : bb.getIntInsList()){
+                    ii.getLiveVars().clear();
                 }
             }
+            globalChange = false;
+            count++;
+            Boolean change = false;
+
+            do {
+               // System.out.println("print");
+               change = false;
+               for (BasicBlock block: bbList) {
+                   if (block.name().contains("elim")){continue;}
+                   change |= block.liveAnalysis();
+               }
+           } while (change);
+   
+           // DCE
+           for (BasicBlock block: bbList) {
+               if (block.name().contains("elim")){continue;}
+               for (int i = block.getIntInsList().size()-1; i >= 0; i--) {
+                   IntermediateInstruction ii = block.getIntInsList().get(i);
+                   if (ii.isElim()){continue;}
+                   HashSet<Operand> live = ii.getLiveVars();
+                   switch (ii.getOperator()) {
+                       case ADDA:
+                           break;
+                       case BEQ:
+                       case BGE:
+                       case BGT:
+                       case BLE:
+                       case BLT:
+                       case BNE:
+                       case BRA:
+                           break;
+   
+                       case CALL:  //TODO:
+                           if (ii.getFunc().type().toString() != "void" && !live.contains(ii.instNum())) {  // result not used later
+                               ii.eliminate();
+                               globalChange = true;
+                           }
+                           break;
+                       
+                       case RET:
+                           for (int j = i + 1; j < block.getIntInsList().size(); j++) {
+                               if (!block.getIntInsList().get(j).isElim()){
+                                   block.getIntInsList().get(j).eliminate();
+                                   globalChange = true;
+                               }   
+                           }
+                           break;
+                           
+                       case END:
+                           break;
+                       case LOAD:
+                           break;
+                       case NEG:
+                           break;
+                       //case NONE:
+                       //    break;
+                       case NOT:
+                           break;
+                       case PHI:
+                           break;
+                       
+                       case STORE:
+                           break;
+                       case NONE:
+                       case ADD:
+                       case AND:
+                       case CMP:
+                       case DIV:
+                       case MOD:
+                       case MUL:
+                       case OR:
+                       case POW:
+                       case SUB:
+                           if (!live.contains(ii.instNum())) {  // result not used later
+                               ii.eliminate();
+                               globalChange = true;
+                           }
+                           break;
+   
+                       case READ_I:
+                       case READ_B:
+                       case READ_F:
+                           if (!live.contains(ii.instNum())) {  // result not used later
+                               ii.eliminate();
+                               globalChange = true;
+                           }
+                           break;
+                       
+                       case WRITE_I:
+                       case WRITE_B:
+                       case WRITE_F:
+                           break;
+   
+                       case MOVE:
+                           if (!live.contains(ii.getOperandTwo())) {  // result not used later
+                               ii.eliminate();
+                               globalChange = true;
+                           }
+                           break;
+                       
+                       default:
+                           break;
+                       
+                   }
+               }
+           }
         }
-        return globalChange;
+
+       if (count > 1){
+            return true;
+       }
+       return false;
+       // return globalChange;
     }
 
 

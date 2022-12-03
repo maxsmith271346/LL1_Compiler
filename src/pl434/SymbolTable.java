@@ -46,10 +46,10 @@ public class SymbolTable {
     public void insert (String name, Symbol symbol) throws RedeclarationError {
         if (symbols.get(name) != null) {
             // if there is a name clash, check if the clash is with a function
-            if (symbol.getSymbolType() == "func"){
+            if (symbol.getSymbolType().equals("func") || symbols.get(name).get(0).getSymbolType().equals("func")){
                 // go ahead and add the new symbol to the list
                 // will check the param types later
-                symbols.get(name).add(symbol);            
+                symbols.get(name).add(0, symbol);    
             }
             else{
                 throw new RedeclarationError(name);

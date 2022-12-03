@@ -102,7 +102,7 @@ public class RegisterAllocator {
         }
     }
 
-    public String getOpString(Operand op){
+    public static String getOpString(Operand op){
         String opString = op.toString();
         if (opString.contains("_")){
             opString = opString.substring(0, opString.lastIndexOf("_")); 

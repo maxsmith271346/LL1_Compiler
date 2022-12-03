@@ -109,18 +109,22 @@ public class Compiler {
             switch(opt){
                 case "cp": 
                     optimization.constantPropagation();
+                    //System.out.println("CP " + ssa.asDotGraph());
                     break;
                 case "cf": 
                     optimization.constantFolding();
+                    //System.out.println("CF " + ssa.asDotGraph());
                     break;
                 case "cpp": 
                     optimization.copyPropagation();
                     break;
                 case "cse": 
                     optimization.commonSubexpressionElimination();
+                    //System.out.println("CSE " + ssa.asDotGraph());
                     break;
                 case "dce":
                     optimization.deadCodeElimination(); 
+                    //System.out.println("DCE " + ssa.asDotGraph());
                     break;
                 case "ofe": 
                     optimization.orphanFunctionElimination();
@@ -185,6 +189,8 @@ public class Compiler {
     }
     private List<Symbol> tryResolveVariable(Token ident) {
         try {
+            //System.out.println(ident.lexeme());
+            //System.out.println(currScope.lookup(ident.lexeme()).get(0).getSymbolType());
             return currScope.lookup(ident.lexeme());
         } catch (SymbolNotFoundError e) {
             reportResolveSymbolError(ident.lexeme(), lineNumber(), charPosition());

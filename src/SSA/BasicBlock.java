@@ -250,12 +250,12 @@ public class BasicBlock implements Operand {
             for (IntermediateInstruction ii : IntermediateInstructionList){
                 if (ii.getOperator() != SSAOperator.MOVE && ii.getOperator() != SSAOperator.PHI){
                     if (ii.getOperandOne() != null){
-                        if (ii.getOperandOne().toString().contains(var.name())){
+                        if (ii.getOperandOne().toString().contains(var.name()) && ii.getOperandOne().toString().charAt(0) == var.name().charAt(0)){
                             ii.putOperandOne(varMap.get(var).iterator().next());
                         }
                     }
                     if (ii.getOperandTwo() != null){
-                        if (ii.getOperandTwo().toString().contains(var.name())){
+                        if (ii.getOperandTwo().toString().contains(var.name()) && ii.getOperandTwo().toString().charAt(0) == var.name().charAt(0)){
                             ii.putOperandTwo(varMap.get(var).iterator().next());
                         }
                     }
@@ -269,12 +269,12 @@ public class BasicBlock implements Operand {
                 for (IntermediateInstruction ii : t.toBB.IntermediateInstructionList){
                     if (ii.getOperator() != SSAOperator.MOVE && ii.getOperator() != SSAOperator.PHI){
                         if (ii.getOperandOne() != null){
-                            if (ii.getOperandOne().toString().contains(var.name())){
+                            if (ii.getOperandOne().toString().contains(var.name()) && ii.getOperandOne().toString().charAt(0) == var.name().charAt(0)){
                                 ii.putOperandOne(varMap.get(var).iterator().next());
                             }
                         }
                         if (ii.getOperandTwo() != null){
-                            if (ii.getOperandTwo().toString().contains(var.name())){
+                            if (ii.getOperandTwo().toString().contains(var.name()) && ii.getOperandTwo().toString().charAt(0) == var.name().charAt(0)){
                                 ii.putOperandTwo(varMap.get(var).iterator().next());
                             }
                         }
@@ -283,6 +283,8 @@ public class BasicBlock implements Operand {
             }
         }
     }
+
+
 
     public Boolean hasInsNum(int insNum){
         for (IntermediateInstruction ii : IntermediateInstructionList){
@@ -312,7 +314,15 @@ public class BasicBlock implements Operand {
         // determine liveness at entry and exit to BB
         for (int i = this.getIntInsList().size()-1; i >= 0; i--) {
             IntermediateInstruction ii = this.getIntInsList().get(i);
-            if (ii.isElim()){continue;}       
+            if (ii.isElim()){
+                if (i == this.getIntInsList().size()-1 && i >= 0) {
+                    change |= this.getIntInsList().get(i).setLiveVars(new HashSet<Operand>(lvExit));
+                }
+                if (i != 0) {
+                    change |= this.getIntInsList().get(i-1).setLiveVars(new HashSet<Operand>(live));
+                }
+                continue;
+            }       
          
             switch (ii.getOperator()) {
                 case BEQ:

@@ -1,18 +1,14 @@
-// Kyle Owens
-// Test nested function calls
-
 main
 
 int a, b, c, d;
 
 function foo(int x) : int {
-    let a = x + call bar(x); 
+    let a = x + call bar(x);
     return a;
 };
 
 function bar(int y) : int {
     let b = y * call boo(y);
-   // call printInt(b);
     return b;
 };
 
@@ -22,12 +18,9 @@ function boo(int z) : int {
 };
 
 {
-    //let a = 0; 
-    //let b = 0; 
-    //let c = 0;
-    call printInt( call foo(1) ); // 1 + bar(1) -> bar(1) = 1 * boo(1) -> boo(1) = 1
-    call printInt( call bar(2) ); // 2 * boo(2) -> boo(2) = 2
-    call printInt( call boo(3) ); // 3
+    call printInt( call foo(1) );
+    call printInt( call bar(2) );
+    call printInt( call boo(3) );
 
     let d = a + b + c;
     call printInt(d);
