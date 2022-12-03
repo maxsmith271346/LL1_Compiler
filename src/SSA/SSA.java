@@ -100,10 +100,31 @@ public class SSA implements NodeVisitor{
     }
 
     public void removeBB(BasicBlock BB){
+        boolean blockContainsPhi = false;
+        boolean endBlock = false;
         if (BB.name().contains("elim")){
             return;
         }
-        BB.putName(BB.name() + " elim");
+
+        for (IntermediateInstruction ii : BB.getIntInsList()){
+            if (ii.getOperator() == SSAOperator.PHI){
+                blockContainsPhi = true;
+            } 
+            if (ii.getOperator() == SSAOperator.END){
+                endBlock = true;
+            }   
+        }
+
+        if (blockContainsPhi && !endBlock){
+            for (IntermediateInstruction ii : BB.getIntInsList()){
+                if (ii.getOperator() != SSAOperator.PHI){
+                    ii.eliminate();
+                }   
+            }
+        }
+        else if (!endBlock){
+            BB.putName(BB.name() + " elim");            
+        }
     }
 
     /**
@@ -230,6 +251,7 @@ public class SSA implements NodeVisitor{
                             if (BB1.transitionList.size() != 0 ){
                                 if (t.label.contains("call")){
                                     BB1.transitionList.get(0).toBB.putName(t.toBB.name());
+                                    BB1.transitionList.get(0).toBB.function = t.toBB.function;
                                 }
                                 t.toBB = BB1.transitionList.get(0).toBB;
                             }
@@ -901,7 +923,7 @@ public class SSA implements NodeVisitor{
 
         for (Declaration d : node.decList) {
             if (d instanceof FunctionDeclaration){
-                currentBB = new BasicBlock(BBNumber, currentBB.varMap, ((FunctionDeclaration) d).name(), inFunc);
+                currentBB = new BasicBlock(BBNumber, currentBB.varMap, ((FunctionDeclaration) d).name(), ((FunctionDeclaration) d).function(), inFunc);
                 BBNumber++;
                 BasicBlockList.add(currentBB);
             }
@@ -914,7 +936,7 @@ public class SSA implements NodeVisitor{
 
     @Override
     public void visit(Computation node) {
-        BasicBlock mainBB = new BasicBlock(BBNumber, new HashMap<Symbol, HashSet<Symbol>>(), "main", inFunc);
+        BasicBlock mainBB = new BasicBlock(BBNumber, new HashMap<Symbol, HashSet<Symbol>>(), "main", null, inFunc);
         BBNumber++;
         BasicBlockList.add(mainBB);
         currentBB = mainBB;

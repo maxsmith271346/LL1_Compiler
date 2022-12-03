@@ -1,50 +1,23 @@
 main
 
-int x, y, z;
-int n, s, i, j, m, p, f;
-int a, b, c;
-int r, v, u, t;
+function test(): void {
+	int a, b, c;
+
+	let a = 12;
+	let b = 13;
+	if (a < b) then
+		let b = a + 5;
+		let a = a + 1;
+	else
+		let a = a + 1;
+		let c = 2;
+	fi;
+	let b = c + 1;
+	let a = a + 1;
+	call printInt(a); // 14
+    call printInt(b);  // 1: c is unitialized, default to 0
+};
 
 {
-    let n = 5;
-    let s = 0;
-    let i = 0;
-    while (i <= n)  do
-        //let j = i;
-        let m = n;
-        let p = m;
-        //let f = 1;
-        let p = 5;
-        while (p > 1) do
-            //let f *= p;
-            let p--;
-        od;
-
-        //let a = f;
-        //let p = m - j;
-
-        //let f = 1;
-        //while (p > 1) do
-        //    let f *= p;
-        //    let p--;
-        //od;
-
-        //let b = f;
-        //let c = a + b;
-        //let s += c;
-        let i++;
-    od;
-
-    let y = s;
-    let z = 4;
-    let v = y + y;
-    let u = z + 2;
-    let r = s + s;
-    let t = r + v;
-    let x = u + t;
-
-    // s and x are live
-    call printInt(s); // 874
-    call printInt(x); // 3502
-    call println();
+	call test();
 }.

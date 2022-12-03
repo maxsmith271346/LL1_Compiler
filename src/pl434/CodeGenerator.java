@@ -44,6 +44,7 @@ public class CodeGenerator {
     private HashMap<String, List<BasicBlock>> procedureToBBList;
     private HashMap<Symbol, Integer> FunctionToFirstInstruction;
     private HashMap<BasicBlock, Integer> firstInsOfBBs;
+    private HashMap<Symbol, List<Integer>> fixBranchAtReturn;
     final int BA = 31;
     final int GDB = 30; 
     final int SP = 29; 
@@ -53,6 +54,7 @@ public class CodeGenerator {
     int returnReg;
     String procedureName; 
     int numberParameters;
+    int numberVars;
     boolean epilogueGenerated;
     Symbol currentFunc;
     //int returnOffset;
@@ -77,6 +79,7 @@ public class CodeGenerator {
         returnReg = 0;
         inFunc = false;
         epilogueGenerated = false;
+        fixBranchAtReturn = new HashMap<Symbol, List<Integer>>();
         //returnOffset = -1;
         //funcToReturnOffset = new HashMap<Symbol, Integer>();
 
@@ -111,9 +114,13 @@ public class CodeGenerator {
             numberParameters = procedureToBBList.get(s).get(0).function.getParamTypes().size();            
             generateCode(procedureToBBList.get(s));
             if (!epilogueGenerated){
+                if (fixBranchAtReturn.containsKey(currentFunc)){
+                    fixBranchInstruction(fixBranchAtReturn.get(currentFunc));
+                }
                 generateEpilogue(s, numberParameters);
             }
         }    
+        //System.out.println("code generated");
     }
 
 
@@ -139,15 +146,17 @@ public class CodeGenerator {
 
     public void generatePrologue(String procedureName, BasicBlock rootBB){
         if (procedureName.equals("main")){
-            instructions.add(DLX.assemble(DLX.SUBI, 29, GDB, getNumberOfVars(1, rootBB) * 4));
+            numberVars = getNumberOfVars(1, rootBB);
+            instructions.add(DLX.assemble(DLX.SUBI, 29, GDB, numberVars * 4));
             instructions.add(DLX.assemble(DLX.ADDI, 28, 29, 0));
         }
         else{ 
+            numberVars = (getNumberOfVars(2, rootBB));
             instructions.add(DLX.assemble(DLX.PSH, BA, SP, -4));
             //instructions.add(DLX.assemble(DLX.WRI, BA));
             instructions.add(DLX.assemble(DLX.PSH, FP, SP, -4));
             instructions.add(DLX.assemble(DLX.ADD, FP, 0, SP));
-            instructions.add(DLX.assemble(DLX.SUBI, SP, SP, 4 * (getNumberOfVars(2, rootBB) + 1)));
+            instructions.add(DLX.assemble(DLX.SUBI, SP, SP, 4 * numberVars + 1));
         }
     }
 
@@ -159,7 +168,13 @@ public class CodeGenerator {
             instructions.add(DLX.assemble(DLX.ADD, SP, FP, 0));
             instructions.add(DLX.assemble(DLX.POP, FP, SP, 4));
             //instructions.add(DLX.assemble(DLX.POP, BA, SP, 4 *(1 + numberParameters)));
-            instructions.add(DLX.assemble(DLX.POP, BA, SP, 4 * (numberParameters)));
+            if (numberParameters == 0 && numberVars == 0){
+                instructions.add(DLX.assemble(DLX.POP, BA, SP, 4 *(1 + numberParameters)));
+            }
+            else{
+                instructions.add(DLX.assemble(DLX.POP, BA, SP, 4 * (numberParameters)));
+            }
+            
             //instructions.add(DLX.assemble(DLX.POP, BA, SP, 4));
             // instructions.add(DLX.assemble(DLX.PSH, ))
             //instructions.add(DLX.assemble(DLX.WRI, BA));
@@ -222,6 +237,7 @@ public class CodeGenerator {
                                     instructions.add(DLX.assemble(DLX.ADD, ii.returnReg, 0, ii.getRegisterOne()));
                                 }
                             }
+                            registersInUse.add(ii.returnReg);
                         }
                         /*if (ii.getOperandTwo() instanceof Symbol){
                             if (((Symbol) ii.getOperandTwo()).scope != 1){
@@ -229,7 +245,7 @@ public class CodeGenerator {
                             }
                         }
                         else{*/
-                            registersInUse.add(ii.returnReg);
+                            
                         //}
                         break;
                     case MOVE: 
@@ -397,9 +413,8 @@ public class CodeGenerator {
                             }
                         }
 
-                        instructions.add(DLX.assemble(DLX.STW, ii.returnReg, 30, getOffset(currentFunc) ));
-
                         if (inFunc){
+                            instructions.add(DLX.assemble(DLX.STW, ii.returnReg, 30, getOffset(currentFunc)));
                             generateEpilogue(procedureName, numberParameters);
                             epilogueGenerated = true;
                         }
@@ -587,6 +602,7 @@ public class CodeGenerator {
     // generic function to handle arithmetic operations given the four different potential operands 
     public void handleArithmeticOperations(IntermediateInstruction intIns, int intRegOp, int intConstOp, int floatRegOp, int floatConstOp, boolean commutative){
         // both are constant, each needs to be stored in a register 
+        if (intIns.returnReg == null){return;}
         if ((IntermediateInstruction.isConst(intIns.getOperandOne()) || intIns.getOperandOne() instanceof GDB) && IntermediateInstruction.isConst(intIns.getOperandTwo())){
             if (intIns.getOperandOne() instanceof FloatLiteral){
                 instructions.add(DLX.assemble(DLX.fADDI, spillRegOne, 0, Float.parseFloat(((FloatLiteral) intIns.getOperandOne()).value())));
@@ -751,18 +767,32 @@ public class CodeGenerator {
             instructions.add(DLX.assemble(DLX.BLT, ii.getRegisterOne(), firstInsOfBBs.get((BasicBlock) ii.getOperandTwo()) - instructions.size()));
             return;
         }
+
         List<Integer> instructionPieces = new ArrayList<Integer>();
         instructionPieces.add(op); 
         if (ii.getRegisterOne() != null){
             instructionPieces.add(ii.getRegisterOne());
         }
         else if (IntermediateInstruction.isConst(ii.getOperandOne())){ 
-            instructions.add(DLX.assemble(DLX.ADDI, spillRegOne, 0, (Boolean.parseBoolean(((BoolLiteral) ii.getOperandOne()).value()) ? 1 : 0)));
-            instructionPieces.add(spillRegOne);
+            if (ii.getOperandOne() instanceof IntegerLiteral){
+                instructions.add(DLX.assemble(DLX.ADDI, spillRegOne, 0, Integer.parseInt(((IntegerLiteral) ii.getOperandOne()).value())));
+                instructionPieces.add(spillRegOne);
+            }
+            else if (ii.getOperandOne() instanceof BoolLiteral){
+                instructions.add(DLX.assemble(DLX.ADDI, spillRegOne, 0, (Boolean.parseBoolean(((BoolLiteral) ii.getOperandOne()).value()) ? 1 : 0)));
+                instructionPieces.add(spillRegOne);
+            }
+           
         }
         instructions.add(0);
         instructionPieces.add(instructions.size() - 1);
-        branchesToFix.put((BasicBlock) ii.getOperandTwo(), instructionPieces);        
+
+        if (!ssa.getBasicBlockList().contains((BasicBlock) ii.getOperandTwo())){
+            fixBranchAtReturn.put(currentFunc, instructionPieces);
+        }
+        else{
+            branchesToFix.put((BasicBlock) ii.getOperandTwo(), instructionPieces);        
+        }
     }
 
     public void fixBranchInstruction(List<Integer> instructionPieces){

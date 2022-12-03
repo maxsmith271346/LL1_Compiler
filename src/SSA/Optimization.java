@@ -500,7 +500,6 @@ public class Optimization {
                 toCheck.remove(check);
             }*/
             for (BasicBlock bbChild : CodeGenerator.getChildren(thenBlock)){
-                //System.out.println(bbChild);
                 if (bbChild.BBNumber != thenBlock.BBNumber - 1){
                     ssa.removeBB(bbChild);
                 }
@@ -884,9 +883,7 @@ public class Optimization {
                                         String operandName = ((Symbol) iiAvail.getOperandTwo()).name();
                                         operandName = operandName.substring(0, operandName.lastIndexOf("_"));
                                         if (operandName.equals(operandOneName)){
-                                            System.out.println("ii before " + ii );
                                             ii.setOperandOne(iiAvail.getOperandOne());
-                                            System.out.println("ii after " + ii);
                                             change = true;
                                         }
                                     }

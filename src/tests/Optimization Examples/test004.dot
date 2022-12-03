@@ -1,0 +1,9 @@
+digraph G { 
+BB2[shape=record, label="<b>foo\nBB2|{0 : MOVE 30 a_0 |1 : DIV a_0 5 |2 : SUB 9 (1) |3 : MOVE (2) b_3 |4 : MUL b_3 4 |5 : MOVE (4) c_5 |6 : CMP c_5 10 |7 : BLE (6) [4] }"];
+BB2:s -> BB3:n [label="then"];
+BB2:s -> BB4:n [label="else"];
+BB4[shape=record, label="<b>BB4|{10 : PHI c_5 c_9 |11 : DIV 60 a_0 |12 : MUL c_10 (11) |13 : RET (12) }"];
+BB3[shape=record, label="<b>BB3|{8 : SUB c_5 10 |9 : MOVE (8) c_9 }"];
+BB3:s -> BB4:n [label=""];
+BB1[shape=record, label="<b>main\nBB1|{14 : WRITE_I 1 |15 : END }"];
+}

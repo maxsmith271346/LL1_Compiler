@@ -67,9 +67,10 @@ public class BasicBlock implements Operand {
         this.function = null;
     }
 
-    public BasicBlock(int BBNumber, HashMap<Symbol, HashSet<Symbol>> varMap, String name, Boolean inFunc){
+    public BasicBlock(int BBNumber, HashMap<Symbol, HashSet<Symbol>> varMap, String name,Symbol func,  Boolean inFunc){
         this(BBNumber, varMap, inFunc);
         this.BBName = name;
+        this.function = func;
     }
 
     public void addBasicBlockName(String name){

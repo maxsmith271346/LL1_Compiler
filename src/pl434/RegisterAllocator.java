@@ -218,7 +218,7 @@ public class RegisterAllocator {
         // Eliminate all phi instructions, inserting move instructions wherever necessary
         for (BasicBlock bb : ssa.getBasicBlockList()){
             if (bb.name().contains("elim")){continue;}
-            List<IntermediateInstruction> toRemove = new ArrayList<IntermediateInstruction>();
+            //List<IntermediateInstruction> toAdd = new ArrayList<IntermediateInstruction>();
 
             for (IntermediateInstruction ii : bb.getIntInsList()){
                 if (ii.isElim()){continue;}
@@ -231,21 +231,41 @@ public class RegisterAllocator {
 
                         IntermediateInstruction moveInsOne = new IntermediateInstruction(SSAOperator.MOVE, opOne, ii.phiSymbol, BasicBlock.insNumber, new VoidType());
                         IntermediateInstruction moveInsTwo = new IntermediateInstruction(SSAOperator.MOVE, ii.getOperandTwo(), ii.phiSymbol, BasicBlock.insNumber, new VoidType());
+                        
+                       
+                        if(bb.inList.size() == 2){
+                            /*if(!bb.name().equals("") && opOneInsNum < 0){
+                                toAdd.add(moveInsOne);
+                            }
+                            if(!bb.name().equals("") && opTwoInsNum < 0){
+                                toAdd.add(moveInsTwo);
+                            }*/
 
-                        if (bb.inList.get(0).hasInsNum(opOneInsNum) || bb.inList.get(1).hasInsNum(opTwoInsNum) ){
-                            bb.inList.get(0).addEnd(moveInsOne, false);
-                            bb.inList.get(1).addEnd(moveInsTwo, false);
+                            if (bb.inList.get(0).hasInsNum(opOneInsNum) || bb.inList.get(1).hasInsNum(opTwoInsNum) ){
+                                bb.inList.get(0).addEnd(moveInsOne, false);
+                                bb.inList.get(1).addEnd(moveInsTwo, false);
+                            }
+                            else { 
+                                bb.inList.get(1).addEnd(moveInsOne, false);
+                                bb.inList.get(0).addEnd(moveInsTwo, false);
+                            }
                         }
-                        else { 
-                            bb.inList.get(1).addEnd(moveInsOne, false);
-                            bb.inList.get(0).addEnd(moveInsTwo, false);
+                        else if (bb.inList.size() == 1){
+                            if (bb.inList.get(0).hasInsNum(opOneInsNum)){
+                                bb.inList.get(0).addEnd(moveInsOne, false);
+                            }
+                            else { 
+                                bb.inList.get(0).addEnd(moveInsTwo, false);
+                            }
                         }
                         ii.eliminate();
                     }
                 }
             }
-
-            //bb.getIntInsList().removeAll(toRemove);
+            /*for (IntermediateInstruction iiToAdd : toAdd){
+                bb.addFront(iiToAdd);
+            }*/
+            
         }
 
         //System.out.println("After Eliminating PHIs " + ssa.asDotGraph());
